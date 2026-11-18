@@ -13,31 +13,31 @@ import io.github.cottonmc.cotton.gui.widget.data.Color
 import io.github.cottonmc.cotton.gui.widget.data.VerticalAlignment
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import java.util.*
 
 @Environment(EnvType.CLIENT)
 class ScoreSettlementScreen(
     settlement: ScoreSettlement
 ) : CottonClientScreen(ScoreSettlementGui(settlement)) {
-    override fun shouldPause(): Boolean = false
+    override fun isPauseScreen(): Boolean = false
 }
 
 @Environment(EnvType.CLIENT)
 class ScoreSettlementGui(
     private val settlement: ScoreSettlement
 ) : LightweightGuiDescription() {
-    private val fontHeight = MinecraftClient.getInstance().textRenderer.fontHeight
+    private val fontHeight = Minecraft.getInstance().font.lineHeight
     private val rankedScoreList = settlement.rankedScoreList
-    private val time: Text
+    private val time: Component
         get() {
             val time = ScoreSettleHandler.time
             val dotAmount = 3 - (time % 3)
             var text = "$time "
             repeat(dotAmount) { text += "." }
-            return Text.of(text)
+            return Component.nullToEmpty(text)
         }
 
     init {
@@ -51,15 +51,15 @@ class ScoreSettlementGui(
             val title = label(
                 x = BORDER_MARGIN,
                 y = BORDER_MARGIN,
-                text = Text.translatable(settlement.titleTranslateKey)
-                    .formatted(Formatting.DARK_PURPLE)
-                    .formatted(Formatting.BOLD)
+                text = Component.translatable(settlement.titleTranslateKey)
+                    .withStyle(ChatFormatting.DARK_PURPLE)
+                    .withStyle(ChatFormatting.BOLD)
             )
             val confirmButton = button(
                 x = ROOT_WIDTH - BUTTON_WIDTH - BORDER_MARGIN,
                 y = ROOT_HEIGHT - BUTTON_HEIGHT - BORDER_MARGIN,
                 width = BUTTON_WIDTH,
-                label = Text.translatable("$MOD_ID.gui.button.confirm"),
+                label = Component.translatable("$MOD_ID.gui.button.confirm"),
                 onClick = { ScoreSettleHandler.closeScreen() }
             )
             scrollPanel(
@@ -91,16 +91,16 @@ class ScoreSettlementGui(
         private val scoreChange = rankedScoreItem.scoreChangeText
         private val rankFloat = rankedScoreItem.rankFloatText
 
-        private val textRenderer = MinecraftClient.getInstance().textRenderer
-        private val maxDisplayNameLabelWidth = textRenderer.getWidth("HI IM DOUBLEMOON") //名字的長度先取最長的 16 個字元
-        private val maxScoreLabelWidth = textRenderer.getWidth("1000000")
+        private val textRenderer = Minecraft.getInstance().font
+        private val maxDisplayNameLabelWidth = textRenderer.width("HI IM DOUBLEMOON") //名字的長度先取最長的 16 個字元
+        private val maxScoreLabelWidth = textRenderer.width("1000000")
 
         init {
             val rank = label(
                 x = BORDER_MARGIN + 20,
                 y = BORDER_MARGIN,
                 height = 22,
-                text = Text.of("$number."),
+                text = Component.nullToEmpty("$number."),
                 verticalAlignment = VerticalAlignment.CENTER
             )
             val face = if (isRealPlayer) {
@@ -122,7 +122,7 @@ class ScoreSettlementGui(
                 )
             }
             val displayNameText =
-                if (isRealPlayer) Text.of(displayName) else Text.translatable("entity.$MOD_ID.mahjong_bot")
+                if (isRealPlayer) Component.nullToEmpty(displayName) else Component.translatable("entity.$MOD_ID.mahjong_bot")
             val displayNameLabel = label(
                 x = face.x + face.width + 8,
                 y = face.y,
@@ -133,7 +133,7 @@ class ScoreSettlementGui(
             val scoreTotalLabel = label(
                 x = displayNameLabel.x + displayNameLabel.width + 8,
                 y = displayNameLabel.y,
-                text = Text.of("$scoreTotal"),
+                text = Component.nullToEmpty("$scoreTotal"),
                 width = maxScoreLabelWidth,
                 verticalAlignment = VerticalAlignment.CENTER
             )

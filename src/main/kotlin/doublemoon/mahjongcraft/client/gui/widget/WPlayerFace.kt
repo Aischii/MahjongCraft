@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.block.entity.SkullBlockEntity
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.world.level.block.entity.SkullBlockEntity
+import net.minecraft.client.gui.GuiGraphics
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.min
@@ -46,15 +46,15 @@ class WPlayerFace(
         val requestedUuid = uuid
         val requestedName = name
         coroutineScope.launch(Dispatchers.IO) {
-            val profile = SkullBlockEntity.fetchProfileByUuid(requestedUuid).get().getOrNull()
-                ?: SkullBlockEntity.fetchProfileByName(requestedName).get().getOrNull()
+            val profile = SkullBlockEntity.fetchGameProfile(requestedUuid).get().getOrNull()
+                ?: SkullBlockEntity.fetchGameProfile(requestedName).get().getOrNull()
             // A slower, older fetch must not overwrite the face of a newer setUuidAndName call.
             if (profile != null && uuid == requestedUuid) gameProfile = profile
         }
     }
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: DrawContext, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphics, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         RenderHelper.renderPlayerFace(
             context = context,
             gameProfile = gameProfile,

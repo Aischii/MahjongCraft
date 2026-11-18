@@ -5,16 +5,16 @@ import me.shedaniel.clothconfig2.api.ConfigCategory
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder
 import me.shedaniel.clothconfig2.gui.entries.*
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.util.InputUtil
-import net.minecraft.text.Text
+import net.minecraft.client.gui.screens.Screen
+import com.mojang.blaze3d.platform.InputConstants
+import net.minecraft.network.chat.Component
 import java.util.*
 
 /**
  * 這裡的寫法看起來很 heck, 等我想到更好的寫法就回來修正
  * */
 fun configBuilder(
-    title: Text,
+    title: Component,
     parent: Screen?,
     transparentBackground: Boolean = true,
     doesConfirmSave: Boolean = true,
@@ -33,7 +33,7 @@ fun configBuilder(
 }
 
 fun Pair<ConfigBuilder, ConfigEntryBuilder>.category(
-    text: Text,
+    text: Component,
     block: Pair<ConfigCategory, ConfigEntryBuilder>.() -> Unit
 ): ConfigCategory {
     val (builder, entryBuilder) = this
@@ -43,9 +43,9 @@ fun Pair<ConfigBuilder, ConfigEntryBuilder>.category(
 }
 
 fun Pair<ConfigCategory, ConfigEntryBuilder>.subCategory(
-    text: Text,
+    text: Component,
     expanded: Boolean = true,
-    tooltipSupplier: () -> Optional<Array<Text>> = { Optional.empty<Array<Text>>() },
+    tooltipSupplier: () -> Optional<Array<Component>> = { Optional.empty<Array<Component>>() },
     block: Pair<SubCategoryBuilder, ConfigEntryBuilder>.() -> Unit
 ): SubCategoryListEntry {
     val (category, entryBuilder) = this
@@ -59,11 +59,11 @@ fun Pair<ConfigCategory, ConfigEntryBuilder>.subCategory(
 }
 
 fun Pair<ConfigCategory, ConfigEntryBuilder>.keyCodeField(
-    text: Text,
-    startKey: InputUtil.Key,
-    defaultKey: () -> InputUtil.Key,
-    tooltipSupplier: (InputUtil.Key) -> Optional<Array<Text>> = { Optional.empty<Array<Text>>() },
-    saveConsumer: (InputUtil.Key) -> Unit
+    text: Component,
+    startKey: InputConstants.Key,
+    defaultKey: () -> InputConstants.Key,
+    tooltipSupplier: (InputConstants.Key) -> Optional<Array<Component>> = { Optional.empty<Array<Component>>() },
+    saveConsumer: (InputConstants.Key) -> Unit
 ): KeyCodeEntry {
     val (category, entryBuilder) = this
     val keyCodeEntry = entryBuilder.startKeyCodeField(text, startKey)
@@ -76,10 +76,10 @@ fun Pair<ConfigCategory, ConfigEntryBuilder>.keyCodeField(
 }
 
 fun Pair<ConfigCategory, ConfigEntryBuilder>.booleanToggle(
-    text: Text,
+    text: Component,
     startValue: Boolean,
     defaultValue: () -> Boolean,
-    tooltipSupplier: (Boolean) -> Optional<Array<Text>> = { Optional.empty<Array<Text>>() },
+    tooltipSupplier: (Boolean) -> Optional<Array<Component>> = { Optional.empty<Array<Component>>() },
     saveConsumer: (Boolean) -> Unit
 ): BooleanListEntry {
     val (category, entryBuilder) = this
@@ -95,10 +95,10 @@ fun Pair<ConfigCategory, ConfigEntryBuilder>.booleanToggle(
 
 @JvmName("booleanToggleSubCategoryBuilderConfigEntryBuilder")
 fun Pair<SubCategoryBuilder, ConfigEntryBuilder>.booleanToggle(
-    text: Text,
+    text: Component,
     startValue: Boolean,
     defaultValue: () -> Boolean,
-    tooltipSupplier: (Boolean) -> Optional<Array<Text>> = { Optional.empty<Array<Text>>() },
+    tooltipSupplier: (Boolean) -> Optional<Array<Component>> = { Optional.empty<Array<Component>>() },
     saveConsumer: (Boolean) -> Unit
 ): BooleanListEntry {
     val (subCategory, entryBuilder) = this
@@ -112,10 +112,10 @@ fun Pair<SubCategoryBuilder, ConfigEntryBuilder>.booleanToggle(
 }
 
 fun Pair<SubCategoryBuilder, ConfigEntryBuilder>.alphaColorField(
-    text: Text,
+    text: Component,
     startColor: Int,
     defaultColor: () -> Int,
-    tooltipSupplier: (Int) -> Optional<Array<Text>> = { Optional.empty<Array<Text>>() },
+    tooltipSupplier: (Int) -> Optional<Array<Component>> = { Optional.empty<Array<Component>>() },
     saveConsumer: (Int) -> Unit
 ): ColorEntry {
     val (subCategory, entryBuilder) = this
@@ -129,13 +129,13 @@ fun Pair<SubCategoryBuilder, ConfigEntryBuilder>.alphaColorField(
 }
 
 fun Pair<SubCategoryBuilder, ConfigEntryBuilder>.intSlider(
-    text: Text,
+    text: Component,
     startValue: Int,
     minValue: Int,
     maxValue: Int,
     defaultValue: () -> Int,
-    tooltipSupplier: (Int) -> Optional<Array<Text>> = { Optional.empty<Array<Text>>() },
-    textGetter: (Int) -> Text,
+    tooltipSupplier: (Int) -> Optional<Array<Component>> = { Optional.empty<Array<Component>>() },
+    textGetter: (Int) -> Component,
     saveConsumer: (Int) -> Unit
 ): IntegerSliderEntry {
     val (subCategory, entryBuilder) = this

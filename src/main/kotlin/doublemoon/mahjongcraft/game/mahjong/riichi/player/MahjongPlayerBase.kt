@@ -4,11 +4,11 @@ import doublemoon.mahjongcraft.entity.*
 import doublemoon.mahjongcraft.game.GamePlayer
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.*
 import doublemoon.mahjongcraft.logger
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.sound.SoundCategory
-import net.minecraft.sound.SoundEvent
-import net.minecraft.sound.SoundEvents
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.sounds.SoundEvents
 import org.mahjong4j.*
 import org.mahjong4j.hands.*
 import org.mahjong4j.tile.Tile
@@ -117,7 +117,7 @@ abstract class MahjongPlayerBase : GamePlayer {
      * 這邊寫一個都有的呼叫方法, 方便統一使用
      * */
     abstract fun teleport(
-        targetWorld: ServerWorld,
+        targetWorld: ServerLevel,
         x: Double,
         y: Double,
         z: Double,
@@ -1018,7 +1018,7 @@ abstract class MahjongPlayerBase : GamePlayer {
             it.inGameTilePosition = TilePosition.OTHER
             discardedTiles += it
             discardedTilesForDisplay += it
-            playSoundAtHandsMiddle(soundEvent = SoundEvents.BLOCK_BAMBOO_PLACE) //播放把牌打出去的聲音
+            playSoundAtHandsMiddle(soundEvent = SoundEvents.BAMBOO_PLACE) //播放把牌打出去的聲音
         }
 
     /**
@@ -1030,7 +1030,7 @@ abstract class MahjongPlayerBase : GamePlayer {
             it.facing = TileFacing.UP
             it.inGameTilePosition = TilePosition.OTHER
         }
-        playSoundAtHandsMiddle(soundEvent = SoundEvents.ITEM_ARMOR_EQUIP_GENERIC.value())
+        playSoundAtHandsMiddle(soundEvent = SoundEvents.ARMOR_EQUIP_GENERIC.value())
     }
 
     /**
@@ -1042,7 +1042,7 @@ abstract class MahjongPlayerBase : GamePlayer {
             it.facing = TileFacing.DOWN
             it.inGameTilePosition = TilePosition.OTHER
         }
-        playSoundAtHandsMiddle(soundEvent = SoundEvents.ITEM_ARMOR_EQUIP_GENERIC.value())
+        playSoundAtHandsMiddle(soundEvent = SoundEvents.ARMOR_EQUIP_GENERIC.value())
     }
 
     /**
@@ -1050,14 +1050,14 @@ abstract class MahjongPlayerBase : GamePlayer {
      * */
     private fun playSoundAtHandsMiddle(
         soundEvent: SoundEvent,
-        category: SoundCategory = SoundCategory.VOICE,
+        category: SoundSource = SoundSource.VOICE,
         volume: Float = 1f,
         pitch: Float = 1f,
     ) {
         if (hands.size > 0) {
             val handsMiddleIndex = hands.size / 2
             hands[handsMiddleIndex].let {
-                it.world.playSound(
+                it.level().playSound(
                     null,
                     it.x,
                     it.y,

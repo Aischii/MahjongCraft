@@ -1,9 +1,9 @@
 package doublemoon.mahjongcraft.util
 
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.network.chat.Component
 
 
 /**
@@ -12,13 +12,13 @@ import net.minecraft.text.Text
  * @param title 要顯示的標題
  * @param subtitle 要顯示的副標題
  * */
-fun ServerPlayerEntity.sendTitles(
-    title: Text = Text.of(""),
-    subtitle: Text? = null,
+fun ServerPlayer.sendTitles(
+    title: Component = Component.nullToEmpty(""),
+    subtitle: Component? = null,
 ) {
-    with(networkHandler) {
-        sendPacket(TitleS2CPacket(title))
-        subtitle?.also { sendPacket(SubtitleS2CPacket(it)) }
+    with(connection) {
+        send(ClientboundSetTitleTextPacket(title))
+        subtitle?.also { send(ClientboundSetSubtitleTextPacket(it)) }
     }
 }
 
@@ -28,9 +28,9 @@ fun ServerPlayerEntity.sendTitles(
  * @param title 要顯示的標題
  * @param subtitle 要顯示的副標題
  * */
-fun Collection<ServerPlayerEntity>.sendTitles(
-    title: Text = Text.of(""),
-    subtitle: Text? = null
+fun Collection<ServerPlayer>.sendTitles(
+    title: Component = Component.nullToEmpty(""),
+    subtitle: Component? = null
 ) {
     forEach { it.sendTitles(title, subtitle) }
 }

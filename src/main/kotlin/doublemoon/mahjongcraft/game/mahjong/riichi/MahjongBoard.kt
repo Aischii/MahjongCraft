@@ -15,10 +15,10 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.*
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayerBase
 import doublemoon.mahjongcraft.scheduler.server.ServerScheduler
 import doublemoon.mahjongcraft.util.delayOnServer
-import net.minecraft.entity.Entity
-import net.minecraft.sound.SoundEvents
-import net.minecraft.util.math.Direction
-import net.minecraft.util.math.Vec3d
+import net.minecraft.world.entity.Entity
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.core.Direction
+import net.minecraft.world.phys.Vec3
 import org.mahjong4j.GeneralSituation
 import org.mahjong4j.hands.Kantsu
 import org.mahjong4j.tile.Tile
@@ -219,33 +219,33 @@ class MahjongBoard(
                 when (index / 34) { //這裡面朝的方向就是以遊戲內的東為準，按照麻將桌"順"時針東南西北的方向
                     0 -> { //遊戲中面朝東
                         tableCenterPos.add(directionOffset, yOffset, -startingPos + stackWidth).apply {
-                            tile.refreshPositionAfterTeleport(this)
-                            tile.yaw = -90f
+                            tile.moveTo(this)
+                            tile.yRot = -90f
                         }
                     }
                     1 -> { //遊戲中面朝南
                         tableCenterPos.add(startingPos - stackWidth, yOffset, directionOffset).apply {
-                            tile.refreshPositionAfterTeleport(this)
-                            tile.yaw = 0f
+                            tile.moveTo(this)
+                            tile.yRot = 0f
                         }
                     }
                     2 -> { //遊戲中面朝西
                         tableCenterPos.add(-directionOffset, yOffset, startingPos - stackWidth).apply {
-                            tile.refreshPositionAfterTeleport(this)
-                            tile.yaw = 90f
+                            tile.moveTo(this)
+                            tile.yRot = 90f
                         }
                     }
                     else -> { //遊戲中面朝北
                         tableCenterPos.add(-startingPos + stackWidth, yOffset, -directionOffset).apply {
-                            tile.refreshPositionAfterTeleport(this)
-                            tile.yaw = 180f
+                            tile.moveTo(this)
+                            tile.yRot = 180f
                         }
                     }
                 }
             }
-            ServerScheduler.scheduleDelayAction { this.forEach { world.spawnEntity(it) } } //將牌生成到遊戲中
+            ServerScheduler.scheduleDelayAction { this.forEach { world.addFreshEntity(it) } } //將牌生成到遊戲中
         }
-        game.playSound(soundEvent = SoundEvents.ENTITY_ITEM_PICKUP)
+        game.playSound(soundEvent = SoundEvents.ITEM_PICKUP)
     }
 
     /**
@@ -263,43 +263,43 @@ class MahjongBoard(
             forEach {
                 //偏移王牌區
                 val gap = MAHJONG_TILE_SMALL_PADDING * 20
-                when (it.horizontalFacing) {
-                    Direction.EAST -> it.refreshPositionAfterTeleport(it.x, it.y, it.z + gap)
-                    Direction.SOUTH -> it.refreshPositionAfterTeleport(it.x - gap, it.y, it.z)
-                    Direction.WEST -> it.refreshPositionAfterTeleport(it.x, it.y, it.z - gap)
-                    Direction.NORTH -> it.refreshPositionAfterTeleport(it.x + gap, it.y, it.z)
+                when (it.direction) {
+                    Direction.EAST -> it.moveTo(it.x, it.y, it.z + gap)
+                    Direction.SOUTH -> it.moveTo(it.x - gap, it.y, it.z)
+                    Direction.WEST -> it.moveTo(it.x, it.y, it.z - gap)
+                    Direction.NORTH -> it.moveTo(it.x + gap, it.y, it.z)
                     else -> {
                     }
                 }
             }
             // 王牌區方向以最後一敦為準
-            val direction = deadWall.last().horizontalFacing
+            val direction = deadWall.last().direction
             // 將與王牌區不同方向的捕到王牌區旁邊並將方向轉正
             reversed().let {
                 it.forEachIndexed { index, mahjongTile ->
                     with(mahjongTile) {
-                        if (this.horizontalFacing != direction) {
+                        if (this.direction != direction) {
                             //整除 2 表示牌在下面,反之牌在上面
-                            yaw = direction.asRotation()
+                            yRot = direction.toYRot()
                             if (index % 2 == 0) {
                                 it.forEach { tile ->
                                     when (direction) {
-                                        Direction.EAST -> tile.refreshPositionAfterTeleport(
+                                        Direction.EAST -> tile.moveTo(
                                             tile.x,
                                             tile.y,
                                             tile.z + MAHJONG_TILE_WIDTH
                                         )
-                                        Direction.SOUTH -> tile.refreshPositionAfterTeleport(
+                                        Direction.SOUTH -> tile.moveTo(
                                             tile.x - MAHJONG_TILE_WIDTH,
                                             tile.y,
                                             tile.z
                                         )
-                                        Direction.WEST -> tile.refreshPositionAfterTeleport(
+                                        Direction.WEST -> tile.moveTo(
                                             tile.x,
                                             tile.y,
                                             tile.z - MAHJONG_TILE_WIDTH
                                         )
-                                        Direction.NORTH -> tile.refreshPositionAfterTeleport(
+                                        Direction.NORTH -> tile.moveTo(
                                             tile.x + MAHJONG_TILE_WIDTH,
                                             tile.y,
                                             tile.z
@@ -312,22 +312,22 @@ class MahjongBoard(
                             val posY = if (index % 2 == 0) it[0].y else it[1].y
                             val offset = (MAHJONG_TILE_WIDTH + MAHJONG_TILE_SMALL_PADDING) * (index / 2)
                             when (direction) {
-                                Direction.EAST -> mahjongTile.refreshPositionAfterTeleport(
+                                Direction.EAST -> mahjongTile.moveTo(
                                     it[0].x,
                                     posY,
                                     it[0].z - offset
                                 )
-                                Direction.SOUTH -> mahjongTile.refreshPositionAfterTeleport(
+                                Direction.SOUTH -> mahjongTile.moveTo(
                                     it[0].x + offset,
                                     posY,
                                     it[0].z
                                 )
-                                Direction.WEST -> mahjongTile.refreshPositionAfterTeleport(
+                                Direction.WEST -> mahjongTile.moveTo(
                                     it[0].x,
                                     posY,
                                     it[0].z + offset
                                 )
-                                Direction.NORTH -> mahjongTile.refreshPositionAfterTeleport(
+                                Direction.NORTH -> mahjongTile.moveTo(
                                     it[0].x - offset,
                                     posY,
                                     it[0].z
@@ -378,7 +378,7 @@ class MahjongBoard(
             if (game.seat.size == 0) return@repeat //可能是遊戲中途消失了
             val seatIndex = (game.round.round + times) % 4
             game.seat[seatIndex].hands.forEach { it.isInvisible = false }
-            game.playSound(soundEvent = SoundEvents.ENTITY_ITEM_PICKUP, volume = 0.3f, pitch = 2.0f)
+            game.playSound(soundEvent = SoundEvents.ITEM_PICKUP, volume = 0.3f, pitch = 2.0f)
             delayOnServer(250)
         }
     }
@@ -417,26 +417,26 @@ class MahjongBoard(
                 when (seatIndex) { //這裡的方向就是以遊戲內的面朝東為準，按照麻將桌"逆"時針東南西北的方向
                     0 -> { //東
                         tableCenterPos.add(directionOffset, 0.0, startingPos - stackOffset).apply {
-                            hTile.refreshPositionAfterTeleport(this)
-                            hTile.yaw = -90f
+                            hTile.moveTo(this)
+                            hTile.yRot = -90f
                         }
                     }
                     3 -> { //南
                         tableCenterPos.add(-startingPos + stackOffset, 0.0, directionOffset).apply {
-                            hTile.refreshPositionAfterTeleport(this)
-                            hTile.yaw = 0f
+                            hTile.moveTo(this)
+                            hTile.yRot = 0f
                         }
                     }
                     2 -> { //西
                         tableCenterPos.add(-directionOffset, 0.0, -startingPos + stackOffset).apply {
-                            hTile.refreshPositionAfterTeleport(this)
-                            hTile.yaw = 90f
+                            hTile.moveTo(this)
+                            hTile.yRot = 90f
                         }
                     }
                     else -> { //北
                         tableCenterPos.add(startingPos - stackOffset, 0.0, -directionOffset).apply {
-                            hTile.refreshPositionAfterTeleport(this)
-                            hTile.yaw = 180f
+                            hTile.moveTo(this)
+                            hTile.yRot = 180f
                         }
                     }
                 }
@@ -471,28 +471,28 @@ class MahjongBoard(
             else -> tableCenterPos.add(basicOffset, 0.0, -paddingFromCenter) //北
         }
         val tileOffset = when (seatIndex) { //以牌桌邊緣為底, 垂直擺放的牌的偏移量 (由左手往右手方向)
-            0 -> Vec3d(0.0, 0.0, -MAHJONG_TILE_WIDTH.toDouble()) //東
-            3 -> Vec3d(MAHJONG_TILE_WIDTH.toDouble(), 0.0, 0.0) //南
-            2 -> Vec3d(0.0, 0.0, MAHJONG_TILE_WIDTH.toDouble()) //西
-            else -> Vec3d(-MAHJONG_TILE_WIDTH.toDouble(), 0.0, 0.0) //北
+            0 -> Vec3(0.0, 0.0, -MAHJONG_TILE_WIDTH.toDouble()) //東
+            3 -> Vec3(MAHJONG_TILE_WIDTH.toDouble(), 0.0, 0.0) //南
+            2 -> Vec3(0.0, 0.0, MAHJONG_TILE_WIDTH.toDouble()) //西
+            else -> Vec3(-MAHJONG_TILE_WIDTH.toDouble(), 0.0, 0.0) //北
         }
         val riichiTileOffset = when (seatIndex) { //以牌桌邊緣為底, 垂直擺放的牌的偏移量 (由左手往右手方向)
-            0 -> Vec3d(0.0, 0.0, -halfTileWidthAndHalfTileHeight) //東
-            3 -> Vec3d(halfTileWidthAndHalfTileHeight, 0.0, 0.0) //南
-            2 -> Vec3d(0.0, 0.0, halfTileWidthAndHalfTileHeight) //西
-            else -> Vec3d(-halfTileWidthAndHalfTileHeight, 0.0, 0.0) //北
+            0 -> Vec3(0.0, 0.0, -halfTileWidthAndHalfTileHeight) //東
+            3 -> Vec3(halfTileWidthAndHalfTileHeight, 0.0, 0.0) //南
+            2 -> Vec3(0.0, 0.0, halfTileWidthAndHalfTileHeight) //西
+            else -> Vec3(-halfTileWidthAndHalfTileHeight, 0.0, 0.0) //北
         }
         val lineOffset = when (seatIndex) { //以牌桌邊緣為底, 垂直擺放的牌的偏移量 (由上往下方向)
-            0 -> Vec3d(MAHJONG_TILE_HEIGHT.toDouble() + MAHJONG_TILE_SMALL_PADDING, 0.0, 0.0) //東
-            3 -> Vec3d(0.0, 0.0, MAHJONG_TILE_HEIGHT.toDouble() + MAHJONG_TILE_SMALL_PADDING) //南
-            2 -> Vec3d(-MAHJONG_TILE_HEIGHT.toDouble() - MAHJONG_TILE_SMALL_PADDING, 0.0, 0.0) //西
-            else -> Vec3d(0.0, 0.0, -MAHJONG_TILE_HEIGHT.toDouble() - MAHJONG_TILE_SMALL_PADDING) //北
+            0 -> Vec3(MAHJONG_TILE_HEIGHT.toDouble() + MAHJONG_TILE_SMALL_PADDING, 0.0, 0.0) //東
+            3 -> Vec3(0.0, 0.0, MAHJONG_TILE_HEIGHT.toDouble() + MAHJONG_TILE_SMALL_PADDING) //南
+            2 -> Vec3(-MAHJONG_TILE_HEIGHT.toDouble() - MAHJONG_TILE_SMALL_PADDING, 0.0, 0.0) //西
+            else -> Vec3(0.0, 0.0, -MAHJONG_TILE_HEIGHT.toDouble() - MAHJONG_TILE_SMALL_PADDING) //北
         }
         val smallGapOffset = when (seatIndex) { //擺放的牌的間隔偏移量 (由左手往右手方向)
-            0 -> Vec3d(0.0, 0.0, -MAHJONG_TILE_SMALL_PADDING) //東
-            3 -> Vec3d(MAHJONG_TILE_SMALL_PADDING, 0.0, 0.0) //南
-            2 -> Vec3d(0.0, 0.0, MAHJONG_TILE_SMALL_PADDING) //西
-            else -> Vec3d(-MAHJONG_TILE_SMALL_PADDING, 0.0, 0.0) //北
+            0 -> Vec3(0.0, 0.0, -MAHJONG_TILE_SMALL_PADDING) //東
+            3 -> Vec3(MAHJONG_TILE_SMALL_PADDING, 0.0, 0.0) //南
+            2 -> Vec3(0.0, 0.0, MAHJONG_TILE_SMALL_PADDING) //西
+            else -> Vec3(-MAHJONG_TILE_SMALL_PADDING, 0.0, 0.0) //北
         }
         val tileRot = when (seatIndex) { //牌的面朝方向
             0 -> -90f       //東
@@ -534,7 +534,7 @@ class MahjongBoard(
                 }
             nowPos = if (firstTileInThisLine) nowPos else nowPos.add(smallGapOffset) //第 1 張牌不會有縫隙偏移
             val yRot = if (isRiichiTile) tileRot - 90 else tileRot
-            tileEntity.refreshPositionAndAngles(nowPos.x, nowPos.y, nowPos.z, yRot, 0f)
+            tileEntity.moveTo(nowPos.x, nowPos.y, nowPos.z, yRot, 0f)
             tileEntity.facing = TileFacing.UP
         }
     }
@@ -568,7 +568,7 @@ class MahjongBoard(
                     ?: return@let it  //沒有積棒就維持原本的座標
 
             //如果有積棒的存在
-            val stickPos = lastStickOfFirstStack.pos //積棒的位置
+            val stickPos = lastStickOfFirstStack.position() //積棒的位置
             val offset = stickPos.subtract(it) //算出點棒到角落座標的偏移
             val halfDepthOfStick = MAHJONG_POINT_STICK_DEPTH / 2.0 //積棒深度的一半
             val pos = when (seatIndex) { //計算出只求 與積棒擺放方向平行的位置的偏移 後的角落座標
@@ -586,10 +586,10 @@ class MahjongBoard(
         }
         val tileGap = MAHJONG_TILE_SMALL_PADDING
         val verticalTileOffset = when (seatIndex) { //以牌桌邊緣為底, 垂直擺放的牌的偏移量 (由右手往左手方向)
-            0 -> Vec3d(0.0, 0.0, MAHJONG_TILE_WIDTH.toDouble() + tileGap)      //東
-            3 -> Vec3d(-MAHJONG_TILE_WIDTH.toDouble() - tileGap, 0.0, 0.0)     //南
-            2 -> Vec3d(0.0, 0.0, -MAHJONG_TILE_WIDTH.toDouble() - tileGap)     //西
-            else -> Vec3d(MAHJONG_TILE_WIDTH.toDouble() + tileGap, 0.0, 0.0)   //北
+            0 -> Vec3(0.0, 0.0, MAHJONG_TILE_WIDTH.toDouble() + tileGap)      //東
+            3 -> Vec3(-MAHJONG_TILE_WIDTH.toDouble() - tileGap, 0.0, 0.0)     //南
+            2 -> Vec3(0.0, 0.0, -MAHJONG_TILE_WIDTH.toDouble() - tileGap)     //西
+            else -> Vec3(MAHJONG_TILE_WIDTH.toDouble() + tileGap, 0.0, 0.0)   //北
         }
         val halfVerticalTileOffset = when (seatIndex) { //以牌桌邊緣為底, 垂直擺放的半張牌的偏移量 (由右手往左手方向)
             0 -> verticalTileOffset.multiply(1.0, 1.0, 0.5)      //東
@@ -598,10 +598,10 @@ class MahjongBoard(
             else -> verticalTileOffset.multiply(0.5, 1.0, 1.0)   //北
         }
         val horizontalTileOffset = when (seatIndex) { //以牌桌邊緣為底, 水平擺放的牌的偏移量 (由右手往左手方向)
-            0 -> Vec3d(0.0, 0.0, MAHJONG_TILE_HEIGHT.toDouble() + tileGap)         //東
-            3 -> Vec3d(-MAHJONG_TILE_HEIGHT.toDouble() - tileGap, 0.0, 0.0)        //南
-            2 -> Vec3d(0.0, 0.0, -MAHJONG_TILE_HEIGHT.toDouble() - tileGap)        //西
-            else -> Vec3d(MAHJONG_TILE_HEIGHT.toDouble() + tileGap, 0.0, 0.0)      //北
+            0 -> Vec3(0.0, 0.0, MAHJONG_TILE_HEIGHT.toDouble() + tileGap)         //東
+            3 -> Vec3(-MAHJONG_TILE_HEIGHT.toDouble() - tileGap, 0.0, 0.0)        //南
+            2 -> Vec3(0.0, 0.0, -MAHJONG_TILE_HEIGHT.toDouble() - tileGap)        //西
+            else -> Vec3(MAHJONG_TILE_HEIGHT.toDouble() + tileGap, 0.0, 0.0)      //北
         }
         val halfHorizontalTileOffset = when (seatIndex) { //以牌桌邊緣為底, 水平擺放的牌的偏移量 (由右手往左手方向)
             0 -> horizontalTileOffset.multiply(1.0, 1.0, 0.5)         //東
@@ -610,17 +610,17 @@ class MahjongBoard(
             else -> horizontalTileOffset.multiply(0.5, 1.0, 1.0)      //北
         }
         val kakanOffset = when (seatIndex) {
-            0 -> Vec3d(-MAHJONG_TILE_WIDTH.toDouble() - tileGap, 0.0, 0.0)         //東
-            3 -> Vec3d(0.0, 0.0, -MAHJONG_TILE_WIDTH.toDouble() - tileGap)        //南
-            2 -> Vec3d(MAHJONG_TILE_WIDTH.toDouble() + tileGap, 0.0, 0.0)        //西
-            else -> Vec3d(0.0, 0.0, MAHJONG_TILE_WIDTH.toDouble() + tileGap)      //北
+            0 -> Vec3(-MAHJONG_TILE_WIDTH.toDouble() - tileGap, 0.0, 0.0)         //東
+            3 -> Vec3(0.0, 0.0, -MAHJONG_TILE_WIDTH.toDouble() - tileGap)        //南
+            2 -> Vec3(MAHJONG_TILE_WIDTH.toDouble() + tileGap, 0.0, 0.0)        //西
+            else -> Vec3(0.0, 0.0, MAHJONG_TILE_WIDTH.toDouble() + tileGap)      //北
         }
         val halfGapBetweenHeightAndWidth = (MAHJONG_TILE_HEIGHT - MAHJONG_TILE_WIDTH) / 2.0
         val horizontalTileGravityOffset = when (seatIndex) { //以牌桌邊緣為底, 水平擺放的牌的偏移量 (由右手往左手方向)
-            0 -> Vec3d(halfGapBetweenHeightAndWidth, 0.0, 0.0)         //東
-            3 -> Vec3d(0.0, 0.0, halfGapBetweenHeightAndWidth)        //南
-            2 -> Vec3d(-halfGapBetweenHeightAndWidth, 0.0, 0.0)        //西
-            else -> Vec3d(0.0, 0.0, -halfGapBetweenHeightAndWidth)      //北
+            0 -> Vec3(halfGapBetweenHeightAndWidth, 0.0, 0.0)         //東
+            3 -> Vec3(0.0, 0.0, halfGapBetweenHeightAndWidth)        //南
+            2 -> Vec3(-halfGapBetweenHeightAndWidth, 0.0, 0.0)        //西
+            else -> Vec3(0.0, 0.0, -halfGapBetweenHeightAndWidth)      //北
         }
 
         val tileRot = when (seatIndex) { //牌的面朝方向
@@ -693,7 +693,7 @@ class MahjongBoard(
                     else tileRot
 
                 // 將牌傳送
-                it.refreshPositionAndAngles(pos.x, pos.y, pos.z, yRot, 0f)
+                it.moveTo(pos.x, pos.y, pos.z, yRot, 0f)
                 it.facing = TileFacing.UP
 
                 lastTile = it
@@ -704,9 +704,9 @@ class MahjongBoard(
             // 有加槓牌的話，最後再放到被鳴的牌的上方
             kakanTile?.let {
                 val claimTile = fuuro.claimTile
-                val claimTilePos = fuuro.claimTile.pos
+                val claimTilePos = fuuro.claimTile.position()
                 val pos = claimTilePos.add(kakanOffset)
-                it.refreshPositionAndAngles(pos.x, pos.y, pos.z, claimTile.yaw, 0f) //傳送到鳴的牌的上面
+                it.moveTo(pos.x, pos.y, pos.z, claimTile.yRot, 0f) //傳送到鳴的牌的上面
                 it.facing = TileFacing.UP
             }
         }
@@ -727,7 +727,7 @@ class MahjongBoard(
                     }
 
                     // 將牌傳送
-                    tileMjEntity.refreshPositionAndAngles(nowPos.x, nowPos.y, nowPos.z, tileRot, 0f)
+                    tileMjEntity.moveTo(nowPos.x, nowPos.y, nowPos.z, tileRot, 0f)
                     // index == 1 or 2 是中間兩張牌->面朝上, 否則是旁邊兩張->面朝下
                     tileMjEntity.facing = if (index == 1 || index == 2) TileFacing.UP else TileFacing.DOWN
 
@@ -749,9 +749,9 @@ class MahjongBoard(
     fun drawRinshanTile(player: MahjongPlayerBase): MahjongTileEntity {
         val tile = if (kanCount % 2 == 0) deadWall[deadWall.size - 2] else deadWall[deadWall.size - 1]
         val lastWallTile = wall.removeLast()
-        val direction = deadWall.last().horizontalFacing // 王牌區方向以最後一敦為準
+        val direction = deadWall.last().direction // 王牌區方向以最後一敦為準
         val baseTile = deadWall[1] //補進來的嶺上牌都固定會在第 2 張牌的旁邊
-        val basePos = baseTile.pos
+        val basePos = baseTile.position()
         val tilePos = when (direction) {
             Direction.EAST -> basePos.add(0.0, 0.0, -MAHJONG_TILE_WIDTH.toDouble())
             Direction.SOUTH -> basePos.add(MAHJONG_TILE_WIDTH.toDouble(), 0.0, 0.0)
@@ -759,8 +759,8 @@ class MahjongBoard(
             Direction.NORTH -> basePos.add(-MAHJONG_TILE_WIDTH.toDouble(), 0.0, 0.0)
             else -> basePos
         }
-        lastWallTile.refreshPositionAfterTeleport(tilePos)
-        lastWallTile.yaw = direction.asRotation()
+        lastWallTile.moveTo(tilePos)
+        lastWallTile.yRot = direction.toYRot()
         deadWall.add(0, lastWallTile)
         deadWall -= tile
         kanCount++
@@ -768,8 +768,8 @@ class MahjongBoard(
         player.drawTile(tile)
         if (kanCount % 2 == 1) {
             val nowLastWallTile = wall.last() //這張牌要往下降, 不然會浮空
-            nowLastWallTile.refreshPositionAfterTeleport(
-                nowLastWallTile.pos.add(
+            nowLastWallTile.moveTo(
+                nowLastWallTile.position().add(
                     0.0,
                     -MAHJONG_TILE_DEPTH.toDouble(),
                     0.0
@@ -808,9 +808,9 @@ class MahjongBoard(
             code = ScoringStick.P1000.code //1000 點棒的編號
             gameBlockPos = game.pos
             isSpawnedByGame = true
-            refreshPositionAfterTeleport(stickPos) //先移到位置上
-            yaw = stickYaw //再轉個方向
-            ServerScheduler.scheduleDelayAction { world.spawnEntity(this) } //再生成到世界上
+            moveTo(stickPos) //先移到位置上
+            yRot = stickYaw //再轉個方向
+            ServerScheduler.scheduleDelayAction { level().addFreshEntity(this) } //再生成到世界上
         }
     }
 
@@ -851,13 +851,13 @@ class MahjongBoard(
         }
         val stickGap = MAHJONG_TILE_SMALL_PADDING
         val stickOffset = when (seatIndex) { //以牌桌邊緣為底, 垂直擺放的積棒的偏移量 (由右手往左手方向)
-            0 -> Vec3d(0.0, 0.0, MAHJONG_POINT_STICK_DEPTH + stickGap)      //東
-            3 -> Vec3d(-MAHJONG_POINT_STICK_DEPTH - stickGap, 0.0, 0.0)     //南
-            2 -> Vec3d(0.0, 0.0, -MAHJONG_POINT_STICK_DEPTH - stickGap)     //西
-            else -> Vec3d(MAHJONG_POINT_STICK_DEPTH + stickGap, 0.0, 0.0)   //北
+            0 -> Vec3(0.0, 0.0, MAHJONG_POINT_STICK_DEPTH + stickGap)      //東
+            3 -> Vec3(-MAHJONG_POINT_STICK_DEPTH - stickGap, 0.0, 0.0)     //南
+            2 -> Vec3(0.0, 0.0, -MAHJONG_POINT_STICK_DEPTH - stickGap)     //西
+            else -> Vec3(MAHJONG_POINT_STICK_DEPTH + stickGap, 0.0, 0.0)   //北
         }
         val stackOffset = //擺放的積棒同一疊超過 STICKS_PER_STACK 就會往上疊
-            Vec3d(0.0, MAHJONG_POINT_STICK_HEIGHT + stickGap, 0.0)
+            Vec3(0.0, MAHJONG_POINT_STICK_HEIGHT + stickGap, 0.0)
         val stickYaw = when (seatIndex) {
             0 -> -90f //東
             3 -> 0f //南
@@ -869,8 +869,8 @@ class MahjongBoard(
         val offsetXZ = stickOffset.multiply(stickIndex, stickIndex, stickIndex) // XZ平面上的偏移
         val offsetY = stackOffset.multiply(stackIndex, stackIndex, stackIndex)  // Y軸上的偏移
         val pos = startingPos.add(offsetXZ).add(offsetY)
-        stick.yaw = stickYaw
-        stick.refreshPositionAfterTeleport(pos)
+        stick.yRot = stickYaw
+        stick.moveTo(pos)
     }
 
     /**
@@ -904,7 +904,7 @@ class MahjongBoard(
             gameBlockPos = game.pos
             isSpawnedByGame = true
             moveStickToLast(player = player, stick = this) //這時候場棒還沒生到世界上
-            ServerScheduler.scheduleDelayAction { world.spawnEntity(this) }
+            ServerScheduler.scheduleDelayAction { level().addFreshEntity(this) }
         }
     }
 

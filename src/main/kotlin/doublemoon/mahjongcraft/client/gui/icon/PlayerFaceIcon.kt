@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.block.entity.SkullBlockEntity
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.world.level.block.entity.SkullBlockEntity
+import net.minecraft.client.gui.GuiGraphics
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -28,14 +28,14 @@ class PlayerFaceIcon(
 
     private fun loadGameProfileProperties() {
         coroutineScope.launch(Dispatchers.IO) {
-            val profile = SkullBlockEntity.fetchProfileByUuid(uuid).get().getOrNull()
-                ?: SkullBlockEntity.fetchProfileByName(name).get().getOrNull()
+            val profile = SkullBlockEntity.fetchGameProfile(uuid).get().getOrNull()
+                ?: SkullBlockEntity.fetchGameProfile(name).get().getOrNull()
             if (profile != null) gameProfile = profile
         }
     }
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: DrawContext, x: Int, y: Int, size: Int) {
+    override fun paint(context: GuiGraphics, x: Int, y: Int, size: Int) {
         RenderHelper.renderPlayerFace(
             context = context,
             gameProfile = gameProfile,

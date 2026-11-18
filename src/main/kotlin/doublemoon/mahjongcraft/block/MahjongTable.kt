@@ -13,109 +13,114 @@ import doublemoon.mahjongcraft.network.sendPayloadToPlayer
 import doublemoon.mahjongcraft.registry.BlockEntityTypeRegistry
 import doublemoon.mahjongcraft.util.boxBySize
 import doublemoon.mahjongcraft.util.plus
-import net.minecraft.block.*
-import net.minecraft.block.entity.BlockEntity
-import net.minecraft.block.entity.BlockEntityTicker
-import net.minecraft.block.entity.BlockEntityType
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.ItemPlacementContext
-import net.minecraft.item.ItemStack
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.state.StateManager
-import net.minecraft.state.property.EnumProperty
-import net.minecraft.text.Text
-import net.minecraft.util.ActionResult
-import net.minecraft.util.Formatting
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.shape.VoxelShape
-import net.minecraft.util.shape.VoxelShapes
-import net.minecraft.world.BlockView
-import net.minecraft.world.World
+import net.minecraft.world.level.block.BaseEntityBlock
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.RenderShape
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.block.entity.BlockEntityTicker
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.context.BlockPlaceContext
+import net.minecraft.world.item.ItemStack
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.world.level.block.state.properties.EnumProperty
+import net.minecraft.network.chat.Component
+import net.minecraft.world.InteractionResult
+import net.minecraft.ChatFormatting
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.shapes.VoxelShape
+import net.minecraft.world.phys.shapes.Shapes
+import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.Level
 
 /**
  * 參考自 [BedBlock]
  * */
-class MahjongTable(settings: Settings) : BlockWithEntity(settings) {
+class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
 
     init {
-        defaultState = stateManager.defaultState.with(PART, MahjongTablePart.BOTTOM_CENTER)
+        registerDefaultState(stateDefinition.any().setValue(PART, MahjongTablePart.BOTTOM_CENTER))
     }
 
     /**
      * 只有 blockstate 的 [PART] 為 [MahjongTablePart.BOTTOM_CENTER] 那個方塊才會渲染
      * */
-    override fun getRenderType(state: BlockState): BlockRenderType =
-        if (state[PART] == MahjongTablePart.BOTTOM_CENTER) BlockRenderType.MODEL else BlockRenderType.INVISIBLE
+    override fun getRenderShape(state: BlockState): RenderShape =
+        if (state.getValue(PART) == MahjongTablePart.BOTTOM_CENTER) RenderShape.MODEL else RenderShape.INVISIBLE
 
-    override fun getPlacementState(ctx: ItemPlacementContext): BlockState? {
-        val centerPos = ctx.blockPos
-        val canPlace = peripheryPos(centerPos).all { ctx.world.getBlockState(it.second).canReplace(ctx) }
-        return if (canPlace) defaultState else null
+    override fun getStateForPlacement(ctx: BlockPlaceContext): BlockState? {
+        val centerPos = ctx.clickedPos
+        val canPlace = peripheryPos(centerPos).all { ctx.level.getBlockState(it.second).canBeReplaced(ctx) }
+        return if (canPlace) defaultBlockState() else null
     }
 
-    override fun onPlaced(
-        world: World,
+    override fun setPlacedBy(
+        world: Level,
         pos: BlockPos,
         state: BlockState,
         placer: LivingEntity?,
         itemStack: ItemStack,
     ) {
-        super.onPlaced(world, pos, state, placer, itemStack)
-        if (!world.isClient) {
-            peripheryPos(pos).forEach { (part, position) -> world.setBlockState(position, state.with(PART, part)) }
-            world.updateNeighbors(pos, Blocks.AIR)
-            state.updateNeighbors(world, pos, 3)
+        super.setPlacedBy(world, pos, state, placer, itemStack)
+        if (!world.isClientSide) {
+            peripheryPos(pos).forEach { (part, position) -> world.setBlockAndUpdate(position, state.setValue(PART, part)) }
+            world.blockUpdated(pos, Blocks.AIR)
+            state.updateNeighbourShapes(world, pos, 3)
         }
     }
 
-    override fun onBreak(world: World, pos: BlockPos, state: BlockState, player: PlayerEntity): BlockState {
-        if (!world.isClient) {
-            val part = state[PART] ?: return super.onBreak(world, pos, state, player)
+    override fun playerWillDestroy(world: Level, pos: BlockPos, state: BlockState, player: Player): BlockState {
+        if (!world.isClientSide) {
+            val part = state.getValue(PART) ?: return super.playerWillDestroy(world, pos, state, player)
             val centerPos = getCenterPosByPart(pos, part)
             //確保打掉桌子的其中一格方塊就能拆掉整張桌子
             allPos(centerPos).forEach { blockPos ->
                 val blockState = world.getBlockState(blockPos)
                 if (blockState.block != this) return@forEach
-                val blockPart = blockState[PART] ?: return@forEach
+                val blockPart = blockState.getValue(PART) ?: return@forEach
                 if (blockPart == MahjongTablePart.BOTTOM_CENTER) {  //center 被破壞時會離開遊戲
-                    GameManager.getGame<MahjongGame>(world = world as ServerWorld, pos = centerPos)?.onBreak()
+                    GameManager.getGame<MahjongGame>(world = world as ServerLevel, pos = centerPos)?.onBreak()
                 }
                 if (blockPart == MahjongTablePart.BOTTOM_CENTER && !player.isCreative) {  //讓玩家在非創造破壞時, 讓中間的桌子掉落
-                    world.breakBlock(blockPos, true)
+                    world.destroyBlock(blockPos, true)
                 } else {
-                    world.breakBlock(blockPos, false)
+                    world.destroyBlock(blockPos, false)
                 }
             }
         }
-        return super.onBreak(world, pos, state, player)
+        return super.playerWillDestroy(world, pos, state, player)
     }
 
-    override fun appendProperties(builder: StateManager.Builder<Block, BlockState>) {
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(PART)
     }
 
-    override fun getCodec(): MapCodec<out BlockWithEntity> = createCodec(::MahjongTable)
+    override fun codec(): MapCodec<out BaseEntityBlock> = simpleCodec(::MahjongTable)
 
-    override fun onUse(
+    override fun useWithoutItem(
         state: BlockState,
-        world: World,
+        world: Level,
         pos: BlockPos,
-        player: PlayerEntity,
+        player: Player,
         hit: BlockHitResult,
-    ): ActionResult {
-        if (!world.isClient) {
-            val centerPos = getCenterPosByPart(pos = pos, part = state[PART])
-            player as ServerPlayerEntity
-            world as ServerWorld
-            val game = GameManager.getGame<MahjongGame>(world = world, pos = centerPos) ?: return ActionResult.CONSUME
+    ): InteractionResult {
+        if (!world.isClientSide) {
+            val centerPos = getCenterPosByPart(pos = pos, part = state.getValue(PART))
+            player as ServerPlayer
+            world as ServerLevel
+            val game = GameManager.getGame<MahjongGame>(world = world, pos = centerPos) ?: return InteractionResult.CONSUME
             if (!GameManager.isInAnyGame(player) || game.isInGame(player)) {
                 //如果玩家沒有在任何遊戲中, 或者玩家在"這個"遊戲中
                 if (game.status == GameStatus.PLAYING) { //如果遊戲已經開始,傳訊息->遊戲已經開始了
-                    player.sendMessage(
-                        Text.translatable("$MOD_ID.game.message.already_started").formatted(Formatting.YELLOW),
+                    player.displayClientMessage(
+                        Component.translatable("$MOD_ID.game.message.already_started").withStyle(ChatFormatting.YELLOW),
                         true
                     )
                 } else {  // 如果遊戲尚未開始, 讓玩家開啟麻將桌 gui
@@ -128,32 +133,32 @@ class MahjongTable(settings: Settings) : BlockWithEntity(settings) {
                     )
                 }
             } else {  //玩家已經在某個遊戲中, 且不是"這個"遊戲
-                val message = Text.translatable("$MOD_ID.game.message.already_in_a_game")
-                    .formatted(Formatting.YELLOW) + " (" + game.name + ")"
-                player.sendMessage(message, true)
+                val message = Component.translatable("$MOD_ID.game.message.already_in_a_game")
+                    .withStyle(ChatFormatting.YELLOW) + " (" + game.name + ")"
+                player.displayClientMessage(message, true)
             }
         }
-        return ActionResult.SUCCESS
+        return InteractionResult.SUCCESS
     }
 
-    override fun createBlockEntity(pos: BlockPos, state: BlockState): BlockEntity? =
-        if (state[PART] == MahjongTablePart.BOTTOM_CENTER) MahjongTableBlockEntity(pos, state) else null
+    override fun newBlockEntity(pos: BlockPos, state: BlockState): BlockEntity? =
+        if (state.getValue(PART) == MahjongTablePart.BOTTOM_CENTER) MahjongTableBlockEntity(pos, state) else null
 
     override fun <T : BlockEntity?> getTicker(
-        world: World,
+        world: Level,
         state: BlockState,
         type: BlockEntityType<T>,
-    ): BlockEntityTicker<T>? = validateTicker(
+    ): BlockEntityTicker<T>? = createTickerHelper(
         type,
         BlockEntityTypeRegistry.mahjongTable
     ) { world1, pos, _, blockEntity -> MahjongTableBlockEntity.tick(world1, pos, blockEntity) }
 
-    override fun getOutlineShape(
+    override fun getShape(
         state: BlockState,
-        world: BlockView,
+        world: BlockGetter,
         pos: BlockPos,
-        context: ShapeContext,
-    ): VoxelShape = when (state[PART] ?: MahjongTablePart.BOTTOM_CENTER) {
+        context: CollisionContext,
+    ): VoxelShape = when (state.getValue(PART) ?: MahjongTablePart.BOTTOM_CENTER) {
         MahjongTablePart.BOTTOM_CENTER -> BOTTOM_CENTER_SHAPE
         MahjongTablePart.BOTTOM_EAST -> BOTTOM_EAST_SHAPE
         MahjongTablePart.BOTTOM_WEST -> BOTTOM_WEST_SHAPE
@@ -175,7 +180,7 @@ class MahjongTable(settings: Settings) : BlockWithEntity(settings) {
     }
 
     companion object {
-        val PART: EnumProperty<MahjongTablePart> = EnumProperty.of("mahjong_table_part", MahjongTablePart::class.java)
+        val PART: EnumProperty<MahjongTablePart> = EnumProperty.create("mahjong_table_part", MahjongTablePart::class.java)
 
         private val BOTTOM_CENTER_SHAPE: VoxelShape
 
@@ -187,27 +192,27 @@ class MahjongTable(settings: Settings) : BlockWithEntity(settings) {
             val border2: VoxelShape = boxBySize(-15, 14, 31, 47, 3, 1)
             val border3: VoxelShape = boxBySize(31, 14, -16, 1, 3, 47)
             val border4: VoxelShape = boxBySize(-16, 14, -16, 47, 3, 1)
-            BOTTOM_CENTER_SHAPE = VoxelShapes.union(bottom, pillar, top, border1, border2, border3, border4)
+            BOTTOM_CENTER_SHAPE = Shapes.or(bottom, pillar, top, border1, border2, border3, border4)
         }
 
         //這裡的位置是指相對於 BOTTOM_CENTER_SHAPE 的
-        private val BOTTOM_EAST_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.offset(-1.0, 0.0, 0.0)
-        private val BOTTOM_WEST_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.offset(1.0, 0.0, 0.0)
-        private val BOTTOM_SOUTH_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.offset(0.0, 0.0, -1.0)
-        private val BOTTOM_NORTH_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.offset(0.0, 0.0, 1.0)
-        private val BOTTOM_SOUTHEAST_SHAPE: VoxelShape = BOTTOM_SOUTH_SHAPE.offset(-1.0, 0.0, 0.0)
-        private val BOTTOM_SOUTHWEST_SHAPE: VoxelShape = BOTTOM_SOUTH_SHAPE.offset(1.0, 0.0, 0.0)
-        private val BOTTOM_NORTHEAST_SHAPE: VoxelShape = BOTTOM_NORTH_SHAPE.offset(-1.0, 0.0, 0.0)
-        private val BOTTOM_NORTHWEST_SHAPE: VoxelShape = BOTTOM_NORTH_SHAPE.offset(1.0, 0.0, 0.0)
-        private val TOP_CENTER_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.offset(0.0, -1.0, 0.0)
-        private val TOP_EAST_SHAPE: VoxelShape = BOTTOM_EAST_SHAPE.offset(0.0, -1.0, 0.0)
-        private val TOP_WEST_SHAPE: VoxelShape = BOTTOM_WEST_SHAPE.offset(0.0, -1.0, 0.0)
-        private val TOP_SOUTH_SHAPE: VoxelShape = BOTTOM_SOUTH_SHAPE.offset(0.0, -1.0, 0.0)
-        private val TOP_NORTH_SHAPE: VoxelShape = BOTTOM_NORTH_SHAPE.offset(0.0, -1.0, 0.0)
-        private val TOP_SOUTHEAST_SHAPE: VoxelShape = BOTTOM_SOUTHEAST_SHAPE.offset(0.0, -1.0, 0.0)
-        private val TOP_SOUTHWEST_SHAPE: VoxelShape = BOTTOM_SOUTHWEST_SHAPE.offset(0.0, -1.0, 0.0)
-        private val TOP_NORTHEAST_SHAPE: VoxelShape = BOTTOM_NORTHEAST_SHAPE.offset(0.0, -1.0, 0.0)
-        private val TOP_NORTHWEST_SHAPE: VoxelShape = BOTTOM_NORTHWEST_SHAPE.offset(0.0, -1.0, 0.0)
+        private val BOTTOM_EAST_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.move(-1.0, 0.0, 0.0)
+        private val BOTTOM_WEST_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.move(1.0, 0.0, 0.0)
+        private val BOTTOM_SOUTH_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.move(0.0, 0.0, -1.0)
+        private val BOTTOM_NORTH_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.move(0.0, 0.0, 1.0)
+        private val BOTTOM_SOUTHEAST_SHAPE: VoxelShape = BOTTOM_SOUTH_SHAPE.move(-1.0, 0.0, 0.0)
+        private val BOTTOM_SOUTHWEST_SHAPE: VoxelShape = BOTTOM_SOUTH_SHAPE.move(1.0, 0.0, 0.0)
+        private val BOTTOM_NORTHEAST_SHAPE: VoxelShape = BOTTOM_NORTH_SHAPE.move(-1.0, 0.0, 0.0)
+        private val BOTTOM_NORTHWEST_SHAPE: VoxelShape = BOTTOM_NORTH_SHAPE.move(1.0, 0.0, 0.0)
+        private val TOP_CENTER_SHAPE: VoxelShape = BOTTOM_CENTER_SHAPE.move(0.0, -1.0, 0.0)
+        private val TOP_EAST_SHAPE: VoxelShape = BOTTOM_EAST_SHAPE.move(0.0, -1.0, 0.0)
+        private val TOP_WEST_SHAPE: VoxelShape = BOTTOM_WEST_SHAPE.move(0.0, -1.0, 0.0)
+        private val TOP_SOUTH_SHAPE: VoxelShape = BOTTOM_SOUTH_SHAPE.move(0.0, -1.0, 0.0)
+        private val TOP_NORTH_SHAPE: VoxelShape = BOTTOM_NORTH_SHAPE.move(0.0, -1.0, 0.0)
+        private val TOP_SOUTHEAST_SHAPE: VoxelShape = BOTTOM_SOUTHEAST_SHAPE.move(0.0, -1.0, 0.0)
+        private val TOP_SOUTHWEST_SHAPE: VoxelShape = BOTTOM_SOUTHWEST_SHAPE.move(0.0, -1.0, 0.0)
+        private val TOP_NORTHEAST_SHAPE: VoxelShape = BOTTOM_NORTHEAST_SHAPE.move(0.0, -1.0, 0.0)
+        private val TOP_NORTHWEST_SHAPE: VoxelShape = BOTTOM_NORTHWEST_SHAPE.move(0.0, -1.0, 0.0)
 
         /**
          * 取得以 [pos] 為中心, xz 平面周圍不含 [pos] 的 8 格方塊位置 + xz 平面往偏移 +y 的平面 9 個方塊的位置
@@ -221,15 +226,15 @@ class MahjongTable(settings: Settings) : BlockWithEntity(settings) {
             MahjongTablePart.BOTTOM_NORTHWEST to pos.north().west(),
             MahjongTablePart.BOTTOM_SOUTHEAST to pos.south().east(),
             MahjongTablePart.BOTTOM_SOUTHWEST to pos.south().west(),
-            MahjongTablePart.TOP_CENTER to pos.up(),
-            MahjongTablePart.TOP_EAST to pos.east().up(),
-            MahjongTablePart.TOP_WEST to pos.west().up(),
-            MahjongTablePart.TOP_SOUTH to pos.south().up(),
-            MahjongTablePart.TOP_NORTH to pos.north().up(),
-            MahjongTablePart.TOP_NORTHEAST to pos.north().east().up(),
-            MahjongTablePart.TOP_NORTHWEST to pos.north().west().up(),
-            MahjongTablePart.TOP_SOUTHEAST to pos.south().east().up(),
-            MahjongTablePart.TOP_SOUTHWEST to pos.south().west().up(),
+            MahjongTablePart.TOP_CENTER to pos.above(),
+            MahjongTablePart.TOP_EAST to pos.east().above(),
+            MahjongTablePart.TOP_WEST to pos.west().above(),
+            MahjongTablePart.TOP_SOUTH to pos.south().above(),
+            MahjongTablePart.TOP_NORTH to pos.north().above(),
+            MahjongTablePart.TOP_NORTHEAST to pos.north().east().above(),
+            MahjongTablePart.TOP_NORTHWEST to pos.north().west().above(),
+            MahjongTablePart.TOP_SOUTHEAST to pos.south().east().above(),
+            MahjongTablePart.TOP_SOUTHWEST to pos.south().west().above(),
         )
 
         /**
@@ -251,15 +256,15 @@ class MahjongTable(settings: Settings) : BlockWithEntity(settings) {
             MahjongTablePart.BOTTOM_SOUTHWEST -> pos.north().east()
             MahjongTablePart.BOTTOM_NORTHEAST -> pos.south().west()
             MahjongTablePart.BOTTOM_NORTHWEST -> pos.south().east()
-            MahjongTablePart.TOP_CENTER -> pos.down()
-            MahjongTablePart.TOP_EAST -> pos.west().down()
-            MahjongTablePart.TOP_WEST -> pos.east().down()
-            MahjongTablePart.TOP_SOUTH -> pos.north().down()
-            MahjongTablePart.TOP_NORTH -> pos.south().down()
-            MahjongTablePart.TOP_SOUTHEAST -> pos.north().west().down()
-            MahjongTablePart.TOP_SOUTHWEST -> pos.north().east().down()
-            MahjongTablePart.TOP_NORTHEAST -> pos.south().west().down()
-            MahjongTablePart.TOP_NORTHWEST -> pos.south().east().down()
+            MahjongTablePart.TOP_CENTER -> pos.below()
+            MahjongTablePart.TOP_EAST -> pos.west().below()
+            MahjongTablePart.TOP_WEST -> pos.east().below()
+            MahjongTablePart.TOP_SOUTH -> pos.north().below()
+            MahjongTablePart.TOP_NORTH -> pos.south().below()
+            MahjongTablePart.TOP_SOUTHEAST -> pos.north().west().below()
+            MahjongTablePart.TOP_SOUTHWEST -> pos.north().east().below()
+            MahjongTablePart.TOP_NORTHEAST -> pos.south().west().below()
+            MahjongTablePart.TOP_NORTHWEST -> pos.south().east().below()
         }
     }
 }

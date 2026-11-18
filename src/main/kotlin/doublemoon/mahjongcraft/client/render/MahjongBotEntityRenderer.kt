@@ -5,18 +5,18 @@ import doublemoon.mahjongcraft.entity.MahjongTileEntity
 import doublemoon.mahjongcraft.util.RenderHelper
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.render.Frustum
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.entity.EntityRenderer
-import net.minecraft.client.render.entity.EntityRendererFactory
-import net.minecraft.client.render.model.json.ModelTransformationMode
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.RotationAxis
+import net.minecraft.client.renderer.culling.Frustum
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.entity.EntityRenderer
+import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.world.item.ItemDisplayContext
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.resources.ResourceLocation
+import com.mojang.math.Axis
 
 @Environment(EnvType.CLIENT)
 class MahjongBotEntityRenderer(
-    context: EntityRendererFactory.Context
+    context: EntityRendererProvider.Context
 ) : EntityRenderer<MahjongBotEntity>(context) {
 
     private val itemRenderer = context.itemRenderer
@@ -29,14 +29,14 @@ class MahjongBotEntityRenderer(
         entity: MahjongBotEntity,
         yaw: Float,
         tickDelta: Float,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider,
+        matrices: PoseStack,
+        vertexConsumers: MultiBufferSource,
         light: Int
     ) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light)
         with(matrices) {
-            push()
-            multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-entity.yaw + 180))
+            pushPose()
+            mulPose(Axis.YP.rotationDegrees(-entity.yRot + 180))
             val scale = MahjongBotEntity.MAHJONG_BOT_HEIGHT / MahjongTileEntity.MAHJONG_TILE_HEIGHT
             scale(scale, scale, scale)
             RenderHelper.renderItem(
@@ -48,11 +48,11 @@ class MahjongBotEntityRenderer(
                 offsetZ = 0.0,
                 light = light,
                 vertexConsumer = vertexConsumers,
-                mode = ModelTransformationMode.HEAD
+                mode = ItemDisplayContext.HEAD
             )
-            pop()
+            popPose()
         }
     }
 
-    override fun getTexture(entity: MahjongBotEntity): Identifier? = null
+    override fun getTextureLocation(entity: MahjongBotEntity): ResourceLocation? = null
 }

@@ -4,8 +4,8 @@ import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
 import doublemoon.mahjongcraft.id
 import doublemoon.mahjongcraft.util.TextFormatting
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import org.mahjong4j.tile.Tile
 import org.mahjong4j.tile.TileType
 
@@ -61,7 +61,7 @@ enum class MahjongTile : TextFormatting {
     /**
      * 這張牌的牌面的材質位置
      * */
-    val surfaceIdentifier: Identifier
+    val surfaceIdentifier: ResourceLocation
         get() = id("textures/item/mahjong_tile/mahjong_tile_${name.lowercase()}.png")
 
     /**
@@ -142,12 +142,12 @@ enum class MahjongTile : TextFormatting {
             }
         }
 
-    override fun toText(): Text = when (mahjong4jTile.type) {
-        TileType.MANZU -> Text.translatable("$MOD_ID.game.tile.man", mahjong4jTile.number)
-        TileType.PINZU -> Text.translatable("$MOD_ID.game.tile.pin", mahjong4jTile.number)
-        TileType.SOHZU -> Text.translatable("$MOD_ID.game.tile.sou", mahjong4jTile.number)
-        TileType.FONPAI, TileType.SANGEN -> Text.translatable("$MOD_ID.game.tile.${name.lowercase()}")
-        else -> Text.of("")
+    override fun toText(): Component = when (mahjong4jTile.type) {
+        TileType.MANZU -> Component.translatable("$MOD_ID.game.tile.man", mahjong4jTile.number)
+        TileType.PINZU -> Component.translatable("$MOD_ID.game.tile.pin", mahjong4jTile.number)
+        TileType.SOHZU -> Component.translatable("$MOD_ID.game.tile.sou", mahjong4jTile.number)
+        TileType.FONPAI, TileType.SANGEN -> Component.translatable("$MOD_ID.game.tile.${name.lowercase()}")
+        else -> Component.nullToEmpty("")
     }
 
     companion object {

@@ -5,7 +5,7 @@ import io.github.cottonmc.cotton.gui.widget.WPlainPanel
 import io.github.cottonmc.cotton.gui.widget.data.InputResult
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.GuiGraphics
 
 /**
  *
@@ -26,7 +26,7 @@ class WDraggablePlainPanel(
     }
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: DrawContext, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphics, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         super.paint(context, x, y, mouseX, mouseY)
         if (isDragging) {
             var deltaX = mouseX - anchorX

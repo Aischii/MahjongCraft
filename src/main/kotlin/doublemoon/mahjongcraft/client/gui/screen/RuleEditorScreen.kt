@@ -16,16 +16,16 @@ import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import io.github.cottonmc.cotton.gui.widget.data.VerticalAlignment
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 
 @Environment(EnvType.CLIENT)
 class RuleEditorScreen(
     mahjongTable: MahjongTableBlockEntity,
 ) : CottonClientScreen(RuleEditorGui(mahjongTable)) {
-    override fun shouldPause(): Boolean = false
+    override fun isPauseScreen(): Boolean = false
     override fun tick() {
         super.tick()
         (description as RuleEditorGui).tick()
@@ -37,12 +37,12 @@ class RuleEditorGui(
     private val mahjongTable: MahjongTableBlockEntity,
 ) : LightweightGuiDescription() {
 
-    private val client = MinecraftClient.getInstance()
+    private val client = Minecraft.getInstance()
 
     //編輯中的設定
     private val editingRule: MahjongRule = mahjongTable.rule.copy()
     private val lengthItem = RuleSelectItem(
-        name = Text.translatable("$MOD_ID.game.length"),
+        name = Component.translatable("$MOD_ID.game.length"),
         value = { editingRule.length },
         label = { it.toText() },
         tooltip = { length -> getTooltip(length) }
@@ -52,7 +52,7 @@ class RuleEditorGui(
         editingRule.length = nextValue
     }
     private val thinkingTimeItem = RuleSelectItem(
-        name = Text.translatable("$MOD_ID.game.thinking_time"),
+        name = Component.translatable("$MOD_ID.game.thinking_time"),
         value = { editingRule.thinkingTime },
         label = { it.toText() },
         tooltip = { thinkingTime -> getTooltip(thinkingTime) }
@@ -62,9 +62,9 @@ class RuleEditorGui(
         editingRule.thinkingTime = nextValue
     }
     private val startingPointsItem = RuleIntegerTextFieldItem(
-        name = Text.translatable("$MOD_ID.game.starting_points"),
+        name = Component.translatable("$MOD_ID.game.starting_points"),
         description = arrayOf(
-            Text.translatable(
+            Component.translatable(
                 "mahjongcraft.game.starting_points.description",
                 MahjongRule.MIN_POINTS,
                 MahjongRule.MAX_POINTS
@@ -73,12 +73,12 @@ class RuleEditorGui(
         defaultValue = editingRule.startingPoints
     )
     private val minPointsToWinItem = RuleIntegerTextFieldItem(
-        name = Text.translatable("$MOD_ID.game.min_points_to_win"),
-        description = arrayOf(Text.translatable("$MOD_ID.game.min_points_to_win.description")),
+        name = Component.translatable("$MOD_ID.game.min_points_to_win"),
+        description = arrayOf(Component.translatable("$MOD_ID.game.min_points_to_win.description")),
         defaultValue = editingRule.minPointsToWin
     )
     private val minimumHanItem = RuleSelectItem(
-        name = Text.translatable("$MOD_ID.game.minimum_han"),
+        name = Component.translatable("$MOD_ID.game.minimum_han"),
         value = { editingRule.minimumHan },
         label = { it.toText() },
         tooltip = { minimumHan -> getTooltip(minimumHan) }
@@ -88,12 +88,12 @@ class RuleEditorGui(
         editingRule.minimumHan = nextValue
     }
     private val spectateItem = RuleToggleItem(
-        name = Text.translatable("$MOD_ID.game.spectate"),
+        name = Component.translatable("$MOD_ID.game.spectate"),
         enabled = editingRule.spectate,
         onClick = { editingRule.spectate = it }
     )
     private val redFiveItem = RuleSelectItem(
-        name = Text.translatable("$MOD_ID.game.red_five"),
+        name = Component.translatable("$MOD_ID.game.red_five"),
         value = { editingRule.redFive },
         label = { it.toText() },
         tooltip = { redFive -> getTooltip(redFive) }
@@ -103,7 +103,7 @@ class RuleEditorGui(
         editingRule.redFive = nextValue
     }
     private val openTanyaoItem = RuleToggleItem(
-        name = Text.translatable("$MOD_ID.game.open_tanyao"),
+        name = Component.translatable("$MOD_ID.game.open_tanyao"),
         enabled = editingRule.openTanyao,
         onClick = { editingRule.openTanyao = it }
     )
@@ -158,14 +158,14 @@ class RuleEditorGui(
                 x = ROOT_WIDTH - INSET * 2 - BUTTON_WIDTH - INSET,
                 y = ROOT_HEIGHT - INSET * 2 - INSET * 2,
                 width = BUTTON_WIDTH,
-                label = Text.translatable("$MOD_ID.gui.button.back"),
+                label = Component.translatable("$MOD_ID.gui.button.back"),
                 onClick = { back() }
             )
             confirm = tooltipButton(
                 x = back.x,
                 y = back.y - back.height - BUTTON_PADDING,
                 width = BUTTON_WIDTH,
-                label = Text.translatable("$MOD_ID.gui.button.confirm"),
+                label = Component.translatable("$MOD_ID.gui.button.confirm"),
                 tooltip = arrayOf(),
                 onClick = { confirm() }
             ) {
@@ -175,7 +175,7 @@ class RuleEditorGui(
                 x = confirm.x,
                 y = confirm.y - confirm.height - BUTTON_PADDING,
                 width = BUTTON_WIDTH,
-                label = Text.translatable("$MOD_ID.gui.button.apply"),
+                label = Component.translatable("$MOD_ID.gui.button.apply"),
                 tooltip = arrayOf(),
                 onClick = { apply() }
             ) {
@@ -187,16 +187,16 @@ class RuleEditorGui(
     fun tick() {
         startingPointsItem.apply {
             hint = if (startingPointsItemValueInvalid) {
-                Text.translatable("$MOD_ID.gui.invalid_value").formatted(Formatting.RED)
+                Component.translatable("$MOD_ID.gui.invalid_value").withStyle(ChatFormatting.RED)
             } else {
-                Text.of("")
+                Component.nullToEmpty("")
             }
         }
         minPointsToWinItem.apply {
             hint = if (minPointsToWinItemValueInvalid) {
-                Text.translatable("$MOD_ID.gui.invalid_value").formatted(Formatting.RED)
+                Component.translatable("$MOD_ID.gui.invalid_value").withStyle(ChatFormatting.RED)
             } else {
-                Text.of("")
+                Component.nullToEmpty("")
             }
         }
         confirm.isEnabled = confirmEnabled
@@ -224,7 +224,7 @@ class RuleEditorGui(
         sendPayloadToServer(
             payload = MahjongTablePayload(
                 behavior = MahjongTableBehavior.CHANGE_RULE,
-                pos = mahjongTable.pos,
+                pos = mahjongTable.blockPos,
                 extraData = editingRule.toJsonString()
             )
         )
@@ -249,24 +249,24 @@ class RuleEditorGui(
         private const val BUTTON_HEIGHT = 20
         private const val BUTTON_PADDING = 5
 
-        private inline fun <reified T : Enum<T>> getTooltip(nowValue: T): Array<Text> =
+        private inline fun <reified T : Enum<T>> getTooltip(nowValue: T): Array<Component> =
             enumValues<T>().map {
                 if (it is TextFormatting) {
                     it.toText().also { text ->
-                        if (text is MutableText) {
-                            val color = if (it == nowValue) Formatting.GREEN else Formatting.RED
-                            text.formatted(color)
+                        if (text is MutableComponent) {
+                            val color = if (it == nowValue) ChatFormatting.GREEN else ChatFormatting.RED
+                            text.withStyle(color)
                         }
                     }
                 } else {
-                    Text.of(it.name)
+                    Component.nullToEmpty(it.name)
                 }
             }.toTypedArray()
     }
 
 
     abstract class SettingItem(
-        name: Text,
+        name: Component,
     ) : WPlainPanel() {
 
         init {
@@ -297,15 +297,15 @@ class RuleEditorGui(
     }
 
     class RuleSelectItem<T : Enum<T>>(
-        val name: Text,
+        val name: Component,
         val value: () -> T,
-        private val label: (T) -> Text,
-        private val tooltip: (T) -> Array<Text>,
+        private val label: (T) -> Component,
+        private val tooltip: (T) -> Array<Component>,
         private val onSelect: RuleSelectItem<T>.() -> Unit,
     ) : SettingItem(name) {
-        private val nowLabel: Text
+        private val nowLabel: Component
             get() = label.invoke(value.invoke())
-        private val nowTooltip: Array<Text>
+        private val nowTooltip: Array<Component>
             get() = tooltip.invoke(value.invoke())
 
         private val selectButton = tooltipButton(
@@ -331,7 +331,7 @@ class RuleEditorGui(
     }
 
     class RuleToggleItem(
-        val name: Text,
+        val name: Component,
         var enabled: Boolean,
         private val onClick: (Boolean) -> Unit,
     ) : SettingItem(name) {
@@ -350,17 +350,17 @@ class RuleEditorGui(
             )
         }
 
-        private val buttonText: Text
-            get() = if (enabled) Text.translatable("$MOD_ID.game.enabled") else Text.translatable("$MOD_ID.game.disabled")
+        private val buttonText: Component
+            get() = if (enabled) Component.translatable("$MOD_ID.game.enabled") else Component.translatable("$MOD_ID.game.disabled")
     }
 
     class RuleIntegerTextFieldItem(
-        val name: Text,
-        description: Array<Text> = arrayOf(),
+        val name: Component,
+        description: Array<Component> = arrayOf(),
         defaultValue: Int,
     ) : SettingItem(name) {
 
-        var hint: Text
+        var hint: Component
             get() = hintLabel.text
             set(value) {
                 hintLabel.text = value
@@ -381,7 +381,7 @@ class RuleEditorGui(
             width = BUTTON_WIDTH,
             text = "$defaultValue",
             tooltip = description,
-            suggestion = Text.of("$defaultValue"),
+            suggestion = Component.nullToEmpty("$defaultValue"),
         )
 
         private val hintLabel = label(
@@ -389,7 +389,7 @@ class RuleEditorGui(
             y = textField.y,
             height = textField.height,
             verticalAlignment = VerticalAlignment.CENTER,
-            text = Text.of("")
+            text = Component.nullToEmpty("")
         )
     }
 }

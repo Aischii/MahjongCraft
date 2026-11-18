@@ -1,30 +1,30 @@
 package doublemoon.mahjongcraft.item
 
 import doublemoon.mahjongcraft.entity.DiceEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.util.Hand
-import net.minecraft.util.TypedActionResult
-import net.minecraft.util.math.MathHelper
-import net.minecraft.world.World
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResultHolder
+import net.minecraft.util.Mth
+import net.minecraft.world.level.Level
 
-class Dice(settings: Settings) : Item(settings) {
+class Dice(settings: Properties) : Item(settings) {
 
-    override fun use(world: World, user: PlayerEntity, hand: Hand): TypedActionResult<ItemStack> {
-        val itemStack = user.getStackInHand(hand)
-        if (world.isClient) return TypedActionResult.success(itemStack)
+    override fun use(world: Level, user: Player, hand: InteractionHand): InteractionResultHolder<ItemStack> {
+        val itemStack = user.getItemInHand(hand)
+        if (world.isClientSide) return InteractionResultHolder.success(itemStack)
         val diceEntity = DiceEntity(
             world = world,
-            pos = user.pos.add(0.0, 1.1, 0.0),
-            yaw = user.headYaw
+            pos = user.position().add(0.0, 1.1, 0.0),
+            yaw = user.yHeadRot
         ).apply {
-            val sin = MathHelper.sin(yaw * 0.017453292F - 11)
-            val cos = MathHelper.cos(yaw * 0.017453292F - 11)
-            setVelocity(0.25 * cos, 0.2, 0.25 * sin)
+            val sin = Mth.sin(yRot * 0.017453292F - 11)
+            val cos = Mth.cos(yRot * 0.017453292F - 11)
+            setDeltaMovement(0.25 * cos, 0.2, 0.25 * sin)
         }
-        world.spawnEntity(diceEntity)
-        if (!user.abilities.creativeMode) itemStack.decrement(1)
-        return TypedActionResult.success(itemStack)
+        world.addFreshEntity(diceEntity)
+        if (!user.abilities.instabuild) itemStack.shrink(1)
+        return InteractionResultHolder.success(itemStack)
     }
 }

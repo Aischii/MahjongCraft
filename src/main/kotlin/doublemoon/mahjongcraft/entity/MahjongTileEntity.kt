@@ -16,22 +16,22 @@ import doublemoon.mahjongcraft.scheduler.client.OptionalBehaviorHandler
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
-import net.minecraft.entity.EntityDimensions
-import net.minecraft.entity.EntityPose
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.data.DataTracker
-import net.minecraft.entity.data.TrackedData
-import net.minecraft.entity.data.TrackedDataHandlerRegistry
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.sound.SoundEvents
-import net.minecraft.util.ActionResult
-import net.minecraft.util.Hand
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.CustomData
+import net.minecraft.world.entity.EntityDimensions
+import net.minecraft.world.entity.Pose
+import net.minecraft.world.entity.EntityType
+import net.minecraft.network.syncher.SynchedEntityData
+import net.minecraft.network.syncher.EntityDataAccessor
+import net.minecraft.network.syncher.EntityDataSerializers
+import net.minecraft.world.entity.player.Player
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.InteractionHand
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.Level
 import org.mahjong4j.tile.Tile
 
 
@@ -43,10 +43,10 @@ fun List<MahjongTileEntity>.toMahjongTileList(): List<MahjongTile> = this.map { 
  * */
 class MahjongTileEntity(
     type: EntityType<*> = EntityTypeRegistry.mahjongTile,
-    world: World,
+    world: Level,
 ) : GameEntity(type, world) {
 
-    constructor(world: World, code: Int) : this(world = world) {
+    constructor(world: Level, code: Int) : this(world = world) {
         this.code = code
     }
 
@@ -54,7 +54,7 @@ class MahjongTileEntity(
      * 專門給 [MahjongBoard] 產生實體用
      * */
     constructor(
-        world: World,
+        world: Level,
         code: Int,
         gameBlockPos: BlockPos,
         isSpawnedByGame: Boolean,
@@ -90,20 +90,20 @@ class MahjongTileEntity(
     var code: Int
         set(value) {
             if (isSpawnedByGame) {
-                if (!world.isClient) spawnedByGameServerSideCode = value
+                if (!level().isClientSide) spawnedByGameServerSideCode = value
                 else {
                     if (value != MahjongTile.UNKNOWN.code) mahjongTable?.calculateRemainingTiles(value)
                     spawnedByGameClientSideCode = value
                 }
             } else {
-                dataTracker.set(CODE, value)
+                entityData.set(CODE, value)
             }
         }
         get() = if (isSpawnedByGame) {
-            if (!world.isClient) spawnedByGameServerSideCode
+            if (!level().isClientSide) spawnedByGameServerSideCode
             else spawnedByGameClientSideCode
         } else {
-            dataTracker[CODE]
+            entityData[CODE]
         }
 
     /**
@@ -112,8 +112,8 @@ class MahjongTileEntity(
      * 字串為空白表示沒有人能看見(還在牌山中)
      * */
     var ownerUUID: String
-        set(value) = dataTracker.set(OWNER_UUID, value)
-        get() = dataTracker[OWNER_UUID]
+        set(value) = entityData.set(OWNER_UUID, value)
+        get() = entityData[OWNER_UUID]
 
     /**
      * 麻將遊戲中的玩家的 UUID 字串列表,
@@ -121,8 +121,8 @@ class MahjongTileEntity(
      * 再利用 [Json.decodeFromString] 解譯成 UUID 字串
      * */
     var gamePlayers: List<String>
-        set(value) = dataTracker.set(GAME_PLAYERS, Json.encodeToString(value))
-        get() = Json.decodeFromString(dataTracker[GAME_PLAYERS])
+        set(value) = entityData.set(GAME_PLAYERS, Json.encodeToString(value))
+        get() = Json.decodeFromString(entityData[GAME_PLAYERS])
 
     /**
      * 面朝的方向,水平或垂直
@@ -130,22 +130,22 @@ class MahjongTileEntity(
      * 也會影響渲染的時候, 牌的渲染位置
      * */
     var facing: TileFacing
-        set(value) = dataTracker.set(FACING, Json.encodeToString(value))
-        get() = Json.decodeFromString(dataTracker[FACING])
+        set(value) = entityData.set(FACING, Json.encodeToString(value))
+        get() = Json.decodeFromString(entityData[FACING])
 
     /**
      * 這張牌所在的麻將遊戲是否允許旁觀
      * */
     var canSpectate: Boolean
-        set(value) = dataTracker.set(GAME_CAN_SPECTATE, value)
-        get() = dataTracker[GAME_CAN_SPECTATE]
+        set(value) = entityData.set(GAME_CAN_SPECTATE, value)
+        get() = entityData[GAME_CAN_SPECTATE]
 
     /**
      * 這張牌在遊戲中的位置
      * */
     var inGameTilePosition: TilePosition
-        set(value) = dataTracker.set(GAME_TILE_POSITION, Json.encodeToString(value))
-        get() = Json.decodeFromString(dataTracker[GAME_TILE_POSITION])
+        set(value) = entityData.set(GAME_TILE_POSITION, Json.encodeToString(value))
+        get() = Json.decodeFromString(entityData[GAME_TILE_POSITION])
 
     /**
      * 取得對應 [code] 的 [MahjongTile]
@@ -164,22 +164,22 @@ class MahjongTileEntity(
      * 這個會指到遊戲的 [MahjongTableBlockEntity] 上
      * */
     val mahjongTable: MahjongTableBlockEntity?
-        get() = if (isSpawnedByGame) world.getBlockEntity(gameBlockPos) as MahjongTableBlockEntity? else null
+        get() = if (isSpawnedByGame) level().getBlockEntity(gameBlockPos) as MahjongTableBlockEntity? else null
 
     /**
      * 伺服端的遊戲專用,
      * 用來取得 [player] 應該看到這張麻將牌的 code, 通常在 [MahjongTileCodePayloadListener] 使用
      * */
-    fun getCodeForPlayer(player: ServerPlayerEntity): Int {
-        if (world.isClient) throw IllegalStateException("Cannot get code from client side")
+    fun getCodeForPlayer(player: ServerPlayer): Int {
+        if (level().isClientSide) throw IllegalStateException("Cannot get code from client side")
         return if (!isSpawnedByGame) {  // 不是遊戲生成的
             throw IllegalStateException("This MahjongTileEntity must be spawned by game")
         } else when (inGameTilePosition) { // 是遊戲生成的
             TilePosition.WALL -> MahjongTile.UNKNOWN.code // 是牌山的牌
             TilePosition.HAND -> // 是手牌
                 when {
-                    player.uuidAsString == ownerUUID -> code  // 這張牌是這玩家的
-                    player.uuidAsString in gamePlayers -> MahjongTile.UNKNOWN.code  //如果是這遊戲中的其他玩家
+                    player.stringUUID == ownerUUID -> code  // 這張牌是這玩家的
+                    player.stringUUID in gamePlayers -> MahjongTile.UNKNOWN.code  //如果是這遊戲中的其他玩家
                     canSpectate -> code   //開放觀戰
                     else -> MahjongTile.UNKNOWN.code     // 不開放觀戰
                 }
@@ -187,23 +187,23 @@ class MahjongTileEntity(
         }
     }
 
-    override fun onTrackedDataSet(data: TrackedData<*>) {
-        super.onTrackedDataSet(data)
+    override fun onSyncedDataUpdated(data: EntityDataAccessor<*>) {
+        super.onSyncedDataUpdated(data)
 
         // 確保在 FACING 更新時, boundingBox 馬上更新
-        if (FACING == data) boundingBox = calculateBoundingBox()
+        if (FACING == data) boundingBox = makeBoundingBox()
 
         // 以下在所有 tracked 的資料改變的時候都會執行, 以便盡可能拿到最新與正確的 tile code
-        if (!world.isClient || !isSpawnedByGame) return // 只限定在客戶端且必須是遊戲產生的牌
+        if (!level().isClientSide || !isSpawnedByGame) return // 只限定在客戶端且必須是遊戲產生的牌
         sendPayloadToServer(
             payload = MahjongTileCodePayload(id = id)
         )
     }
 
     //實體碰撞
-    override fun isCollidable(): Boolean = true
+    override fun canBeCollidedWith(): Boolean = true
 
-    override fun getDimensions(pose: EntityPose): EntityDimensions =
+    override fun getDimensions(pose: Pose): EntityDimensions =
         if (facing == TileFacing.HORIZONTAL) {
             super.getDimensions(pose)
         } else {
@@ -211,26 +211,26 @@ class MahjongTileEntity(
         }
 
     //玩家與實體互動 (右鍵)
-    override fun interact(player: PlayerEntity, hand: Hand): ActionResult {
-        if (!world.isClient) {
-            player as ServerPlayerEntity
+    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
+        if (!level().isClientSide) {
+            player as ServerPlayer
             if (!isSpawnedByGame) {  // 不是由遊戲產生, 是手動放置的一般實體
-                if (player.isSneaking) {  // 有蹲下, 把牌撿起來
-                    val itemStack = ItemRegistry.mahjongTile.defaultStack.also {
-                        val nbt = NbtCompound()
+                if (player.isShiftKeyDown) {  // 有蹲下, 把牌撿起來
+                    val itemStack = ItemRegistry.mahjongTile.defaultInstance.also {
+                        val nbt = CompoundTag()
                         nbt.putInt("code", code)
-                        it.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt))
+                        it.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt))
                     }
-                    player.giveItemStack(itemStack)
-                    playSound(SoundEvents.ENTITY_ITEM_PICKUP, 1f, 1f)
+                    player.addItem(itemStack)
+                    playSound(SoundEvents.ITEM_PICKUP, 1f, 1f)
                     remove(RemovalReason.DISCARDED)
                 } else {  // 沒蹲下, 改變牌立著的方向
                     facing = facing.next
                 }
-            } else if (inGameTilePosition == TilePosition.HAND && ownerUUID == player.uuidAsString) {
+            } else if (inGameTilePosition == TilePosition.HAND && ownerUUID == player.stringUUID) {
                 // 由遊戲產生的, 自己手牌以外的牌不會執行任何動作
-                val game = GameManager.getGame<MahjongGame>(player) ?: return ActionResult.FAIL
-                val mjPlayer = game.getPlayer(player) as MahjongPlayer? ?: return ActionResult.FAIL
+                val game = GameManager.getGame<MahjongGame>(player) ?: return InteractionResult.FAIL
+                val mjPlayer = game.getPlayer(player) as MahjongPlayer? ?: return InteractionResult.FAIL
                 if (MahjongGameBehavior.DISCARD in mjPlayer.waitingBehavior) { //客戶端正在等待丟牌
                     if (this.mahjongTile !in mjPlayer.cannotDiscardTiles) { //這張牌是可以丟的
                         mjPlayer.behaviorResult = MahjongGameBehavior.DISCARD to "$code" //丟牌
@@ -240,21 +240,21 @@ class MahjongTileEntity(
         } else {
             if (OptionalBehaviorHandler.waiting) OptionalBehaviorHandler.setScreen()
         }
-        return ActionResult.SUCCESS
+        return InteractionResult.SUCCESS
     }
 
-    override fun initDataTracker(builder: DataTracker.Builder) {
-        super.initDataTracker(builder)
-        builder.add(CODE, MahjongTile.UNKNOWN.code)
-        builder.add(OWNER_UUID, "")
-        builder.add(GAME_PLAYERS, Json.encodeToString(mutableListOf<String>()))
-        builder.add(FACING, Json.encodeToString(TileFacing.HORIZONTAL))
-        builder.add(GAME_CAN_SPECTATE, true)
-        builder.add(GAME_TILE_POSITION, Json.encodeToString(TilePosition.WALL))
+    override fun defineSynchedData(builder: SynchedEntityData.Builder) {
+        super.defineSynchedData(builder)
+        builder.define(CODE, MahjongTile.UNKNOWN.code)
+        builder.define(OWNER_UUID, "")
+        builder.define(GAME_PLAYERS, Json.encodeToString(mutableListOf<String>()))
+        builder.define(FACING, Json.encodeToString(TileFacing.HORIZONTAL))
+        builder.define(GAME_CAN_SPECTATE, true)
+        builder.define(GAME_TILE_POSITION, Json.encodeToString(TilePosition.WALL))
     }
 
-    override fun readCustomDataFromNbt(nbt: NbtCompound) {
-        super.readCustomDataFromNbt(nbt)
+    override fun readAdditionalSaveData(nbt: CompoundTag) {
+        super.readAdditionalSaveData(nbt)
         code = nbt.getInt("Code")
         ownerUUID = nbt.getString("OwnerUUID")
         gamePlayers = Json.decodeFromString(nbt.getString("GamePlayers"))
@@ -263,8 +263,8 @@ class MahjongTileEntity(
         inGameTilePosition = Json.decodeFromString(nbt.getString("GameTilePosition"))
     }
 
-    override fun writeCustomDataToNbt(nbt: NbtCompound) {
-        super.writeCustomDataToNbt(nbt)
+    override fun addAdditionalSaveData(nbt: CompoundTag) {
+        super.addAdditionalSaveData(nbt)
         nbt.putInt("Code", code)
         nbt.putString("OwnerUUID", ownerUUID)
         nbt.putString("GamePlayers", Json.encodeToString(gamePlayers))
@@ -281,23 +281,23 @@ class MahjongTileEntity(
         const val MAHJONG_TILE_DEPTH = 1f / 16 * 8 * MAHJONG_TILE_SCALE
         const val MAHJONG_TILE_SMALL_PADDING = 0.0025
 
-        private val CODE: TrackedData<Int> =
-            DataTracker.registerData(MahjongTileEntity::class.java, TrackedDataHandlerRegistry.INTEGER)
+        private val CODE: EntityDataAccessor<Int> =
+            SynchedEntityData.defineId(MahjongTileEntity::class.java, EntityDataSerializers.INT)
 
-        private val OWNER_UUID: TrackedData<String> =
-            DataTracker.registerData(MahjongTileEntity::class.java, TrackedDataHandlerRegistry.STRING)
+        private val OWNER_UUID: EntityDataAccessor<String> =
+            SynchedEntityData.defineId(MahjongTileEntity::class.java, EntityDataSerializers.STRING)
 
-        private val GAME_PLAYERS: TrackedData<String> =
-            DataTracker.registerData(MahjongTileEntity::class.java, TrackedDataHandlerRegistry.STRING)
+        private val GAME_PLAYERS: EntityDataAccessor<String> =
+            SynchedEntityData.defineId(MahjongTileEntity::class.java, EntityDataSerializers.STRING)
 
-        private val FACING: TrackedData<String> =
-            DataTracker.registerData(MahjongTileEntity::class.java, TrackedDataHandlerRegistry.STRING)
+        private val FACING: EntityDataAccessor<String> =
+            SynchedEntityData.defineId(MahjongTileEntity::class.java, EntityDataSerializers.STRING)
 
-        private val GAME_CAN_SPECTATE: TrackedData<Boolean> =
-            DataTracker.registerData(MahjongTileEntity::class.java, TrackedDataHandlerRegistry.BOOLEAN)
+        private val GAME_CAN_SPECTATE: EntityDataAccessor<Boolean> =
+            SynchedEntityData.defineId(MahjongTileEntity::class.java, EntityDataSerializers.BOOLEAN)
 
-        private val GAME_TILE_POSITION: TrackedData<String> =
-            DataTracker.registerData(MahjongTileEntity::class.java, TrackedDataHandlerRegistry.STRING)
+        private val GAME_TILE_POSITION: EntityDataAccessor<String> =
+            SynchedEntityData.defineId(MahjongTileEntity::class.java, EntityDataSerializers.STRING)
     }
 }
 

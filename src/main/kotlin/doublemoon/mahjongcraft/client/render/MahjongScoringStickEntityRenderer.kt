@@ -8,21 +8,21 @@ import doublemoon.mahjongcraft.registry.ItemRegistry
 import doublemoon.mahjongcraft.util.RenderHelper
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.render.Frustum
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.entity.EntityRenderer
-import net.minecraft.client.render.entity.EntityRendererFactory
-import net.minecraft.client.render.model.json.ModelTransformationMode
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.RotationAxis
+import net.minecraft.client.renderer.culling.Frustum
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.entity.EntityRenderer
+import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.world.item.ItemDisplayContext
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.CustomData
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.resources.ResourceLocation
+import com.mojang.math.Axis
 
 @Environment(EnvType.CLIENT)
 class MahjongScoringStickEntityRenderer(
-    context: EntityRendererFactory.Context,
+    context: EntityRendererProvider.Context,
 ) : EntityRenderer<MahjongScoringStickEntity>(context) {
 
     private val itemRenderer = context.itemRenderer
@@ -41,14 +41,14 @@ class MahjongScoringStickEntityRenderer(
         entity: MahjongScoringStickEntity,
         yaw: Float,
         tickDelta: Float,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider,
+        matrices: PoseStack,
+        vertexConsumers: MultiBufferSource,
         light: Int,
     ) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light)
         with(matrices) {
-            push()
-            multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-entity.yaw + 180))
+            pushPose()
+            mulPose(Axis.YP.rotationDegrees(-entity.yRot + 180))
             RenderHelper.renderItem(
                 itemRenderer = itemRenderer,
                 matrices = this,
@@ -57,21 +57,21 @@ class MahjongScoringStickEntityRenderer(
                 offsetY = MAHJONG_POINT_STICK_HEIGHT / 2.0 + (1f * MAHJONG_POINT_STICK_SCALE - MAHJONG_POINT_STICK_HEIGHT) / 2.0,
                 offsetZ = 0.0,
                 light = light,
-                mode = ModelTransformationMode.HEAD,
+                mode = ItemDisplayContext.HEAD,
                 vertexConsumer = vertexConsumers
             )
-            pop()
+            popPose()
         }
     }
 
-    override fun getTexture(entity: MahjongScoringStickEntity): Identifier? = null
+    override fun getTextureLocation(entity: MahjongScoringStickEntity): ResourceLocation? = null
 
     companion object {
         private val scoringSticks = ScoringStick.entries.map { stick->
-            ItemRegistry.mahjongScoringStick.defaultStack.also {
-                val nbt = NbtCompound()
+            ItemRegistry.mahjongScoringStick.defaultInstance.also {
+                val nbt = CompoundTag()
                 nbt.putInt("code", stick.code)
-                it.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt))
+                it.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt))
             }
         }
     }

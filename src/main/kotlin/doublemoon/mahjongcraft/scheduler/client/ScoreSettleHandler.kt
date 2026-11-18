@@ -9,13 +9,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.Screen
 
 object ScoreSettleHandler {
     const val defaultTime = 5 //單位:秒
 
-    private val client = MinecraftClient.getInstance()
+    private val client = Minecraft.getInstance()
     private lateinit var screen: Screen
     private var jobCountdown: Job? = null
 
@@ -40,8 +40,8 @@ object ScoreSettleHandler {
     @Environment(EnvType.CLIENT)
     fun closeScreen() {
         CoroutineScope(Dispatchers.Default).launch {
-            if (client.currentScreen == screen) {
-                ClientScheduler.scheduleDelayAction { screen.close() }
+            if (client.screen == screen) {
+                ClientScheduler.scheduleDelayAction { screen.onClose() }
             }
         }
     }

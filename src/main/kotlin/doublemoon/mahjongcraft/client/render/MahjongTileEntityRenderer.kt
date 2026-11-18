@@ -9,21 +9,21 @@ import doublemoon.mahjongcraft.registry.ItemRegistry
 import doublemoon.mahjongcraft.util.RenderHelper
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.render.Frustum
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.entity.EntityRenderer
-import net.minecraft.client.render.entity.EntityRendererFactory
-import net.minecraft.client.render.model.json.ModelTransformationMode
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.RotationAxis
+import net.minecraft.client.renderer.culling.Frustum
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.entity.EntityRenderer
+import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.world.item.ItemDisplayContext
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.CustomData
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.resources.ResourceLocation
+import com.mojang.math.Axis
 
 @Environment(EnvType.CLIENT)
 class MahjongTileEntityRenderer(
-    context: EntityRendererFactory.Context,
+    context: EntityRendererProvider.Context,
 ) : EntityRenderer<MahjongTileEntity>(context) {
 
     private val itemRenderer = context.itemRenderer
@@ -36,15 +36,15 @@ class MahjongTileEntityRenderer(
         entity: MahjongTileEntity,
         yaw: Float,
         tickDelta: Float,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider,
+        matrices: PoseStack,
+        vertexConsumers: MultiBufferSource,
         light: Int,
     ) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light)
         with(matrices) {
-            push()
-            multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-entity.yaw + 180))
-            multiply(RotationAxis.POSITIVE_X.rotationDegrees(entity.facing.angleForDegreesQuaternionFromPositiveX))
+            pushPose()
+            mulPose(Axis.YP.rotationDegrees(-entity.yRot + 180))
+            mulPose(Axis.XP.rotationDegrees(entity.facing.angleForDegreesQuaternionFromPositiveX))
             var offsetY = 0.0
             var offsetZ = 0.0
             when (entity.facing) {  //偏移材質用
@@ -61,13 +61,13 @@ class MahjongTileEntityRenderer(
                 offsetZ = offsetZ,
                 light = light,
                 vertexConsumer = vertexConsumers,
-                mode = ModelTransformationMode.HEAD
+                mode = ItemDisplayContext.HEAD
             )
-            pop()
+            popPose()
         }
     }
 
-    override fun getTexture(entity: MahjongTileEntity): Identifier? = null
+    override fun getTextureLocation(entity: MahjongTileEntity): ResourceLocation? = null
 
     companion object {
         /**
@@ -75,10 +75,10 @@ class MahjongTileEntityRenderer(
          * */
         @Environment(EnvType.CLIENT)
         val mahjongTiles = MahjongTile.entries.map { tile ->
-            ItemRegistry.mahjongTile.defaultStack.also {
-                val nbt = NbtCompound()
+            ItemRegistry.mahjongTile.defaultInstance.also {
+                val nbt = CompoundTag()
                 nbt.putInt("code", tile.code)
-                it.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt))
+                it.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt))
             }
         }
     }

@@ -5,13 +5,13 @@ import io.github.cottonmc.cotton.gui.widget.WButton
 import io.github.cottonmc.cotton.gui.widget.icon.Icon
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 
 class WTooltipButton(
     icon: Icon? = null,
-    label: Text? = null,
-    var tooltip: Array<Text>
+    label: Component? = null,
+    var tooltip: Array<Component>
 ) : WButton(icon, label) {
     @Environment(EnvType.CLIENT)
     override fun addTooltip(tooltip: TooltipBuilder) {

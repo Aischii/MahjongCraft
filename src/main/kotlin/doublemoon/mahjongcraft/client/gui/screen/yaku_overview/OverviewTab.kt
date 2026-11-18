@@ -1,14 +1,14 @@
 package doublemoon.mahjongcraft.client.gui.screen.yaku_overview
 
 import doublemoon.mahjongcraft.MOD_ID
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 enum class OverviewTab(
-    val title: Text,
+    val title: Component,
     val items: List<OverviewItem>,
 ) {
     Han1(
-        title = Text.translatable("$MOD_ID.gui.yaku_overview.han", 1),
+        title = Component.translatable("$MOD_ID.gui.yaku_overview.han", 1),
         items = listOf(
             OverviewItem.Riichi,
             OverviewItem.Tanyao,
@@ -28,7 +28,7 @@ enum class OverviewTab(
         )
     ),
     Han2(
-        title = Text.translatable("$MOD_ID.gui.yaku_overview.han", 2),
+        title = Component.translatable("$MOD_ID.gui.yaku_overview.han", 2),
         items = listOf(
             OverviewItem.DoubleRiichi,
             OverviewItem.Sanshokudohko,
@@ -44,7 +44,7 @@ enum class OverviewTab(
         )
     ),
     Han3(
-        title = Text.translatable("$MOD_ID.gui.yaku_overview.han", 3),
+        title = Component.translatable("$MOD_ID.gui.yaku_overview.han", 3),
         items = listOf(
             OverviewItem.Ryanpeiko,
             OverviewItem.Junchan,
@@ -52,19 +52,19 @@ enum class OverviewTab(
         )
     ),
     Han6(
-        title = Text.translatable("$MOD_ID.gui.yaku_overview.han", 6),
+        title = Component.translatable("$MOD_ID.gui.yaku_overview.han", 6),
         items = listOf(
             OverviewItem.Chinitsu,
         )
     ),
     Mangan(
-        title = Text.translatable("$MOD_ID.game.score.mangan"),
+        title = Component.translatable("$MOD_ID.game.score.mangan"),
         items = listOf(
             OverviewItem.NagashiMangan,
         )
     ),
     Yakuman(
-        title = Text.translatable("$MOD_ID.game.score.yakuman_1x"),
+        title = Component.translatable("$MOD_ID.game.score.yakuman_1x"),
         items = listOf(
             OverviewItem.Tenho,
             OverviewItem.Chiho,
@@ -80,7 +80,7 @@ enum class OverviewTab(
         )
     ),
     DoubleYakuman(
-        title = Text.translatable("$MOD_ID.game.score.yakuman_2x"),
+        title = Component.translatable("$MOD_ID.game.score.yakuman_2x"),
         items = listOf(
             OverviewItem.SuankoTanki,
             OverviewItem.KokushimusoJusanmenmachi,
@@ -89,7 +89,7 @@ enum class OverviewTab(
         )
     ),
     Draw(
-        title = Text.translatable("$MOD_ID.gui.yaku_overview.draw"),
+        title = Component.translatable("$MOD_ID.gui.yaku_overview.draw"),
         items = listOf(
             OverviewItem.SuufonRenda,
             OverviewItem.Suukaikan,

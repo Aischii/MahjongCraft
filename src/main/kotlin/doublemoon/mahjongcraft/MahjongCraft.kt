@@ -12,14 +12,14 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
-import net.minecraft.util.Identifier
+import net.minecraft.resources.ResourceLocation
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
 const val MOD_ID = "mahjongcraft"
 val logger: Logger = LogManager.getLogger()  //取得 logger
 
-fun id(path: String): Identifier = Identifier(MOD_ID, path)
+fun id(path: String): ResourceLocation = ResourceLocation(MOD_ID, path)
 
 object MahjongCraft : ModInitializer {
 

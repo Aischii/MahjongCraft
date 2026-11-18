@@ -2,21 +2,21 @@ package doublemoon.mahjongcraft.entity
 
 import doublemoon.mahjongcraft.registry.EntityTypeRegistry
 import doublemoon.mahjongcraft.registry.ItemRegistry
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.MovementType
-import net.minecraft.entity.data.DataTracker
-import net.minecraft.entity.data.TrackedData
-import net.minecraft.entity.data.TrackedDataHandlerRegistry
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.registry.tag.FluidTags
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.sound.SoundEvents
-import net.minecraft.util.ActionResult
-import net.minecraft.util.Hand
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Vec3d
-import net.minecraft.world.World
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.MoverType
+import net.minecraft.network.syncher.SynchedEntityData
+import net.minecraft.network.syncher.EntityDataAccessor
+import net.minecraft.network.syncher.EntityDataSerializers
+import net.minecraft.world.entity.player.Player
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.tags.FluidTags
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.InteractionHand
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.level.Level
 import kotlin.math.min
 
 /**
@@ -24,8 +24,8 @@ import kotlin.math.min
  * */
 class DiceEntity(
     type: EntityType<DiceEntity> = EntityTypeRegistry.dice,
-    world: World,
-    pos: Vec3d? = null,
+    world: Level,
+    pos: Vec3? = null,
     yaw: Float? = null,
 ) : GameEntity(type, world) {
 
@@ -33,89 +33,89 @@ class DiceEntity(
      * 骰子當前的點數 (與擺的方向有關)
      * */
     var point: DicePoint
-        set(value) = dataTracker.set(POINT, value.name)
-        get() = DicePoint.valueOf(dataTracker[POINT])
+        set(value) = entityData.set(POINT, value.name)
+        get() = DicePoint.valueOf(entityData[POINT])
 
     val rolling: Boolean
-        get() = !isOnGround
+        get() = !onGround()
 
     init {
-        pos?.let { setPosition(it.x, it.y, it.z) }
-        yaw?.let { setRotation(it, 0f) }
+        pos?.let { setPos(it.x, it.y, it.z) }
+        yaw?.let { setRot(it, 0f) }
     }
 
-    override fun interact(player: PlayerEntity, hand: Hand): ActionResult {
-        if (!player.world.isClient) {
-            player as ServerPlayerEntity
-            if (!isSpawnedByGame && player.isSneaking) { //不是由遊戲產生, 是手動放置的一般實體
+    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
+        if (!player.level().isClientSide) {
+            player as ServerPlayer
+            if (!isSpawnedByGame && player.isShiftKeyDown) { //不是由遊戲產生, 是手動放置的一般實體
                 //蹲下才能把骰子撿起來
-                player.giveItemStack(ItemRegistry.dice.defaultStack)
-                playSound(SoundEvents.ENTITY_ITEM_PICKUP, 1f, 1f)
+                player.addItem(ItemRegistry.dice.defaultInstance)
+                playSound(SoundEvents.ITEM_PICKUP, 1f, 1f)
                 remove(RemovalReason.DISCARDED)
             }
         }
-        return ActionResult.SUCCESS
+        return InteractionResult.SUCCESS
     }
 
     override fun tick() {
         super.tick()
-        prevX = x
-        prevY = y
-        prevZ = z
-        if (isSubmergedIn(FluidTags.WATER)) {
+        xo = x
+        yo = y
+        zo = z
+        if (isEyeInFluid(FluidTags.WATER)) {
             setUnderwaterMovement()
-        } else if (!this.hasNoGravity()) {
-            velocity = velocity.add(0.0, -0.03, 0.0)
+        } else if (!this.isNoGravity()) {
+            deltaMovement = deltaMovement.add(0.0, -0.03, 0.0)
         }
-        if (world.getFluidState(blockPos).isIn(FluidTags.LAVA)) {
-            setVelocity(
+        if (level().getFluidState(blockPosition()).`is`(FluidTags.LAVA)) {
+            setDeltaMovement(
                 random.nextDouble() - random.nextDouble() * 0.2,
                 0.2,
                 random.nextDouble() - random.nextDouble() * 0.2
             )
-            playSound(SoundEvents.ENTITY_GENERIC_BURN, 0.4f, 2.0f + random.nextFloat() * 0.4f)
+            playSound(SoundEvents.GENERIC_BURN, 0.4f, 2.0f + random.nextFloat() * 0.4f)
         }
-        if (!world.isSpaceEmpty(boundingBox)) {
-            pushOutOfBlocks(x, (boundingBox.minY + boundingBox.maxY) / 2.0, z)
+        if (!level().noCollision(boundingBox)) {
+            moveTowardsClosestSpace(x, (boundingBox.minY + boundingBox.maxY) / 2.0, z)
         }
-        move(MovementType.SELF, velocity)
+        move(MoverType.SELF, deltaMovement)
         var f = 0.98f
-        if (isOnGround) {
+        if (onGround()) {
             val pos = BlockPos(x.toInt(), (y - 1.0).toInt(), z.toInt())
-            f = world.getBlockState(pos).block.slipperiness * 0.98f
+            f = level().getBlockState(pos).block.friction * 0.98f
         }
-        velocity = velocity.multiply(f.toDouble(), 0.98, f.toDouble())
-        if (isOnGround) {
-            velocity = velocity.multiply(1.0, -0.9, 1.0)
+        deltaMovement = deltaMovement.multiply(f.toDouble(), 0.98, f.toDouble())
+        if (onGround()) {
+            deltaMovement = deltaMovement.multiply(1.0, -0.9, 1.0)
         }
-        ++age
+        ++tickCount
         if (rolling) { //骰子在滾動
             point = DicePoint.random()
         }
     }
 
     private fun setUnderwaterMovement() {
-        val vec3d = velocity
-        setVelocity(
+        val vec3d = deltaMovement
+        setDeltaMovement(
             vec3d.x * 0.99,
             min(vec3d.y + 5.0E-4, 0.06),
             vec3d.z * 0.99
         )
     }
 
-    override fun initDataTracker(builder: DataTracker.Builder) {
-        super.initDataTracker(builder)
-        builder.add(POINT, DicePoint.random().name)
+    override fun defineSynchedData(builder: SynchedEntityData.Builder) {
+        super.defineSynchedData(builder)
+        builder.define(POINT, DicePoint.random().name)
     }
 
-    override fun readCustomDataFromNbt(nbt: NbtCompound) {
-        super.readCustomDataFromNbt(nbt)
-        val pointStr = nbt.get("Point")?.asString() ?: DicePoint.random().name //避免指令召喚的骰子沒有 nbt 導致無法召喚
+    override fun readAdditionalSaveData(nbt: CompoundTag) {
+        super.readAdditionalSaveData(nbt)
+        val pointStr = nbt.get("Point")?.asString ?: DicePoint.random().name //避免指令召喚的骰子沒有 nbt 導致無法召喚
         point = DicePoint.valueOf(pointStr)
     }
 
-    override fun writeCustomDataToNbt(nbt: NbtCompound) {
-        super.writeCustomDataToNbt(nbt)
+    override fun addAdditionalSaveData(nbt: CompoundTag) {
+        super.addAdditionalSaveData(nbt)
         nbt.putString("Point", point.name)
     }
 
@@ -125,8 +125,8 @@ class DiceEntity(
         const val DICE_WIDTH = 1f / 16 * 10 * DICE_SCALE
         const val DICE_HEIGHT = 1f / 16 * 10 * DICE_SCALE
 
-        val POINT: TrackedData<String> =
-            DataTracker.registerData(DiceEntity::class.java, TrackedDataHandlerRegistry.STRING)
+        val POINT: EntityDataAccessor<String> =
+            SynchedEntityData.defineId(DiceEntity::class.java, EntityDataSerializers.STRING)
     }
 }
 

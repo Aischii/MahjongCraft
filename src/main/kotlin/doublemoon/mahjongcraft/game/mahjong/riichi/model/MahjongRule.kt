@@ -5,9 +5,9 @@ import doublemoon.mahjongcraft.util.TextFormatting
 import doublemoon.mahjongcraft.util.plus
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 
 /**
  * 麻將的規則,
@@ -48,51 +48,51 @@ data class MahjongRule(
     fun toJsonString(): String = Json.encodeToString(serializer(), this)
 
     fun toTexts(
-        color1: Formatting = Formatting.RED,
-        color2: Formatting = Formatting.YELLOW,
-        color3: Formatting = Formatting.GREEN,
-        color4: Formatting = Formatting.AQUA,
-        color5: Formatting = Formatting.WHITE
-    ): List<Text> {
-        val colon = Text.literal(": ").formatted(color5)
+        color1: ChatFormatting = ChatFormatting.RED,
+        color2: ChatFormatting = ChatFormatting.YELLOW,
+        color3: ChatFormatting = ChatFormatting.GREEN,
+        color4: ChatFormatting = ChatFormatting.AQUA,
+        color5: ChatFormatting = ChatFormatting.WHITE
+    ): List<Component> {
+        val colon = Component.literal(": ").withStyle(color5)
         val rules =
-            Text.translatable("$MOD_ID.game.rules").formatted(color1).formatted(Formatting.BOLD)
+            Component.translatable("$MOD_ID.game.rules").withStyle(color1).withStyle(ChatFormatting.BOLD)
         val lengthText =
-            (Text.translatable("$MOD_ID.game.length") + colon).formatted(color2)
+            (Component.translatable("$MOD_ID.game.length") + colon).withStyle(color2)
         val thinkingTimeText =
-            (Text.translatable("$MOD_ID.game.thinking_time") + colon).formatted(color2)
+            (Component.translatable("$MOD_ID.game.thinking_time") + colon).withStyle(color2)
         val startingPointsText =
-            (Text.translatable("$MOD_ID.game.starting_points") + colon).formatted(color2)
+            (Component.translatable("$MOD_ID.game.starting_points") + colon).withStyle(color2)
         val minPointsToWinText =
-            (Text.translatable("$MOD_ID.game.min_points_to_win") + colon).formatted(color2)
+            (Component.translatable("$MOD_ID.game.min_points_to_win") + colon).withStyle(color2)
         val minimumHanText =
-            (Text.translatable("$MOD_ID.game.minimum_han") + colon).formatted(color2)
+            (Component.translatable("$MOD_ID.game.minimum_han") + colon).withStyle(color2)
         val spectateText =
-            (Text.translatable("$MOD_ID.game.spectate") + colon).formatted(color2)
+            (Component.translatable("$MOD_ID.game.spectate") + colon).withStyle(color2)
         val redFiveText =
-            (Text.translatable("$MOD_ID.game.red_five") + colon).formatted(color2)
+            (Component.translatable("$MOD_ID.game.red_five") + colon).withStyle(color2)
         val openTanyaoText =
-            (Text.translatable("$MOD_ID.game.open_tanyao") + colon).formatted(color2)
-        val enable = Text.translatable("$MOD_ID.game.enabled").formatted(color3)
-        val disable = Text.translatable("$MOD_ID.game.disabled").formatted(color3)
+            (Component.translatable("$MOD_ID.game.open_tanyao") + colon).withStyle(color2)
+        val enable = Component.translatable("$MOD_ID.game.enabled").withStyle(color3)
+        val disable = Component.translatable("$MOD_ID.game.disabled").withStyle(color3)
         val spectateStatus = if (spectate) enable else disable
         val openTanyaoStatus = if (openTanyao) enable else disable
-        val second = Text.translatable("$MOD_ID.game.seconds").formatted(color3)
+        val second = Component.translatable("$MOD_ID.game.seconds").withStyle(color3)
         return listOf(
             rules,
-            Text.literal("§3 - ") + lengthText + (length.toText() as MutableText).formatted(color3),
-            Text.literal("§3 - ")
+            Component.literal("§3 - ") + lengthText + (length.toText() as MutableComponent).withStyle(color3),
+            Component.literal("§3 - ")
                     + thinkingTimeText
-                    + Text.literal("${thinkingTime.base}").formatted(color4)
-                    + Text.literal(" + ").formatted(color1)
-                    + Text.literal("${thinkingTime.extra}").formatted(color4)
+                    + Component.literal("${thinkingTime.base}").withStyle(color4)
+                    + Component.literal(" + ").withStyle(color1)
+                    + Component.literal("${thinkingTime.extra}").withStyle(color4)
                     + " " + second,
-            Text.literal("§3 - ") + startingPointsText + Text.literal("$startingPoints").formatted(color3),
-            Text.literal("§3 - ") + minPointsToWinText + Text.literal("$minPointsToWin").formatted(color3),
-            Text.literal("§3 - ") + minimumHanText + Text.literal("${minimumHan.han}").formatted(color3),
-            Text.literal("§3 - ") + spectateText + spectateStatus,
-            Text.literal("§3 - ") + redFiveText + Text.literal("${redFive.quantity}").formatted(color3),
-            Text.literal("§3 - ") + openTanyaoText + openTanyaoStatus
+            Component.literal("§3 - ") + startingPointsText + Component.literal("$startingPoints").withStyle(color3),
+            Component.literal("§3 - ") + minPointsToWinText + Component.literal("$minPointsToWin").withStyle(color3),
+            Component.literal("§3 - ") + minimumHanText + Component.literal("${minimumHan.han}").withStyle(color3),
+            Component.literal("§3 - ") + spectateText + spectateStatus,
+            Component.literal("§3 - ") + redFiveText + Component.literal("${redFive.quantity}").withStyle(color3),
+            Component.literal("§3 - ") + openTanyaoText + openTanyaoStatus
         )
     }
 
@@ -128,7 +128,7 @@ data class MahjongRule(
          * */
         fun getStartingRound(): MahjongRound = MahjongRound(wind = startingWind)
 
-        override fun toText() = Text.translatable("$MOD_ID.game.length.${name.lowercase()}")
+        override fun toText() = Component.translatable("$MOD_ID.game.length.${name.lowercase()}")
     }
 
     /**
@@ -141,7 +141,7 @@ data class MahjongRule(
         FOUR(4),         // 2 翻
         YAKUMAN(13);    //13 翻(役滿限定)
 
-        override fun toText(): Text = Text.of(han.toString())
+        override fun toText(): Component = Component.nullToEmpty(han.toString())
     }
 
     /**
@@ -158,7 +158,7 @@ data class MahjongRule(
         LONG(60, 0),
         VERY_LONG(300, 0);
 
-        override fun toText(): Text = Text.of("$base + $extra s")
+        override fun toText(): Component = Component.nullToEmpty("$base + $extra s")
     }
 
     /**
@@ -172,6 +172,6 @@ data class MahjongRule(
         THREE(3),
         FOUR(4);
 
-        override fun toText(): Text = Text.of(quantity.toString())
+        override fun toText(): Component = Component.nullToEmpty(quantity.toString())
     }
 }

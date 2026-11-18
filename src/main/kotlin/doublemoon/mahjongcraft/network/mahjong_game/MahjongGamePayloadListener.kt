@@ -23,18 +23,18 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
 /**
  * 對麻將遊戲進行操作的
  * */
 object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
 
-    override val id: CustomPayload.Id<MahjongGamePayload> = MahjongGamePayload.ID
+    override val id: CustomPacketPayload.Type<MahjongGamePayload> = MahjongGamePayload.ID
 
-    override val codec: PacketCodec<RegistryByteBuf, MahjongGamePayload> = MahjongGamePayload.CODEC
+    override val codec: StreamCodec<RegistryFriendlyByteBuf, MahjongGamePayload> = MahjongGamePayload.CODEC
 
     override val channelType: ChannelType = ChannelType.Both
 

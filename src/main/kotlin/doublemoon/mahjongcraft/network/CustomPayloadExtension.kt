@@ -4,19 +4,19 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.server.level.ServerPlayer
 
 @Environment(EnvType.CLIENT)
-fun CustomPayload.sendToServer() {
+fun CustomPacketPayload.sendToServer() {
     ClientPlayNetworking.send(this)
 }
 
 @Environment(EnvType.CLIENT)
-fun sendPayloadToServer(payload: CustomPayload) = payload.sendToServer()
+fun sendPayloadToServer(payload: CustomPacketPayload) = payload.sendToServer()
 
-fun CustomPayload.sendToPlayer(player: ServerPlayerEntity) {
+fun CustomPacketPayload.sendToPlayer(player: ServerPlayer) {
     ServerPlayNetworking.send(player, this)
 }
 
-fun sendPayloadToPlayer(player: ServerPlayerEntity, payload: CustomPayload) = payload.sendToPlayer(player)
+fun sendPayloadToPlayer(player: ServerPlayer, payload: CustomPacketPayload) = payload.sendToPlayer(player)

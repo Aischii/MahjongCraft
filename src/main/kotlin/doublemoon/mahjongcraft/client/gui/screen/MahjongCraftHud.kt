@@ -9,8 +9,8 @@ import io.github.cottonmc.cotton.gui.widget.WDynamicLabel
 import io.github.cottonmc.cotton.gui.widget.WPlainPanel
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.text.Text
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 
 /**
  * 請參考 [CottonHud]
@@ -20,10 +20,10 @@ class MahjongCraftHud {
     val quickActionsRootSize: Pair<Int, Int> get() = quickActionsRoot.let { it.width to it.height }
     val tileHintsRootSize: Pair<Int, Int> get() = tileHintsRoot.let { it.width to it.height }
     private val config = MahjongCraftClient.config
-    private val client = MinecraftClient.getInstance()
+    private val client = Minecraft.getInstance()
     private val window = client.window
-    private val textRenderer = client.textRenderer
-    private val fontHeight = textRenderer.fontHeight
+    private val textRenderer = client.font
+    private val fontHeight = textRenderer.lineHeight
     private val quickActions = config.quickActions
     private val quickActionsRoot = WPlainPanel()
     private val quickActionsTextAndLabel = listOf(
@@ -53,8 +53,8 @@ class MahjongCraftHud {
     }
 
     fun reposition() {
-        val width = window.scaledWidth
-        val height = window.scaledHeight
+        val width = window.guiScaledWidth
+        val height = window.guiScaledHeight
         repositionQuickActions(width, height)
         repositionTileHints(width, height)
     }
@@ -90,14 +90,14 @@ class MahjongCraftHud {
 
     private fun colorPrefix(settingEnabled: Boolean) = if (settingEnabled) "§a" else "§c"
 
-    private fun textWidth(text: String) = textRenderer.getWidth(text)
+    private fun textWidth(text: String) = textRenderer.width(text)
 
     companion object {
         private const val INSET = 6
         private const val LABEL_INTERVAL = 2
-        private val AUTO_ARRANGE = Text.translatable("config.$MOD_ID.quick_actions.auto_arrange")
-        private val AUTO_CALL_WIN = Text.translatable("config.$MOD_ID.quick_actions.auto_call_win")
-        private val NO_CHII_PON_KAN = Text.translatable("config.$MOD_ID.quick_actions.no_chii_pon_kan")
-        private val AUTO_DRAW_AND_DISCARD = Text.translatable("config.$MOD_ID.quick_actions.auto_draw_and_discard")
+        private val AUTO_ARRANGE = Component.translatable("config.$MOD_ID.quick_actions.auto_arrange")
+        private val AUTO_CALL_WIN = Component.translatable("config.$MOD_ID.quick_actions.auto_call_win")
+        private val NO_CHII_PON_KAN = Component.translatable("config.$MOD_ID.quick_actions.no_chii_pon_kan")
+        private val AUTO_DRAW_AND_DISCARD = Component.translatable("config.$MOD_ID.quick_actions.auto_draw_and_discard")
     }
 }

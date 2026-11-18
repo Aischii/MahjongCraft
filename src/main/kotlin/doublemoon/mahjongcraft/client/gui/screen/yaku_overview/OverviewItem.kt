@@ -2,25 +2,25 @@ package doublemoon.mahjongcraft.client.gui.screen.yaku_overview
 
 import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTile
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 
 /**
  * 文字的翻譯從 [這裡](https://mahjongsoul.club/yaku/1han?language=en) 複製貼上
  * */
 sealed class OverviewItem(
-    val title: Text,
+    val title: Component,
     val subtitle: Subtitle = Subtitle.None,
-    val description: Text = Text.empty(),
+    val description: Component = Component.empty(),
     val tiles: List<List<MahjongTile>> = emptyList(),
 ) {
     /**
      * 立直
      * */
     object Riichi : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.reach"),
+        title = Component.translatable("$MOD_ID.game.yaku.reach"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.riichi.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.riichi.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M2, MahjongTile.M3,
@@ -37,8 +37,8 @@ sealed class OverviewItem(
      * 斷么九
      * */
     object Tanyao : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.tanyao"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.tanyao.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.tanyao"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.tanyao.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M2, MahjongTile.M3, MahjongTile.M4,
@@ -55,9 +55,9 @@ sealed class OverviewItem(
      * 門前清自摸和
      * */
     object Tsumo : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.tsumo"),
+        title = Component.translatable("$MOD_ID.game.yaku.tsumo"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.tsumo.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.tsumo.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M1, MahjongTile.M1,
@@ -74,8 +74,8 @@ sealed class OverviewItem(
      * 自風牌
      * */
     object Jikaze : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.jikaze"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.jikaze.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.jikaze"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.jikaze.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M3, MahjongTile.M3, MahjongTile.M3,
@@ -92,8 +92,8 @@ sealed class OverviewItem(
      * 場風牌
      * */
     object Bakaze : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.bakaze"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.bakaze.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.bakaze"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.bakaze.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M3, MahjongTile.M3, MahjongTile.M3,
@@ -110,8 +110,8 @@ sealed class OverviewItem(
      * 三元牌：白發中
      * */
     object Sangen : OverviewItem(
-        title = Text.translatable("$MOD_ID.gui.yaku_overview.sangen.title"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.sangen.description"),
+        title = Component.translatable("$MOD_ID.gui.yaku_overview.sangen.title"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.sangen.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M3, MahjongTile.M3, MahjongTile.M3,
@@ -128,9 +128,9 @@ sealed class OverviewItem(
      * 平胡
      * */
     object Pinfu : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.pinfu"),
+        title = Component.translatable("$MOD_ID.game.yaku.pinfu"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.pinfu.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.pinfu.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M2, MahjongTile.M3,
@@ -147,9 +147,9 @@ sealed class OverviewItem(
      * 一杯口
      * */
     object Ipeiko : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.ipeiko"),
+        title = Component.translatable("$MOD_ID.game.yaku.ipeiko"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.ipeiko.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.ipeiko.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M2, MahjongTile.M3,
@@ -166,8 +166,8 @@ sealed class OverviewItem(
      * 搶槓
      * */
     object Chankan : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.chankan"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.chankan.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.chankan"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.chankan.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.P1, MahjongTile.P1, MahjongTile.P1,
@@ -180,8 +180,8 @@ sealed class OverviewItem(
      * 嶺上開花
      * */
     object Rinshankaihoh : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.rinshankaihoh"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.rinshankaihoh.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.rinshankaihoh"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.rinshankaihoh.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M2, MahjongTile.M3, MahjongTile.M4,
@@ -197,8 +197,8 @@ sealed class OverviewItem(
      * 海底撈月
      * */
     object Haitei : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.haitei"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.haitei.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.haitei"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.haitei.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M2, MahjongTile.M2, MahjongTile.M2,
@@ -215,8 +215,8 @@ sealed class OverviewItem(
      * 河底摸魚
      * */
     object Houtei : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.houtei"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.houtei.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.houtei"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.houtei.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M2, MahjongTile.M2, MahjongTile.M2,
@@ -233,8 +233,8 @@ sealed class OverviewItem(
      * 一發
      * */
     object Ippatsu : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.ippatsu"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.ippatsu.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.ippatsu"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.ippatsu.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M2, MahjongTile.M3,
@@ -251,9 +251,9 @@ sealed class OverviewItem(
      * 寶牌
      * */
     object Dora : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.dora"),
+        title = Component.translatable("$MOD_ID.game.yaku.dora"),
         subtitle = Subtitle.NotYaku,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.dora.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.dora.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.S3,
@@ -267,9 +267,9 @@ sealed class OverviewItem(
      * 赤寶牌
      * */
     object RedFive : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.red_five"),
+        title = Component.translatable("$MOD_ID.game.yaku.red_five"),
         subtitle = Subtitle.NotYaku,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.red_five.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.red_five.description"),
         tiles = listOf(
             listOf(MahjongTile.M5_RED),
             listOf(MahjongTile.P5_RED),
@@ -281,9 +281,9 @@ sealed class OverviewItem(
      * 雙立直
      * */
     object DoubleRiichi : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.double_reach"),
+        title = Component.translatable("$MOD_ID.game.yaku.double_reach"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.double_reach.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.double_reach.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M2, MahjongTile.M3,
@@ -300,8 +300,8 @@ sealed class OverviewItem(
      * 三色同刻
      * */
     object Sanshokudohko : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.sanshokudohko"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.sanshokudohko.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.sanshokudohko"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.sanshokudohko.description"),
         tiles = listOf(
             listOf(MahjongTile.M3, MahjongTile.M3, MahjongTile.M3),
             listOf(MahjongTile.P3, MahjongTile.P3, MahjongTile.P3),
@@ -315,8 +315,8 @@ sealed class OverviewItem(
      * 三槓子
      * */
     object Sankantsu : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.sankantsu"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.sankantsu.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.sankantsu"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.sankantsu.description"),
         tiles = listOf(
             listOf(MahjongTile.S5, MahjongTile.S6, MahjongTile.S7),
             listOf(MahjongTile.M3, MahjongTile.M3, MahjongTile.M3, MahjongTile.M3),
@@ -330,8 +330,8 @@ sealed class OverviewItem(
      * 對對和
      * */
     object Toitoiho : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.toitoiho"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.toitoiho.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.toitoiho"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.toitoiho.description"),
         tiles = listOf(
             listOf(MahjongTile.M3, MahjongTile.M3, MahjongTile.M3),
             listOf(MahjongTile.P4, MahjongTile.P4, MahjongTile.P4),
@@ -345,8 +345,8 @@ sealed class OverviewItem(
      * 三暗刻
      * */
     object Sananko : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.sananko"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.sananko.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.sananko"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.sananko.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M1, MahjongTile.M1,
@@ -363,8 +363,8 @@ sealed class OverviewItem(
      * 小三元
      * */
     object Shosangen : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.shosangen"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.shosangen.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.shosangen"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.shosangen.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M2, MahjongTile.M3, MahjongTile.M4,
@@ -381,8 +381,8 @@ sealed class OverviewItem(
      * 混老頭
      * */
     object Honrohtoh : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.honrohtoh"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.honrohtoh.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.honrohtoh"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.honrohtoh.description"),
         tiles = listOf(
             listOf(MahjongTile.M1, MahjongTile.M1, MahjongTile.M1),
             listOf(MahjongTile.M9, MahjongTile.M9, MahjongTile.M9),
@@ -397,9 +397,9 @@ sealed class OverviewItem(
      * 七對子
      * */
     object Chitoitsu : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.chitoitsu"),
+        title = Component.translatable("$MOD_ID.game.yaku.chitoitsu"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.chitoitsu.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.chitoitsu.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M1,
@@ -418,9 +418,9 @@ sealed class OverviewItem(
      * 混全帶么九
      * */
     object Chanta : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.chanta"),
+        title = Component.translatable("$MOD_ID.game.yaku.chanta"),
         subtitle = Subtitle.MinusOneHanAfterMakingACall,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.chanta.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.chanta.description"),
         tiles = listOf(
             listOf(MahjongTile.M1, MahjongTile.M2, MahjongTile.M3),
             listOf(MahjongTile.M7, MahjongTile.M8, MahjongTile.M9),
@@ -434,9 +434,9 @@ sealed class OverviewItem(
      * 一氣通貫
      * */
     object Ikkitsukan : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.ikkitsukan"),
+        title = Component.translatable("$MOD_ID.game.yaku.ikkitsukan"),
         subtitle = Subtitle.MinusOneHanAfterMakingACall,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.ikkitsukan.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.ikkitsukan.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M2, MahjongTile.M3,
@@ -452,9 +452,9 @@ sealed class OverviewItem(
      * 三色同順
      * */
     object Sanshokudohjun : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.sanshokudohjun"),
+        title = Component.translatable("$MOD_ID.game.yaku.sanshokudohjun"),
         subtitle = Subtitle.MinusOneHanAfterMakingACall,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.sanshokudohjun.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.sanshokudohjun.description"),
         tiles = listOf(
             listOf(MahjongTile.M1, MahjongTile.M2, MahjongTile.M3),
             listOf(MahjongTile.P1, MahjongTile.P2, MahjongTile.P3),
@@ -468,9 +468,9 @@ sealed class OverviewItem(
      * 兩杯口
      * */
     object Ryanpeiko : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.ryanpeiko"),
+        title = Component.translatable("$MOD_ID.game.yaku.ryanpeiko"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.ryanpeiko.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.ryanpeiko.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.S1, MahjongTile.S2, MahjongTile.S3,
@@ -488,9 +488,9 @@ sealed class OverviewItem(
      * 純全帶么九
      * */
     object Junchan : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.junchan"),
+        title = Component.translatable("$MOD_ID.game.yaku.junchan"),
         subtitle = Subtitle.MinusOneHanAfterMakingACall,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.junchan.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.junchan.description"),
         tiles = listOf(
             listOf(MahjongTile.M1, MahjongTile.M2, MahjongTile.M3),
             listOf(MahjongTile.M7, MahjongTile.M8, MahjongTile.M9),
@@ -504,9 +504,9 @@ sealed class OverviewItem(
      * 混一色
      * */
     object Honitsu : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.honitsu"),
+        title = Component.translatable("$MOD_ID.game.yaku.honitsu"),
         subtitle = Subtitle.MinusOneHanAfterMakingACall,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.honitsu.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.honitsu.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M1, MahjongTile.M1,
@@ -522,9 +522,9 @@ sealed class OverviewItem(
      * 清一色
      * */
     object Chinitsu : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.chinitsu"),
+        title = Component.translatable("$MOD_ID.game.yaku.chinitsu"),
         subtitle = Subtitle.MinusOneHanAfterMakingACall,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.chinitsu.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.chinitsu.description"),
         tiles = listOf(
             listOf(MahjongTile.M1, MahjongTile.M2, MahjongTile.M3),
             listOf(MahjongTile.M2, MahjongTile.M3, MahjongTile.M4),
@@ -538,8 +538,8 @@ sealed class OverviewItem(
      * 流局滿貫
      * */
     object NagashiMangan : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.nagashi_mangan"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.nagashi_mangan.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.nagashi_mangan"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.nagashi_mangan.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M9, MahjongTile.M1,
@@ -557,9 +557,9 @@ sealed class OverviewItem(
      * 天和
      * */
     object Tenho : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.tenho"),
+        title = Component.translatable("$MOD_ID.game.yaku.tenho"),
         subtitle = Subtitle.DealerOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.tenho.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.tenho.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M2, MahjongTile.M3,
@@ -575,9 +575,9 @@ sealed class OverviewItem(
      * 地和
      * */
     object Chiho : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.chiho"),
+        title = Component.translatable("$MOD_ID.game.yaku.chiho"),
         subtitle = Subtitle.NonDealerOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.chiho.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.chiho.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M2, MahjongTile.M3,
@@ -594,8 +594,8 @@ sealed class OverviewItem(
      * 大三元
      * */
     object Daisangen : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.daisangen"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.daisangen.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.daisangen"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.daisangen.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.S1, MahjongTile.S2, MahjongTile.S3,
@@ -611,9 +611,9 @@ sealed class OverviewItem(
      * 四暗刻
      * */
     object Suanko : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.suanko"),
+        title = Component.translatable("$MOD_ID.game.yaku.suanko"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.suanko.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.suanko.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M1, MahjongTile.M1,
@@ -629,8 +629,8 @@ sealed class OverviewItem(
      * 字一色
      * */
     object Tsuiso : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.tsuiso"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.tsuiso.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.tsuiso"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.tsuiso.description"),
         tiles = listOf(
             listOf(MahjongTile.EAST, MahjongTile.EAST, MahjongTile.EAST),
             listOf(MahjongTile.SOUTH, MahjongTile.SOUTH, MahjongTile.SOUTH),
@@ -644,9 +644,9 @@ sealed class OverviewItem(
      * 綠一色
      * */
     object Ryuiso : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.ryuiso"),
+        title = Component.translatable("$MOD_ID.game.yaku.ryuiso"),
         subtitle = Subtitle.GreenDragonIsNotNecessary,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.ryuiso.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.ryuiso.description"),
         tiles = listOf(
             listOf(MahjongTile.S2, MahjongTile.S2, MahjongTile.S2),
             listOf(MahjongTile.S3, MahjongTile.S3, MahjongTile.S3),
@@ -660,8 +660,8 @@ sealed class OverviewItem(
      * 清老頭
      * */
     object Chinroto : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.chinroto"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.chinroto.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.chinroto"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.chinroto.description"),
         tiles = listOf(
             listOf(MahjongTile.M1, MahjongTile.M1, MahjongTile.M1),
             listOf(MahjongTile.M9, MahjongTile.M9, MahjongTile.M9),
@@ -675,9 +675,9 @@ sealed class OverviewItem(
      * 國士無雙
      * */
     object Kokushimuso : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.kokushimuso"),
+        title = Component.translatable("$MOD_ID.game.yaku.kokushimuso"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.kokushimuso.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.kokushimuso.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M9,
@@ -694,8 +694,8 @@ sealed class OverviewItem(
      * 小四喜
      * */
     object Shosushi : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.shosushi"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.shosushi.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.shosushi"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.shosushi.description"),
         tiles = listOf(
             listOf(MahjongTile.P1, MahjongTile.P2, MahjongTile.P3),
             listOf(MahjongTile.EAST, MahjongTile.EAST, MahjongTile.EAST),
@@ -709,8 +709,8 @@ sealed class OverviewItem(
      * 四槓子
      * */
     object Sukantsu : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.sukantsu"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.sukantsu.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.sukantsu"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.sukantsu.description"),
         tiles = listOf(
             listOf(MahjongTile.M1, MahjongTile.M1, MahjongTile.M1, MahjongTile.M1),
             listOf(MahjongTile.P2, MahjongTile.P2, MahjongTile.P2, MahjongTile.P2),
@@ -724,9 +724,9 @@ sealed class OverviewItem(
      * 九蓮寶燈
      * */
     object Churenpohto : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.churenpohto"),
+        title = Component.translatable("$MOD_ID.game.yaku.churenpohto"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.churenpohto.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.churenpohto.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M1, MahjongTile.M1, MahjongTile.M1,
@@ -742,9 +742,9 @@ sealed class OverviewItem(
      * 四暗刻單騎
      * */
     object SuankoTanki : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.suanko_tanki"),
+        title = Component.translatable("$MOD_ID.game.yaku.suanko_tanki"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.suanko_tanki.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.suanko_tanki.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M1, MahjongTile.M1,
@@ -761,9 +761,9 @@ sealed class OverviewItem(
      * 國士無雙十三面聽
      * */
     object KokushimusoJusanmenmachi : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.kokushimuso_jusanmenmachi"),
+        title = Component.translatable("$MOD_ID.game.yaku.kokushimuso_jusanmenmachi"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.kokushimuso_jusanmenmachi.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.kokushimuso_jusanmenmachi.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M9,
@@ -780,9 +780,9 @@ sealed class OverviewItem(
      * 純正九蓮寶燈
      * */
     object JunseiChurenpohto : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.junsei_churenpohto"),
+        title = Component.translatable("$MOD_ID.game.yaku.junsei_churenpohto"),
         subtitle = Subtitle.MenzenchinOnly,
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.junsei_churenpohto.description"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.junsei_churenpohto.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M1, MahjongTile.M1,
@@ -799,8 +799,8 @@ sealed class OverviewItem(
      * 大四喜
      * */
     object Daisushi : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.yaku.daisushi"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.daisushi.description"),
+        title = Component.translatable("$MOD_ID.game.yaku.daisushi"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.daisushi.description"),
         tiles = listOf(
             listOf(MahjongTile.EAST, MahjongTile.EAST, MahjongTile.EAST),
             listOf(MahjongTile.SOUTH, MahjongTile.SOUTH, MahjongTile.SOUTH),
@@ -814,8 +814,8 @@ sealed class OverviewItem(
      * 四風連打
      * */
     object SuufonRenda : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.exhaustive_draw.suufon_renda"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.suufon_renda.description"),
+        title = Component.translatable("$MOD_ID.game.exhaustive_draw.suufon_renda"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.suufon_renda.description"),
         tiles = listOf(
             listOf(MahjongTile.NORTH),
             listOf(MahjongTile.NORTH),
@@ -828,8 +828,8 @@ sealed class OverviewItem(
      * 四開槓
      * */
     object Suukaikan : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.exhaustive_draw.suukaikan"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.suukaikan.description"),
+        title = Component.translatable("$MOD_ID.game.exhaustive_draw.suukaikan"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.suukaikan.description"),
         tiles = listOf(
             listOf(MahjongTile.M1, MahjongTile.M1, MahjongTile.M1, MahjongTile.M1),
             listOf(MahjongTile.P2, MahjongTile.P2, MahjongTile.P2, MahjongTile.P2),
@@ -842,8 +842,8 @@ sealed class OverviewItem(
      * 九種九牌
      * */
     object KyuushuKyuuhai : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.exhaustive_draw.kyuushu_kyuuhai"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.kyuushu_kyuuhai.description"),
+        title = Component.translatable("$MOD_ID.game.exhaustive_draw.kyuushu_kyuuhai"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.kyuushu_kyuuhai.description"),
         tiles = listOf(
             listOf(
                 MahjongTile.M1, MahjongTile.M9,
@@ -859,18 +859,18 @@ sealed class OverviewItem(
      * 四家立直
      * */
     object SuuchaRiichi : OverviewItem(
-        title = Text.translatable("$MOD_ID.game.exhaustive_draw.suucha_riichi"),
-        description = Text.translatable("$MOD_ID.gui.yaku_overview.suucha_riichi.description"),
+        title = Component.translatable("$MOD_ID.game.exhaustive_draw.suucha_riichi"),
+        description = Component.translatable("$MOD_ID.gui.yaku_overview.suucha_riichi.description"),
     )
 
-    enum class Subtitle(val text: Text) {
-        None(Text.empty()),
-        MenzenchinOnly(Text.translatable("$MOD_ID.gui.yaku_overview.menzenchin_only")),
-        NotYaku(Text.translatable("$MOD_ID.gui.yaku_overview.not_yaku")),
-        DealerOnly(Text.translatable("$MOD_ID.gui.yaku_overview.dealer_only")),
-        NonDealerOnly(Text.translatable("$MOD_ID.gui.yaku_overview.non_dealer_only")),
-        MinusOneHanAfterMakingACall(Text.translatable("$MOD_ID.gui.yaku_overview.minus_one_han_after_making_a_call")),
-        GreenDragonIsNotNecessary(Text.translatable("$MOD_ID.gui.yaku_overview.green_dragon_is_not_necessary")),
+    enum class Subtitle(val text: Component) {
+        None(Component.empty()),
+        MenzenchinOnly(Component.translatable("$MOD_ID.gui.yaku_overview.menzenchin_only")),
+        NotYaku(Component.translatable("$MOD_ID.gui.yaku_overview.not_yaku")),
+        DealerOnly(Component.translatable("$MOD_ID.gui.yaku_overview.dealer_only")),
+        NonDealerOnly(Component.translatable("$MOD_ID.gui.yaku_overview.non_dealer_only")),
+        MinusOneHanAfterMakingACall(Component.translatable("$MOD_ID.gui.yaku_overview.minus_one_han_after_making_a_call")),
+        GreenDragonIsNotNecessary(Component.translatable("$MOD_ID.gui.yaku_overview.green_dragon_is_not_necessary")),
         ;
     }
 }

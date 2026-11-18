@@ -1,13 +1,13 @@
 package doublemoon.mahjongcraft.game
 
-import net.minecraft.particle.ParticleEffect
+import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.sound.SoundCategory
-import net.minecraft.sound.SoundEvent
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.network.chat.Component
+import net.minecraft.core.BlockPos
 
 interface GameBase<T : GamePlayer> {
     /**
@@ -18,12 +18,12 @@ interface GameBase<T : GamePlayer> {
     /**
      * 遊戲的名稱
      * */
-    val name: Text
+    val name: Component
 
     /**
      * 遊戲所在的世界
      * */
-    val world: ServerWorld
+    val world: ServerLevel
 
     /**
      * 遊戲所在的座標
@@ -38,12 +38,12 @@ interface GameBase<T : GamePlayer> {
     /**
      * 讓 [player] 加入遊戲
      * */
-    fun join(player: ServerPlayerEntity)
+    fun join(player: ServerPlayer)
 
     /**
      * 讓 [player] 離開遊戲
      * */
-    fun leave(player: ServerPlayerEntity)
+    fun leave(player: ServerPlayer)
 
     /**
      * 開始遊戲
@@ -63,12 +63,12 @@ interface GameBase<T : GamePlayer> {
     /**
      * 當玩家登出伺服器
      * */
-    fun onPlayerDisconnect(player: ServerPlayerEntity)
+    fun onPlayerDisconnect(player: ServerPlayer)
 
     /**
      * 當玩家變更世界
      * */
-    fun onPlayerChangedWorld(player: ServerPlayerEntity)
+    fun onPlayerChangedWorld(player: ServerPlayer)
 
     /**
      * 當 [server] 關閉
@@ -78,19 +78,19 @@ interface GameBase<T : GamePlayer> {
     /**
      * [player] 是否在遊戲內
      * */
-    fun isInGame(player: ServerPlayerEntity): Boolean {
+    fun isInGame(player: ServerPlayer): Boolean {
         return getPlayer(player) != null
     }
 
     /**
      * [player] 是否是這個遊戲的 Host
      * */
-    fun isHost(player: ServerPlayerEntity): Boolean
+    fun isHost(player: ServerPlayer): Boolean
 
     /**
      * 從 [players] 依照 [player] 取得 [T]
      * */
-    fun getPlayer(player: ServerPlayerEntity): T? {
+    fun getPlayer(player: ServerPlayer): T? {
         return players.find { it.entity == player }
     }
 
@@ -100,10 +100,10 @@ interface GameBase<T : GamePlayer> {
      * @param pos 預設是麻將桌
      * */
     fun playSound(
-        world: ServerWorld = this.world,
+        world: ServerLevel = this.world,
         pos: BlockPos = this@GameBase.pos,
         soundEvent: SoundEvent,
-        category: SoundCategory = SoundCategory.VOICE,
+        category: SoundSource = SoundSource.VOICE,
         volume: Float = 1f,
         pitch: Float = 1f
     ) {
@@ -121,7 +121,7 @@ interface GameBase<T : GamePlayer> {
      * 產生粒子效果
      * */
     fun spawnParticles(
-        particleEffect: ParticleEffect,
+        particleEffect: ParticleOptions,
         x: Double = pos.x + 0.5,
         y: Double = pos.y + 1.5,
         z: Double = pos.z + 0.5,
@@ -131,7 +131,7 @@ interface GameBase<T : GamePlayer> {
         deltaZ: Double = 0.0,
         speed: Double = 0.0
     ) {
-        world.spawnParticles(particleEffect, x, y, z, count, deltaX, deltaY, deltaZ, speed)
+        world.sendParticles(particleEffect, x, y, z, count, deltaX, deltaY, deltaZ, speed)
     }
 
 }

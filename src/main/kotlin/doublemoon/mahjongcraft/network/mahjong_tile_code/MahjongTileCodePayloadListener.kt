@@ -6,15 +6,15 @@ import doublemoon.mahjongcraft.network.CustomPayloadListener
 import doublemoon.mahjongcraft.network.sendPayloadToPlayer
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
 object MahjongTileCodePayloadListener : CustomPayloadListener<MahjongTileCodePayload> {
 
-    override val id: CustomPayload.Id<MahjongTileCodePayload> = MahjongTileCodePayload.ID
+    override val id: CustomPacketPayload.Type<MahjongTileCodePayload> = MahjongTileCodePayload.ID
 
-    override val codec: PacketCodec<RegistryByteBuf, MahjongTileCodePayload> = MahjongTileCodePayload.CODEC
+    override val codec: StreamCodec<RegistryFriendlyByteBuf, MahjongTileCodePayload> = MahjongTileCodePayload.CODEC
 
     override val channelType: ChannelType = ChannelType.Both
 
@@ -23,11 +23,11 @@ object MahjongTileCodePayloadListener : CustomPayloadListener<MahjongTileCodePay
         context: ClientPlayNetworking.Context,
     ) {
         val (id, code) = payload
-        val world = context.client().world ?: return
+        val world = context.client().level ?: return
 
         kotlin.runCatching {
             // ClientWorld 並沒有 getEntity(uuid) 的方法, 但是 ServerWorld 就有 (what??)
-            world.getEntityById(id) as MahjongTileEntity? ?: return
+            world.getEntity(id) as MahjongTileEntity? ?: return
         }.fold(
             onSuccess = { it.code = code },
             onFailure = {
@@ -46,8 +46,8 @@ object MahjongTileCodePayloadListener : CustomPayloadListener<MahjongTileCodePay
         val player = context.player()
         val server = player.server
 
-        for (world in server.worlds) {
-            val entity = world.getEntityById(id) as? MahjongTileEntity ?: continue
+        for (world in server.allLevels) {
+            val entity = world.getEntity(id) as? MahjongTileEntity ?: continue
             val code = entity.getCodeForPlayer(player)
 
             sendPayloadToPlayer(

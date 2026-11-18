@@ -4,7 +4,7 @@ import io.github.cottonmc.cotton.gui.client.ScreenDrawing
 import io.github.cottonmc.cotton.gui.widget.WWidget
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.GuiGraphics
 
 class WColorBlock(
     private val color: Int,
@@ -13,7 +13,7 @@ class WColorBlock(
     override fun canResize(): Boolean = true
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: DrawContext, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphics, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         ScreenDrawing.coloredRect(context, x, y, width, height, color)
     }
 }

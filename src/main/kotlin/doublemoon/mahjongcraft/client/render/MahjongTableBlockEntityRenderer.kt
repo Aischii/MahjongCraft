@@ -12,28 +12,28 @@ import doublemoon.mahjongcraft.util.plus
 import io.github.cottonmc.cotton.gui.widget.data.Color
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.block.entity.BlockEntityRenderer
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.text.Text
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.network.chat.Component
 
 @Environment(EnvType.CLIENT)
 class MahjongTableBlockEntityRenderer(
-    context: BlockEntityRendererFactory.Context
+    context: BlockEntityRendererProvider.Context
 ) : BlockEntityRenderer<MahjongTableBlockEntity> {
-    private val textRenderer = context.textRenderer
+    private val textRenderer = context.font
 
     override fun render(
         blockEntity: MahjongTableBlockEntity,
         tickDelta: Float,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider,
+        matrices: PoseStack,
+        vertexConsumers: MultiBufferSource,
         light: Int,
         overlay: Int
     ) {
         if (!MahjongCraftClient.config.displayTableLabels) return
-        if (blockEntity.cachedState[MahjongTable.PART] != MahjongTablePart.BOTTOM_CENTER) return //只有 BOTTOM_CENTER 才渲染
+        if (blockEntity.blockState.getValue(MahjongTable.PART) != MahjongTablePart.BOTTOM_CENTER) return //只有 BOTTOM_CENTER 才渲染
         renderCenterLabels(blockEntity, matrices, vertexConsumers)
         renderPlayerLabels(blockEntity, matrices, vertexConsumers)
     }
@@ -44,11 +44,11 @@ class MahjongTableBlockEntityRenderer(
      * */
     private fun renderPlayerLabels(
         blockEntity: MahjongTableBlockEntity,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider
+        matrices: PoseStack,
+        vertexConsumers: MultiBufferSource
     ) {
         if (!blockEntity.playing || blockEntity.seat.size != 4) return //只有遊戲中才能渲染
-        val blockPos = blockEntity.pos
+        val blockPos = blockEntity.blockPos
         val dealer = blockEntity.dealer
         val seat = blockEntity.seat
         val dealerSeatIndex = seat.indexOf(dealer).also { if (it == -1) return }
@@ -62,7 +62,7 @@ class MahjongTableBlockEntityRenderer(
             val windIndex = (dealerSeatIndex - index).let { if (it >= 0) 4 - it else -it } % 4
             buildList {
                 this += Wind.entries[windIndex].toText()
-                this += Text.of(blockEntity.points[index].toString())
+                this += Component.nullToEmpty(blockEntity.points[index].toString())
                 reverse()
                 forEachIndexed { index1, text ->
                     RenderHelper.renderLabel(
@@ -73,7 +73,7 @@ class MahjongTableBlockEntityRenderer(
                         offsetZ = 0.5 + (bPos.z - blockPos.z),
                         text = text,
                         color = if (stringUUID == dealer) 0xEEB24F else Color.WHITE.toRgb(), //東風的顏色會不一樣
-                        light = RenderHelper.getLightLevel(blockEntity.world!!, blockEntity.pos.up()),
+                        light = RenderHelper.getLightLevel(blockEntity.level!!, blockEntity.blockPos.above()),
                         vertexConsumers = vertexConsumers
                     )
                 }
@@ -86,8 +86,8 @@ class MahjongTableBlockEntityRenderer(
      * */
     private fun renderCenterLabels(
         blockEntity: MahjongTableBlockEntity,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider
+        matrices: PoseStack,
+        vertexConsumers: MultiBufferSource
     ) {
         val playerAmount = blockEntity.players.count { it.isNotEmpty() }
         val readyAmount = blockEntity.ready.count { it }
@@ -103,7 +103,7 @@ class MahjongTableBlockEntityRenderer(
             } else { //在遊戲中才顯示
                 val round = blockEntity.round
                 val windText = round.wind.toText()
-                this += Text.translatable("$MOD_ID.game.round.title", windText, round.round + 1) //ex: 東 4 局
+                this += Component.translatable("$MOD_ID.game.round.title", windText, round.round + 1) //ex: 東 4 局
             }
             reverse()
             forEachIndexed { index, text -> //渲染文字
@@ -115,7 +115,7 @@ class MahjongTableBlockEntityRenderer(
                     offsetZ = 0.5,
                     text = text,
                     color = Color.WHITE.toRgb(),
-                    light = RenderHelper.getLightLevel(blockEntity.world!!, blockEntity.pos.up()),
+                    light = RenderHelper.getLightLevel(blockEntity.level!!, blockEntity.blockPos.above()),
                     vertexConsumers = vertexConsumers
                 )
             }
@@ -127,9 +127,9 @@ class MahjongTableBlockEntityRenderer(
         private const val PLAYING_PADDING = 1.6
         private const val WIND_PADDING = 1.6
         private const val LABEL_INTERVAL = 0.25
-        private val READY get() = Text.translatable("$MOD_ID.gui.button.ready")
-        private val PLAYER get() = Text.translatable("$MOD_ID.game.player")
-        private val STATUS get() = Text.translatable("$MOD_ID.game.status")
+        private val READY get() = Component.translatable("$MOD_ID.gui.button.ready")
+        private val PLAYER get() = Component.translatable("$MOD_ID.game.player")
+        private val STATUS get() = Component.translatable("$MOD_ID.game.status")
         private val WAITING = GameStatus.WAITING.toText()
         private val PLAYING = GameStatus.PLAYING.toText()
     }

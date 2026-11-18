@@ -17,8 +17,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import org.mahjong4j.tile.Tile
 
 @Environment(EnvType.CLIENT)
@@ -28,7 +28,7 @@ class MahjongGameBehaviorScreen(
     target: ClaimTarget,
     data: String,
 ) : CottonClientScreen(MahjongGameBehaviorGui(behavior, hands, target, data)) {
-    override fun shouldPause(): Boolean = false
+    override fun isPauseScreen(): Boolean = false
 }
 
 @Environment(EnvType.CLIENT)
@@ -50,8 +50,8 @@ class MahjongGameBehaviorGui(
         get() = if (basicTime > 0 && extraTime > 0) "§e + " else ""
     private val extraTimeText: String
         get() = if (extraTime > 0) "§c$extraTime" else ""
-    private val timeText: Text
-        get() = Text.of("$basicTimeText$plusTimeText$extraTimeText")
+    private val timeText: Component
+        get() = Component.nullToEmpty("$basicTimeText$plusTimeText$extraTimeText")
 
     //渲染麻將牌用
     private val alreadyDrewTile = when (behavior) { //在發送這行為過來時是否有拿牌, 目前只有下面 3 個情況有拿牌
@@ -237,7 +237,7 @@ class MahjongGameBehaviorGui(
                 y = BORDER_MARGIN,
                 width = BUTTON_WIDTH,
                 height = BUTTON_HEIGHT,
-                label = Text.translatable("$MOD_ID.game.behavior.skip"),
+                label = Component.translatable("$MOD_ID.game.behavior.skip"),
                 onClick = {
                     sendPayloadToServer(
                         payload = MahjongGamePayload(behavior = MahjongGameBehavior.SKIP)
@@ -352,21 +352,21 @@ class MahjongGameBehaviorGui(
         init {
             setSize(WIDTH, HEIGHT)
             initTiles()
-            val tooltip: Array<Text> = when (behavior) {
+            val tooltip: Array<Component> = when (behavior) {
                 MahjongGameBehavior.RIICHI ->
-                    buildList<Text> {
-                        this += Text.translatable("$MOD_ID.game.machi").formatted(Formatting.RED)
-                            .formatted(Formatting.BOLD)
+                    buildList<Component> {
+                        this += Component.translatable("$MOD_ID.game.machi").withStyle(ChatFormatting.RED)
+                            .withStyle(ChatFormatting.BOLD)
                         val tilePairsForRiichi =
                             Json.decodeFromString<MutableList<Pair<MahjongTile, MutableList<MahjongTile>>>>(data)
                         val pair = tilePairsForRiichi.find { it.first == tiles[0] }
                         val machi = pair!!.second
                             .distinctBy { tile -> tile.toText().string } //去掉重複的選項
                             .sortedBy { tile -> tile.sortOrder } //按照順序排好
-                        this += machi.map { Text.of("§3 - §e${it.toText().string}") }
+                        this += machi.map { Component.nullToEmpty("§3 - §e${it.toText().string}") }
                     }.toTypedArray()
                 MahjongGameBehavior.EXHAUSTIVE_DRAW ->
-                    arrayOf(behavior.toText().formatted(Formatting.RED).formatted(Formatting.BOLD))
+                    arrayOf(behavior.toText().withStyle(ChatFormatting.RED).withStyle(ChatFormatting.BOLD))
                 else -> arrayOf() //目前剩下的暫時都沒有 tooltip
             }
             tooltipButton(

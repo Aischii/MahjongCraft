@@ -8,17 +8,17 @@ import doublemoon.mahjongcraft.registry.ItemRegistry
 import doublemoon.mahjongcraft.util.RenderHelper
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.render.Frustum
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.entity.EntityRenderer
-import net.minecraft.client.render.entity.EntityRendererFactory
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.RotationAxis
+import net.minecraft.client.renderer.culling.Frustum
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.entity.EntityRenderer
+import net.minecraft.client.renderer.entity.EntityRendererProvider
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.resources.ResourceLocation
+import com.mojang.math.Axis
 
 @Environment(EnvType.CLIENT)
 class DiceEntityRenderer(
-    context: EntityRendererFactory.Context,
+    context: EntityRendererProvider.Context,
 ) : EntityRenderer<DiceEntity>(context) {
 
     private val itemRenderer = context.itemRenderer
@@ -31,16 +31,16 @@ class DiceEntityRenderer(
         entity: DiceEntity,
         yaw: Float,
         tickDelta: Float,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider,
+        matrices: PoseStack,
+        vertexConsumers: MultiBufferSource,
         light: Int,
     ) {
         super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light)
         with(matrices) {
-            push()
-            multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-entity.yaw + 180))
-            multiply(RotationAxis.POSITIVE_X.rotationDegrees(entity.point.xpRotDegrees))
-            multiply(RotationAxis.POSITIVE_Y.rotationDegrees(entity.point.ypRotDegrees))
+            pushPose()
+            mulPose(Axis.YP.rotationDegrees(-entity.yRot + 180))
+            mulPose(Axis.XP.rotationDegrees(entity.point.xpRotDegrees))
+            mulPose(Axis.YP.rotationDegrees(entity.point.ypRotDegrees))
             val baseOffset = DICE_HEIGHT / 2.0 + (1f * DICE_SCALE - DICE_HEIGHT) / 2.0
             val halfHeight = DICE_HEIGHT / 2.0
             val offsetX = when (entity.point) {
@@ -68,13 +68,13 @@ class DiceEntityRenderer(
                 light = light,
                 vertexConsumer = vertexConsumers,
             )
-            pop()
+            popPose()
         }
     }
 
-    override fun getTexture(entity: DiceEntity): Identifier? = null
+    override fun getTextureLocation(entity: DiceEntity): ResourceLocation? = null
 
     companion object {
-        private val diceItem = ItemRegistry.dice.defaultStack
+        private val diceItem = ItemRegistry.dice.defaultInstance
     }
 }

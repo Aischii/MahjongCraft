@@ -11,15 +11,15 @@ import doublemoon.mahjongcraft.scheduler.server.ServerScheduler
 import doublemoon.mahjongcraft.util.delayOnServer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.text.Text
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.network.chat.Component
 
 /**
  * 麻將玩家
  * */
 class MahjongPlayer(
-    override val entity: ServerPlayerEntity,
+    override val entity: ServerPlayer,
 ) : MahjongPlayerBase() {
 
     init {
@@ -30,8 +30,8 @@ class MahjongPlayer(
         )
     }
 
-    fun sendMessage(text: Text, overlay: Boolean = true) {
-        entity.sendMessage(text, overlay)
+    fun sendMessage(text: Component, overlay: Boolean = true) {
+        entity.displayClientMessage(text, overlay)
     }
 
     /**
@@ -58,8 +58,8 @@ class MahjongPlayer(
     var cannotDiscardTiles = listOf<MahjongTile>()
         private set
 
-    override fun teleport(targetWorld: ServerWorld, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
-        this.entity.teleport(targetWorld, x, y, z, yaw, pitch)
+    override fun teleport(targetWorld: ServerLevel, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
+        this.entity.teleportTo(targetWorld, x, y, z, yaw, pitch)
     }
 
     /**

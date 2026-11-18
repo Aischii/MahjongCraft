@@ -4,12 +4,12 @@ import io.github.cottonmc.cotton.gui.widget.TooltipBuilder
 import io.github.cottonmc.cotton.gui.widget.WTextField
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 
 class WTooltipTextField(
-    suggestion: Text?,
-    var tooltip: Array<Text>
+    suggestion: Component?,
+    var tooltip: Array<Component>
 ) : WTextField(suggestion) {
     @Environment(EnvType.CLIENT)
     override fun addTooltip(tooltip: TooltipBuilder) {

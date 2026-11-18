@@ -19,20 +19,20 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.util.math.BlockPos
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.core.BlockPos
 
 /**
  * 對麻將桌進行操作的
  * */
 object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> {
 
-    override val id: CustomPayload.Id<MahjongTablePayload> = MahjongTablePayload.ID
+    override val id: CustomPacketPayload.Type<MahjongTablePayload> = MahjongTablePayload.ID
 
-    override val codec: PacketCodec<RegistryByteBuf, MahjongTablePayload> = MahjongTablePayload.CODEC
+    override val codec: StreamCodec<RegistryFriendlyByteBuf, MahjongTablePayload> = MahjongTablePayload.CODEC
 
     override val channelType: ChannelType = ChannelType.Both
 
@@ -43,7 +43,7 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
     ) {
         val (behavior, pos, _) = payload
         val client = context.client()
-        val world = client.world ?: return
+        val world = client.level ?: return
 
         when (behavior) {
             //加入 GUI 參考自 https://github.com/CottonMC/LibGui/wiki/Getting-Started-with-GUIs
@@ -72,7 +72,7 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
     ) {
         val (behavior, pos, extraData) = payload
         val player = context.player()
-        val world = player.world as ServerWorld? ?: return
+        val world = player.level() as ServerLevel? ?: return
 
         when (behavior) {
             MahjongTableBehavior.JOIN -> syncBlockEntityWithGame(world = world, pos = pos) {  //讓玩家加入遊戲
@@ -126,7 +126,7 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
      * */
     private fun syncBlockEntityWithGame(
         invokeOnNextTick: Boolean = true,
-        world: ServerWorld,
+        world: ServerLevel,
         pos: BlockPos,
         apply: MahjongGame.() -> Unit = {},
     ) {
@@ -187,7 +187,7 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
                 this.round = it.round
                 this.dealer = it.seat.getOrNull(it.round.round)?.uuid ?: ""
             }
-            this.markDirty()
+            this.setChanged()
         }
     }
 }

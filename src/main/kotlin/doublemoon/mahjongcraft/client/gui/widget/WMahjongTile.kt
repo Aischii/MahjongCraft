@@ -6,8 +6,8 @@ import io.github.cottonmc.cotton.gui.widget.WWidget
 import io.github.cottonmc.cotton.gui.widget.data.Color
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.util.math.RotationAxis
+import net.minecraft.client.gui.GuiGraphics
+import com.mojang.math.Axis
 
 class WMahjongTile(
     var mahjongTile: MahjongTile,
@@ -26,7 +26,7 @@ class WMahjongTile(
     }
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: DrawContext, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphics, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         if (direction == TileDirection.NORMAL) {
             ScreenDrawing.texturedRect(
                 context,
@@ -38,17 +38,17 @@ class WMahjongTile(
                 Color.WHITE.toRgb()
             )
         } else {
-            val matrices = context.matrices
+            val matrices = context.pose()
             //這裡的 height 跟 width 都是反著用的, 因為我們把 matrices 轉成橫的才把直的印上去, 所以應該套用原本直的高跟寬
-            matrices.push()
+            matrices.pushPose()
             when (direction) {
                 TileDirection.RIGHT -> {
                     matrices.translate((x + width).toDouble(), y.toDouble(), 0.0)
-                    matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90f))
+                    matrices.mulPose(Axis.ZP.rotationDegrees(90f))
                 }
                 TileDirection.LEFT -> {
                     matrices.translate(x.toDouble(), (y + height).toDouble(), 0.0)
-                    matrices.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees(90f))
+                    matrices.mulPose(Axis.ZN.rotationDegrees(90f))
                 }
                 else -> return //這種情況不會發生
             }
@@ -61,7 +61,7 @@ class WMahjongTile(
                 mahjongTile.surfaceIdentifier,
                 Color.WHITE.toRgb()
             )
-            matrices.pop()
+            matrices.popPose()
         }
     }
 

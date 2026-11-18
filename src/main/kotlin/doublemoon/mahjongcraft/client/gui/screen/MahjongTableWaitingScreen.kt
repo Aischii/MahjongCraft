@@ -17,12 +17,12 @@ import io.github.cottonmc.cotton.gui.widget.*
 import io.github.cottonmc.cotton.gui.widget.data.VerticalAlignment
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.network.ClientPlayerEntity
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.Identifier
+import net.minecraft.client.Minecraft
+import net.minecraft.client.player.LocalPlayer
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.resources.ResourceLocation
 import java.util.*
 
 @Environment(EnvType.CLIENT)
@@ -32,7 +32,7 @@ class MahjongTableWaitingScreen(
     /**
      * 不取消暫停的話, 通過按按鈕導致的更新會卡在下個 tick, 畫面會更新不了
      * */
-    override fun shouldPause(): Boolean = false
+    override fun isPauseScreen(): Boolean = false
 
     /**
      * 刷新用, 在 [MahjongTableBlockEntity.readNbt] 的時候刷新,
@@ -48,8 +48,8 @@ class MahjongTableGui(
     val mahjongTable: MahjongTableBlockEntity,
 ) : LightweightGuiDescription() {
 
-    private val client = MinecraftClient.getInstance()
-    private val player: ClientPlayerEntity = client.player!!
+    private val client = Minecraft.getInstance()
+    private val player: LocalPlayer = client.player!!
 
     //以下來自 mahjongTableBlockEntity
     private val players = mahjongTable.players
@@ -59,12 +59,12 @@ class MahjongTableGui(
     private val rule get() = mahjongTable.rule
 
     private val isInThisGame: Boolean
-        get() = player.uuidAsString in players
+        get() = player.stringUUID in players
     private val isHost: Boolean
-        get() = players[0] == player.uuidAsString
+        get() = players[0] == player.stringUUID
     private val isReady: Boolean
         get() {
-            val index = players.indexOf(player.uuidAsString)
+            val index = players.indexOf(player.stringUUID)
             if (index == -1) return false
             return ready[index]
         }
@@ -94,12 +94,12 @@ class MahjongTableGui(
             val icon = item(
                 x = BORDER_MARGIN,
                 y = BORDER_MARGIN,
-                itemStack = ItemRegistry.mahjongTile.defaultStack.also { it.damage = MahjongTile.S1.code })
+                itemStack = ItemRegistry.mahjongTile.defaultInstance.also { it.damageValue = MahjongTile.S1.code })
             label(
                 x = icon.x + icon.width + 5,
                 y = icon.y,
                 height = icon.height,
-                text = Text.translatable("$MOD_ID.game.riichi_mahjong"),
+                text = Component.translatable("$MOD_ID.game.riichi_mahjong"),
                 verticalAlignment = VerticalAlignment.CENTER,
             )
             joinOrLeave = button(
@@ -111,14 +111,14 @@ class MahjongTableGui(
                         sendPayloadToServer(
                             payload = MahjongTablePayload(
                                 behavior = MahjongTableBehavior.JOIN,
-                                pos = mahjongTable.pos
+                                pos = mahjongTable.blockPos
                             )
                         )
                     } else {  //在遊戲中按表示要離開遊戲
                         sendPayloadToServer(
                             payload = MahjongTablePayload(
                                 behavior = MahjongTableBehavior.LEAVE,
-                                pos = mahjongTable.pos
+                                pos = mahjongTable.blockPos
                             )
                         )
                     }
@@ -140,10 +140,10 @@ class MahjongTableGui(
                 height = ROOT_HEIGHT - 14 * 2
             ) {
                 rule.toTexts(
-                    color2 = if (!darkMode) Formatting.DARK_GRAY else Formatting.YELLOW,
-                    color3 = if (!darkMode) Formatting.DARK_PURPLE else Formatting.GREEN,
-                    color4 = if (!darkMode) Formatting.LIGHT_PURPLE else Formatting.AQUA,
-                    color5 = if (!darkMode) Formatting.DARK_GRAY else Formatting.WHITE
+                    color2 = if (!darkMode) ChatFormatting.DARK_GRAY else ChatFormatting.YELLOW,
+                    color3 = if (!darkMode) ChatFormatting.DARK_PURPLE else ChatFormatting.GREEN,
+                    color4 = if (!darkMode) ChatFormatting.LIGHT_PURPLE else ChatFormatting.AQUA,
+                    color5 = if (!darkMode) ChatFormatting.DARK_GRAY else ChatFormatting.WHITE
                 ).forEachIndexed { index, text ->
                     val y = if (index > 0) ruleTexts[index - 1].let { it.y + it.height } + 3 else 0
                     ruleTexts += when (index) {
@@ -153,7 +153,7 @@ class MahjongTableGui(
                             width = 132,
                             text = text,
                             tooltip = arrayOf(
-                                Text.translatable(
+                                Component.translatable(
                                     "$MOD_ID.game.starting_points.description",
                                     MahjongRule.MIN_POINTS,
                                     MahjongRule.MAX_POINTS
@@ -165,7 +165,7 @@ class MahjongTableGui(
                             y = y,
                             width = 132,
                             text = text,
-                            tooltip = arrayOf(Text.translatable("$MOD_ID.game.min_points_to_win.description"))
+                            tooltip = arrayOf(Component.translatable("$MOD_ID.game.min_points_to_win.description"))
                         )
                         else -> text(x = 0, y = y, width = 132, text = text)
                     }
@@ -182,7 +182,7 @@ class MahjongTableGui(
         with(joinOrLeave) {
             isEnabled = if (isInThisGame) true else "" in players  //空位的時候, 會以 "" 表示
             label =
-                if (!isInThisGame) Text.translatable("$MOD_ID.gui.button.join") else Text.translatable("$MOD_ID.gui.button.leave")
+                if (!isInThisGame) Component.translatable("$MOD_ID.gui.button.join") else Component.translatable("$MOD_ID.gui.button.leave")
         }
         playerInfoItems.forEach {
             it.entityName = playerEntityNames[it.number]
@@ -192,10 +192,10 @@ class MahjongTableGui(
             it.fresh()
         }
         rule.toTexts(
-            color2 = if (!darkMode) Formatting.DARK_GRAY else Formatting.YELLOW,
-            color3 = if (!darkMode) Formatting.DARK_PURPLE else Formatting.GREEN,
-            color4 = if (!darkMode) Formatting.LIGHT_PURPLE else Formatting.AQUA,
-            color5 = if (!darkMode) Formatting.DARK_GRAY else Formatting.WHITE
+            color2 = if (!darkMode) ChatFormatting.DARK_GRAY else ChatFormatting.YELLOW,
+            color3 = if (!darkMode) ChatFormatting.DARK_PURPLE else ChatFormatting.GREEN,
+            color4 = if (!darkMode) ChatFormatting.LIGHT_PURPLE else ChatFormatting.AQUA,
+            color5 = if (!darkMode) ChatFormatting.DARK_GRAY else ChatFormatting.WHITE
         ).forEachIndexed { index, text ->
             ruleTexts[index].also {
                 it.text = text
@@ -211,8 +211,8 @@ class MahjongTableGui(
             isHost -> {
                 if (start == null) {
                     start = WTooltipButton(
-                        label = Text.translatable("$MOD_ID.gui.button.start"),
-                        tooltip = arrayOf(Text.translatable("$MOD_ID.gui.tooltip.clickable.when_all_ready"))
+                        label = Component.translatable("$MOD_ID.gui.button.start"),
+                        tooltip = arrayOf(Component.translatable("$MOD_ID.gui.tooltip.clickable.when_all_ready"))
                     )
                     (rootPanel as WPlainPanel).add(
                         start,
@@ -229,14 +229,14 @@ class MahjongTableGui(
                             sendPayloadToServer(
                                 payload = MahjongTablePayload(
                                     behavior = MahjongTableBehavior.START,
-                                    pos = mahjongTable.pos
+                                    pos = mahjongTable.blockPos
                                 )
                             )
                         }
                     }
                 }
                 if (addBot == null) {
-                    addBot = WButton(Text.translatable("$MOD_ID.gui.button.add_bot"))
+                    addBot = WButton(Component.translatable("$MOD_ID.gui.button.add_bot"))
                     (rootPanel as WPlainPanel).add(
                         addBot,
                         start!!.x,
@@ -252,14 +252,14 @@ class MahjongTableGui(
                             sendPayloadToServer(
                                 payload = MahjongTablePayload(
                                     behavior = MahjongTableBehavior.ADD_BOT,
-                                    pos = mahjongTable.pos
+                                    pos = mahjongTable.blockPos
                                 )
                             )
                         }
                     }
                 }
                 if (editRules == null) {
-                    editRules = WButton(Text.translatable("$MOD_ID.gui.button.edit_rules"))
+                    editRules = WButton(Component.translatable("$MOD_ID.gui.button.edit_rules"))
                     (rootPanel as WPlainPanel).add(
                         editRules,
                         addBot!!.x,
@@ -274,7 +274,7 @@ class MahjongTableGui(
                             sendPayloadToServer(
                                 payload = MahjongTablePayload(
                                     behavior = MahjongTableBehavior.OPEN_RULES_EDITOR_GUI,
-                                    pos = mahjongTable.pos
+                                    pos = mahjongTable.blockPos
                                 )
                             )
                         }
@@ -283,9 +283,9 @@ class MahjongTableGui(
                 repeat(3) {  //kick 按鈕只有 3 個
                     val playerIndex = it + 1
                     if (kick[it] == null) {
-                        val kickText = Text.translatable("$MOD_ID.gui.button.kick")
+                        val kickText = Component.translatable("$MOD_ID.gui.button.kick")
                         kick[it] = WButton(kickText)
-                        val buttonWidth = client.textRenderer.getWidth(kickText) + 12
+                        val buttonWidth = client.font.width(kickText) + 12
                         (rootPanel as WPlainPanel).add(
                             kick[it],
                             playerInfoItems[0].x - BUTTON_PADDING - buttonWidth,
@@ -301,7 +301,7 @@ class MahjongTableGui(
                                 sendPayloadToServer(
                                     payload = MahjongTablePayload(
                                         behavior = MahjongTableBehavior.KICK,
-                                        pos = mahjongTable.pos,
+                                        pos = mahjongTable.blockPos,
                                         extraData = playerIndex.toString()
                                     )
                                 )
@@ -324,23 +324,23 @@ class MahjongTableGui(
                 }
                 readyOrNot!!.apply {
                     label = if (isReady) {
-                        Text.translatable("$MOD_ID.gui.button.not_ready")
+                        Component.translatable("$MOD_ID.gui.button.not_ready")
                     } else {
-                        Text.translatable("$MOD_ID.gui.button.ready")
+                        Component.translatable("$MOD_ID.gui.button.ready")
                     }
                     onClick = Runnable {
                         if (isReady) {
                             sendPayloadToServer(
                                 payload = MahjongTablePayload(
                                     behavior = MahjongTableBehavior.NOT_READY,
-                                    pos = mahjongTable.pos
+                                    pos = mahjongTable.blockPos
                                 )
                             )
                         } else {
                             sendPayloadToServer(
                                 payload = MahjongTablePayload(
                                     behavior = MahjongTableBehavior.READY,
-                                    pos = mahjongTable.pos
+                                    pos = mahjongTable.blockPos
                                 )
                             )
                         }
@@ -399,13 +399,13 @@ class MahjongTableGui(
         var stringUUID: String = ""
         var isBot: Boolean = false
         var ready: Boolean = false
-        private val client = MinecraftClient.getInstance()
-        private val fontHeight = client.textRenderer.fontHeight
-        private val ttPlayer = Text.translatable("$MOD_ID.game.player")
-        private val ttHost = Text.translatable("$MOD_ID.game.host")
-        private val ttReady = Text.translatable("$MOD_ID.gui.button.ready")
-        private val ttNotReady = Text.translatable("$MOD_ID.gui.button.not_ready")
-        private val ttEmpty = Text.translatable("$MOD_ID.game.empty")
+        private val client = Minecraft.getInstance()
+        private val fontHeight = client.font.lineHeight
+        private val ttPlayer = Component.translatable("$MOD_ID.game.player")
+        private val ttHost = Component.translatable("$MOD_ID.game.host")
+        private val ttReady = Component.translatable("$MOD_ID.gui.button.ready")
+        private val ttNotReady = Component.translatable("$MOD_ID.gui.button.not_ready")
+        private val ttEmpty = Component.translatable("$MOD_ID.game.empty")
 
         init {
             this.setSize(WIDTH, HEIGHT)
@@ -417,7 +417,7 @@ class MahjongTableGui(
         private val name: WLabel = label(
             x = face.x + face.width + 6,
             y = face.y + face.height - fontHeight,
-            text = Text.of(entityName)
+            text = Component.nullToEmpty(entityName)
         )
         private val playerNum = ttPlayer + " ${number + 1}"
         private val numberAndReady: WLabel = label(
@@ -466,22 +466,22 @@ class MahjongTableGui(
                             face.y,
                             face.width,
                             face.height,
-                            Identifier("minecraft:textures/item/structure_void.png")
+                            ResourceLocation("minecraft:textures/item/structure_void.png")
                         )
                     }
                 }
             }
             if (number != 0) {
                 numberAndReady.text = if (entityName.isNotEmpty()) {
-                    Text.literal("") + playerNum + " (" + (if (ready) ttReady else ttNotReady) + ")"
+                    Component.literal("") + playerNum + " (" + (if (ready) ttReady else ttNotReady) + ")"
                 } else {
                     playerNum
                 }
             }
             name.text = when {
                 entityName.isNotEmpty() ->
-                    if (!isBot) Text.of(entityName)
-                    else Text.translatable("entity.$MOD_ID.mahjong_bot")
+                    if (!isBot) Component.nullToEmpty(entityName)
+                    else Component.translatable("entity.$MOD_ID.mahjong_bot")
                 else -> ttEmpty
             }
         }
@@ -501,7 +501,7 @@ class MahjongTableGui(
             ): WWidget = when {
                 isBot -> botFace(x, y, width, height)
                 uuid != null && name != null -> playerFace(x, y, width, height, uuid, name)
-                else -> image(x, y, width, height, Identifier("minecraft:textures/item/structure_void.png"))
+                else -> image(x, y, width, height, ResourceLocation("minecraft:textures/item/structure_void.png"))
             }
         }
     }

@@ -3,7 +3,7 @@ package doublemoon.mahjongcraft.game.mahjong.riichi.model
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongBot
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayerBase
 import kotlinx.serialization.Serializable
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 /**
  * 結算遊戲分數用, 會發給客戶端, 用來顯示結算分數畫面,
@@ -36,8 +36,8 @@ data class ScoreSettlement(
             this += RankedScoreItem(
                 scoreItem = playerScore,
                 scoreTotal = playerScore.scoreOrigin + playerScore.scoreChange,
-                scoreChangeText = Text.of(scoreChangeString),
-                rankFloatText = Text.of(rankFloat)
+                scoreChangeText = Component.nullToEmpty(scoreChangeString),
+                rankFloatText = Component.nullToEmpty(rankFloat)
             )
         }
     }
@@ -64,8 +64,8 @@ data class ScoreSettlement(
 data class RankedScoreItem(
     val scoreItem: ScoreItem,
     val scoreTotal: Int,
-    val scoreChangeText: Text,
-    val rankFloatText: Text
+    val scoreChangeText: Component,
+    val rankFloatText: Component
 )
 
 @Serializable

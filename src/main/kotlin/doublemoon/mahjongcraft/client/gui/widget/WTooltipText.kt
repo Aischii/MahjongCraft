@@ -4,12 +4,12 @@ import io.github.cottonmc.cotton.gui.widget.TooltipBuilder
 import io.github.cottonmc.cotton.gui.widget.WText
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 
 class WTooltipText(
-    text: Text,
-    var tooltip: Array<Text>
+    text: Component,
+    var tooltip: Array<Component>
 ) : WText(text) {
     @Environment(EnvType.CLIENT)
     override fun addTooltip(tooltip: TooltipBuilder) {

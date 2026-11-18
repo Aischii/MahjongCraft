@@ -23,15 +23,15 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.TitleScreen
-import net.minecraft.client.item.ClampedModelPredicateProvider
-import net.minecraft.client.item.ModelPredicateProviderRegistry
-import net.minecraft.client.option.KeyBinding
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactories
-import net.minecraft.client.util.InputUtil
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.util.Identifier
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.TitleScreen
+import net.minecraft.client.renderer.item.ClampedItemPropertyFunction
+import net.minecraft.client.renderer.item.ItemProperties
+import net.minecraft.client.KeyMapping
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers
+import com.mojang.blaze3d.platform.InputConstants
+import net.minecraft.core.component.DataComponents
+import net.minecraft.resources.ResourceLocation
 import org.lwjgl.glfw.GLFW
 
 @Environment(EnvType.CLIENT)
@@ -48,14 +48,14 @@ object MahjongCraftClient : ClientModInitializer {
         private set
 
     //KeyBinding
-    private val configKey: KeyBinding = registerKeyBinding(
+    private val configKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_config_gui",
         code = GLFW.GLFW_KEY_SEMICOLON,
     )
-    val hudPositionEditorKey: KeyBinding = registerKeyBinding(
+    val hudPositionEditorKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_hud_position_editor",
     )
-    val yakuOverviewKey: KeyBinding = registerKeyBinding(
+    val yakuOverviewKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_yaku_overview",
     )
 
@@ -72,21 +72,21 @@ object MahjongCraftClient : ClientModInitializer {
         EntityRendererRegistry.register(EntityTypeRegistry.mahjongTile, ::MahjongTileEntityRenderer)
 
         // BlockEntity Renderer
-        BlockEntityRendererFactories.register(BlockEntityTypeRegistry.mahjongTable, ::MahjongTableBlockEntityRenderer)
+        BlockEntityRenderers.register(BlockEntityTypeRegistry.mahjongTable, ::MahjongTableBlockEntityRenderer)
 
         // Model Predicate Provider
-        val modelPredicateProvider = ClampedModelPredicateProvider { stack, _, _, _ ->
-            val code = stack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.getInt("code") ?: 0
+        val modelPredicateProvider = ClampedItemPropertyFunction { stack, _, _, _ ->
+            val code = stack.get(DataComponents.CUSTOM_DATA)?.copyTag()?.getInt("code") ?: 0
             code / 100f  // 這個值必須介於 0f ~ 1f 之間，所以 MahjongTile.code 除以 100 後，會對應到材質檔案之中的 predicate.code 欄位
         }
-        ModelPredicateProviderRegistry.register(
+        ItemProperties.register(
             ItemRegistry.mahjongTile,
-            Identifier("code"),
+            ResourceLocation("code"),
             modelPredicateProvider
         )
-        ModelPredicateProviderRegistry.register(
+        ItemProperties.register(
             ItemRegistry.mahjongScoringStick,
-            Identifier("code"),
+            ResourceLocation("code"),
             modelPredicateProvider
         )
 
@@ -108,17 +108,17 @@ object MahjongCraftClient : ClientModInitializer {
 
     fun saveConfig() = AutoConfig.getConfigHolder(ModConfig::class.java).save()
 
-    private fun tick(client: MinecraftClient) {
-        if (configKey.wasPressed()) client.setScreen(ConfigScreen.build(null))
-        if (hudPositionEditorKey.wasPressed()) hud?.also { client.setScreen(HudPositionEditorScreen(it)) }
-        if (yakuOverviewKey.wasPressed()) client.setScreen(YakuOverviewScreen())
+    private fun tick(client: Minecraft) {
+        if (configKey.consumeClick()) client.setScreen(ConfigScreen.build(null))
+        if (hudPositionEditorKey.consumeClick()) hud?.also { client.setScreen(HudPositionEditorScreen(it)) }
+        if (yakuOverviewKey.consumeClick()) client.setScreen(YakuOverviewScreen())
         ClientScheduler.tick(client)
     }
 
     private fun registerKeyBinding(
         translationKey: String,
-        type: InputUtil.Type = InputUtil.Type.KEYSYM,
-        code: Int = InputUtil.UNKNOWN_KEY.code,
+        type: InputConstants.Type = InputConstants.Type.KEYSYM,
+        code: Int = InputConstants.UNKNOWN.value,
         category: String = "key.category.$MOD_ID.main",
-    ): KeyBinding = KeyBindingHelper.registerKeyBinding(KeyBinding(translationKey, type, code, category))
+    ): KeyMapping = KeyBindingHelper.registerKeyBinding(KeyMapping(translationKey, type, code, category))
 }

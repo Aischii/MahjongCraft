@@ -9,8 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.Screen
 
 /**
  * 將資料顯示在 [MahjongGameBehaviorScreen] 供玩家點擊
@@ -18,7 +18,7 @@ import net.minecraft.client.gui.screen.Screen
 @Environment(EnvType.CLIENT)
 object OptionalBehaviorHandler {
 
-    private val client = MinecraftClient.getInstance()
+    private val client = Minecraft.getInstance()
     private var screen: Screen? = null
 
     private lateinit var behavior: MahjongGameBehavior
@@ -46,8 +46,8 @@ object OptionalBehaviorHandler {
     private fun closeScreen() {
         CoroutineScope(Dispatchers.Default).launch {
             val nowScreen = screen
-            if (nowScreen != null && client.currentScreen == nowScreen) {
-                ClientScheduler.scheduleDelayAction { nowScreen.close() }
+            if (nowScreen != null && client.screen == nowScreen) {
+                ClientScheduler.scheduleDelayAction { nowScreen.onClose() }
             }
         }
     }

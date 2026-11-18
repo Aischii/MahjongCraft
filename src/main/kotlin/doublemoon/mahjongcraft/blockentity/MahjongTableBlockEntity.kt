@@ -15,19 +15,19 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.block.BlockState
-import net.minecraft.block.entity.BlockEntity
-import net.minecraft.client.MinecraftClient
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.network.listener.ClientPlayPacketListener
-import net.minecraft.network.packet.Packet
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket
-import net.minecraft.registry.RegistryWrapper
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Box
-import net.minecraft.util.math.Vec3d
-import net.minecraft.world.World
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.client.Minecraft
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.protocol.game.ClientGamePacketListener
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
+import net.minecraft.core.HolderLookup
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.level.Level
 import org.mahjong4j.tile.Tile
 import java.util.concurrent.ConcurrentHashMap
 
@@ -61,23 +61,23 @@ class MahjongTableBlockEntity(
      * */
     @Environment(EnvType.CLIENT)
     fun calculateRemainingTiles(code: Int) {
-        val tableCenter = with(this.pos) { Vec3d(x + 0.5, y + 1.0, z + 0.5) }
-        val tiles = world?.getEntitiesByClass(
+        val tableCenter = with(this.blockPos) { Vec3(x + 0.5, y + 1.0, z + 0.5) }
+        val tiles = level?.getEntitiesOfClass(
             MahjongTileEntity::class.java,
-            Box.of(tableCenter, 3.0, 2.0, 3.0)
-        ) { it.isSpawnedByGame && it.gameBlockPos == this.pos && it.mahjongTile.code == code } ?: return
+            AABB.ofSize(tableCenter, 3.0, 2.0, 3.0)
+        ) { it.isSpawnedByGame && it.gameBlockPos == this.blockPos && it.mahjongTile.code == code } ?: return
         remainingTiles[code] = 4 - tiles.size
     }
 
-    override fun markDirty() {
-        super.markDirty()
+    override fun setChanged() {
+        super.setChanged()
         //對伺服端要同步的方塊實體 markDirty() 就好
-        if (this.hasWorld() && !this.world!!.isClient) {
-            (world as ServerWorld).chunkManager.markForUpdate(getPos())
+        if (this.hasLevel() && !this.level!!.isClientSide) {
+            (level as ServerLevel).chunkSource.blockChanged(getBlockPos())
         }
     }
 
-    override fun readNbt(nbt: NbtCompound, registryLookup: RegistryWrapper.WrapperLookup) {
+    override fun loadAdditional(nbt: CompoundTag, registryLookup: HolderLookup.Provider) {
         with(nbt) {
             repeat(4) {
                 players[it] = getString("PlayerStringUUID$it")
@@ -92,22 +92,22 @@ class MahjongTableBlockEntity(
             playing = getBoolean("Playing")
             round = Json.decodeFromString(getString("Round"))
         }
-        world?.isClient?.let { isClient ->
+        level?.isClientSide?.let { isClient ->
             if (isClient) { //當有同步 tag 的情況出現
-                val screen = MinecraftClient.getInstance().currentScreen
+                val screen = Minecraft.getInstance().screen
                 if (screen is MahjongTableWaitingScreen && (screen.description as MahjongTableGui).mahjongTable == this) {
                     if (!playing) {  //遊戲還沒開始, 刷新開著這個麻將桌視窗的玩家的視窗
                         screen.refresh()
                     } else {  //遊戲開始就關閉遊戲視窗
-                        screen.close()
+                        screen.onClose()
                     }
                 }
             }
         }
     }
 
-    override fun writeNbt(nbt: NbtCompound, registryLookup: RegistryWrapper.WrapperLookup) {
-        if (cachedState[MahjongTable.PART] == MahjongTablePart.BOTTOM_CENTER) {
+    override fun saveAdditional(nbt: CompoundTag, registryLookup: HolderLookup.Provider) {
+        if (blockState.getValue(MahjongTable.PART) == MahjongTablePart.BOTTOM_CENTER) {
             with(nbt) {
                 repeat(4) {
                     putString("PlayerStringUUID$it", players[it])
@@ -125,18 +125,18 @@ class MahjongTableBlockEntity(
         }
     }
 
-    override fun toInitialChunkDataNbt(registryLookup: RegistryWrapper.WrapperLookup): NbtCompound =
-        NbtCompound().also { writeNbt(it, registryLookup) }
+    override fun getUpdateTag(registryLookup: HolderLookup.Provider): CompoundTag =
+        CompoundTag().also { saveAdditional(it, registryLookup) }
 
-    override fun toUpdatePacket(): Packet<ClientPlayPacketListener> = BlockEntityUpdateS2CPacket.create(this)
+    override fun getUpdatePacket(): Packet<ClientGamePacketListener> = ClientboundBlockEntityDataPacket.create(this)
 
     companion object {
-        fun tick(world: World, pos: BlockPos, blockEntity: MahjongTableBlockEntity) {
-            if (!world.isClient && !blockEntity.gameInitialized) {
+        fun tick(world: Level, pos: BlockPos, blockEntity: MahjongTableBlockEntity) {
+            if (!world.isClientSide && !blockEntity.gameInitialized) {
                 MahjongTablePayloadListener.syncBlockEntityDataWithGame(
                     blockEntity = blockEntity,
                     game = GameManager.getGameOrDefault(
-                        world = world as ServerWorld,
+                        world = world as ServerLevel,
                         pos = pos,
                         default = MahjongGame(world, pos, blockEntity.rule)
                     )

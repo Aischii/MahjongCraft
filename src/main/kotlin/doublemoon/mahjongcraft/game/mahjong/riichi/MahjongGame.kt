@@ -26,20 +26,20 @@ import doublemoon.mahjongcraft.util.sendTitles
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import net.minecraft.entity.Entity
+import net.minecraft.world.entity.Entity
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.sound.SoundCategory
-import net.minecraft.sound.SoundEvent
-import net.minecraft.text.HoverEvent
-import net.minecraft.text.Style
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Direction
-import net.minecraft.util.math.MathHelper
-import net.minecraft.util.math.Vec3d
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.util.Mth
+import net.minecraft.world.phys.Vec3
 import org.mahjong4j.PersonalSituation
 import org.mahjong4j.hands.Kantsu
 import kotlin.math.abs
@@ -50,12 +50,12 @@ import kotlin.math.abs
  * @see <a href="https://github.com/mahjong4j/mahjong4j">使用 Mahjong4j</a>
  * */
 class MahjongGame(
-    override val world: ServerWorld,
+    override val world: ServerLevel,
     override val pos: BlockPos,
     var rule: MahjongRule = MahjongRule(),
 ) : GameBase<MahjongPlayerBase> {
 
-    override val name = Text.translatable("$MOD_ID.game.riichi_mahjong")
+    override val name = Component.translatable("$MOD_ID.game.riichi_mahjong")
 
     override var status = GameStatus.WAITING
 
@@ -81,7 +81,7 @@ class MahjongGame(
     /**
      * 桌子正中央的座標
      * */
-    val tableCenterPos = Vec3d(pos.x + 0.5, pos.y + 1.0, pos.z + 0.5)
+    val tableCenterPos = Vec3(pos.x + 0.5, pos.y + 1.0, pos.z + 0.5)
 
     /**
      * 座位會隨機從 players 編排, 順序是東南西北, 遊戲中的東與這個東是同個方向, 再來照麻將桌逆時針轉
@@ -128,7 +128,7 @@ class MahjongGame(
         logger.error("A MahjongCraft game at $pos failed and was ended. Please report this.", exception)
         world.server.execute {
             if (status != GameStatus.PLAYING) return@execute
-            val message = PREFIX + Text.translatable("$MOD_ID.game.message.game_ended_by_error")
+            val message = PREFIX + Component.translatable("$MOD_ID.game.message.game_ended_by_error")
             realPlayers.forEach { it.sendMessage(message) }
             end(sync = true)
         }
@@ -148,12 +148,12 @@ class MahjongGame(
             if (mjPlayer is MahjongPlayer) {
                 if (index == 0) {
                     mjPlayer.sendMessage(
-                        text = PREFIX + Text.translatable("$MOD_ID.game.message.you_changed_the_rules")
+                        text = PREFIX + Component.translatable("$MOD_ID.game.message.you_changed_the_rules")
                     )
                 } else {
                     mjPlayer.ready = false
                     mjPlayer.sendMessage(
-                        text = PREFIX + Text.translatable("$MOD_ID.game.message.host_changed_the_rules")
+                        text = PREFIX + Component.translatable("$MOD_ID.game.message.host_changed_the_rules")
                     )
                 }
             }
@@ -171,7 +171,7 @@ class MahjongGame(
     /**
      * 讓玩家準備 or 取消準備
      * */
-    fun readyOrNot(player: ServerPlayerEntity, ready: Boolean) {
+    fun readyOrNot(player: ServerPlayer, ready: Boolean) {
         getPlayer(player)?.ready = ready
     }
 
@@ -182,7 +182,7 @@ class MahjongGame(
         if (index in players.indices) {
             val player = players.removeAt(index)
             if (player is MahjongPlayer) { //是玩家
-                player.sendMessage(PREFIX + Text.translatable("$MOD_ID.game.message.be_kick"))
+                player.sendMessage(PREFIX + Component.translatable("$MOD_ID.game.message.be_kick"))
             } else {  //是機器人, 清掉實體
                 player.entity.remove(Entity.RemovalReason.DISCARDED)
             }
@@ -193,7 +193,7 @@ class MahjongGame(
      * 玩家加入,
      * 不會重複加入
      * */
-    override fun join(player: ServerPlayerEntity) {
+    override fun join(player: ServerPlayer) {
         if (GameManager.isInAnyGame(player) || isInGame(player)) return
         players += MahjongPlayer(entity = player)
         if (isHost(player)) players[0].ready = true
@@ -204,7 +204,7 @@ class MahjongGame(
      * 目前只有離開伺服器或切換世界會自動離開 麻將遊戲,
      * "沒有限制"超出範圍會離開 麻將遊戲
      * */
-    override fun leave(player: ServerPlayerEntity) {
+    override fun leave(player: ServerPlayer) {
         if (!GameManager.isInAnyGame(player) || !isInGame(player)) return
         if (isHost(player)) { //如果玩家是 host
             players.find { it is MahjongPlayer && it.entity != player }.apply {
@@ -255,12 +255,12 @@ class MahjongGame(
      * */
     private fun showRoundsTitle() {
         val windText = round.wind.toText()
-        val countersText = Text.translatable("$MOD_ID.game.repeat_counter", round.honba).formatted(Formatting.YELLOW)
+        val countersText = Component.translatable("$MOD_ID.game.repeat_counter", round.honba).withStyle(ChatFormatting.YELLOW)
         realPlayers.map { it.entity }.sendTitles(
-            title = Text.translatable("$MOD_ID.game.round.title", windText, round.round + 1)
-                .formatted(Formatting.GOLD)
-                .formatted(Formatting.BOLD),
-            subtitle = Text.literal("§c - ") + countersText + "§c - "
+            title = Component.translatable("$MOD_ID.game.round.title", windText, round.round + 1)
+                .withStyle(ChatFormatting.GOLD)
+                .withStyle(ChatFormatting.BOLD),
+            subtitle = Component.literal("§c - ") + countersText + "§c - "
         )
     }
 
@@ -886,22 +886,22 @@ class MahjongGame(
             )
 
             // 會多傳一份給玩家的遊戲結算文字訊息
-            val mahjongText = (Text.translatable("$MOD_ID.game.riichi_mahjong") + ":")
-                .formatted(Formatting.YELLOW)
-                .formatted(Formatting.BOLD)
+            val mahjongText = (Component.translatable("$MOD_ID.game.riichi_mahjong") + ":")
+                .withStyle(ChatFormatting.YELLOW)
+                .withStyle(ChatFormatting.BOLD)
 //            val tooltipRuleString = rule.toTexts().joinToString(separator = "\n") { text -> text.string } //這方法會讓 text.string 沒有包含色碼, 所以不適用
-            val ruleTooltip = Text.literal("").also {
+            val ruleTooltip = Component.literal("").also {
                 rule.toTexts().forEachIndexed { index, text ->
                     if (index > 0) it.append("\n")
                     it.append(text)
                 }
             }
             val ruleHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ruleTooltip)
-            val ruleStyle = Style.EMPTY.withColor(Formatting.GREEN).withHoverEvent(ruleHoverEvent)
-            val ruleText = (Text.literal("§a[") + Text.translatable("$MOD_ID.game.rules") + "§a]").fillStyle(ruleStyle)
-            val scoreText = Text.translatable("$MOD_ID.game.score")
+            val ruleStyle = Style.EMPTY.withColor(ChatFormatting.GREEN).withHoverEvent(ruleHoverEvent)
+            val ruleText = (Component.literal("§a[") + Component.translatable("$MOD_ID.game.rules") + "§a]").withStyle(ruleStyle)
+            val scoreText = Component.translatable("$MOD_ID.game.score")
             it.sendMessage(
-                Text.literal("§2------------------------------------------")
+                Component.literal("§2------------------------------------------")
                         + "\n" + mahjongText
                         + "\n§7 - " + ruleText
                         + "\n§a" // 空一行
@@ -909,13 +909,13 @@ class MahjongGame(
             )
             players.sortedByDescending { player -> player.points }.forEachIndexed { index, mjPlayer ->
                 val displayNameText = if (mjPlayer.isRealPlayer) {
-                    Text.literal(mjPlayer.displayName)
+                    Component.literal(mjPlayer.displayName)
                 } else {
-                    Text.translatable("entity.$MOD_ID.mahjong_bot")
-                }.formatted(Formatting.AQUA)
-                it.sendMessage(Text.literal("§7 - §e${index + 1}. ") + displayNameText + "  §c${mjPlayer.points}")
+                    Component.translatable("entity.$MOD_ID.mahjong_bot")
+                }.withStyle(ChatFormatting.AQUA)
+                it.sendMessage(Component.literal("§7 - §e${index + 1}. ") + displayNameText + "  §c${mjPlayer.points}")
             }
-            it.sendMessage(Text.of("§2------------------------------------------"))
+            it.sendMessage(Component.nullToEmpty("§2------------------------------------------"))
         }
     }
 
@@ -925,7 +925,7 @@ class MahjongGame(
      * */
     private fun MahjongPlayerBase.playSoundAtSeat(
         soundEvent: SoundEvent,
-        category: SoundCategory = SoundCategory.PLAYERS,
+        category: SoundSource = SoundSource.PLAYERS,
         volume: Float = 1f,
         pitch: Float = 1f,
     ) {
@@ -1338,18 +1338,18 @@ class MahjongGame(
         val dices = List(2) {
             DiceEntity(
                 world = world,
-                pos = Vec3d(pos.x + 0.5, pos.y.toDouble() + 1.5, pos.z + 0.5),
+                pos = Vec3(pos.x + 0.5, pos.y.toDouble() + 1.5, pos.z + 0.5),
                 yaw = (-180 until 180).random().toFloat()
             ).apply {
                 isSpawnedByGame = true
                 gameBlockPos = this@MahjongGame.pos
-                val sin = MathHelper.sin(yaw * 0.017453292F - 11)
-                val cos = MathHelper.cos(yaw * 0.017453292F - 11)
+                val sin = Mth.sin(yRot * 0.017453292F - 11)
+                val cos = Mth.cos(yRot * 0.017453292F - 11)
                 val range = if (it == 0) (15..90) else (-90..-15)
                 val randomMoveXPercentage = ((range).random()) / 100.0
                 val randomMoveZPercentage = ((range).random()) / 100.0
-                setVelocity(0.1 * cos * randomMoveXPercentage, 0.03, 0.1 * sin * randomMoveZPercentage)
-                ServerScheduler.scheduleDelayAction { world.spawnEntity(this) }
+                setDeltaMovement(0.1 * cos * randomMoveXPercentage, 0.03, 0.1 * sin * randomMoveZPercentage)
+                ServerScheduler.scheduleDelayAction { world.addFreshEntity(this) }
             }
         }
         //骰子的點數, 不管自動骰到的點數是多少, 骰完的時候都會使用這兩個點數替代
@@ -1361,7 +1361,7 @@ class MahjongGame(
         val totalPoints = dicePoints.values.sumOf { it.value }
         delayOnServer(500) //給一個延遲, 讓擲骰完不要馬上顯示骰到的點數
         val pointsSumText =
-            Text.translatable("$MOD_ID.game.dice_points").formatted(Formatting.GOLD) + " §c$totalPoints"
+            Component.translatable("$MOD_ID.game.dice_points").withStyle(ChatFormatting.GOLD) + " §c$totalPoints"
         realPlayers.map { it.entity }.sendTitles(subtitle = pointsSumText)
         this@MahjongGame.dicePoints = totalPoints
         return dices
@@ -1408,9 +1408,9 @@ class MahjongGame(
                         fun BlockPos.collisionExists() =
                             this.let { !world.getBlockState(it).getCollisionShape(world, it).isEmpty }
 
-                        val blockBelowCollisionExists = stoolBlockPos.offset(Direction.DOWN).collisionExists()
+                        val blockBelowCollisionExists = stoolBlockPos.relative(Direction.DOWN).collisionExists()
                         val blockCollisionDoesNotExist = !stoolBlockPos.collisionExists()
-                        val blockAboveCollisionDoesNotExist = !stoolBlockPos.offset(Direction.UP).collisionExists()
+                        val blockAboveCollisionDoesNotExist = !stoolBlockPos.relative(Direction.UP).collisionExists()
                         if (blockBelowCollisionExists && blockCollisionDoesNotExist && blockAboveCollisionDoesNotExist) {
                             this.teleport(world, stoolX + 0.5, pos.y.toDouble(), stoolZ + 0.5, yaw, 0f) //將玩家傳送到凳子的位置上
                         } else { //最後不能的話就生在桌子上, 會看向自己的凳子的方向
@@ -1466,7 +1466,7 @@ class MahjongGame(
         realPlayers.forEach { it.gameOver() }
         botPlayers.forEach { //將電腦傳回原本的位置
             it.entity.isInvisible = true
-            it.entity.teleport(tableCenterPos.x, tableCenterPos.y, tableCenterPos.z)
+            it.entity.teleportTo(tableCenterPos.x, tableCenterPos.y, tableCenterPos.z)
         }
         if (sync) syncMahjongTable()  //結束遊戲要同步麻將桌
     }
@@ -1479,7 +1479,7 @@ class MahjongGame(
             showGameResult()
             end(sync = false)
         }
-        val message = PREFIX + Text.translatable("$MOD_ID.game.message.game_block_is_destroyed")
+        val message = PREFIX + Component.translatable("$MOD_ID.game.message.game_block_is_destroyed")
         realPlayers.forEach { //傳給玩家->麻將桌被破壞的訊息
             it.sendMessage(message)
         }
@@ -1493,13 +1493,13 @@ class MahjongGame(
     /**
      * 有任何玩家離開遊戲時結束遊戲, 向玩家顯示有人離開遊戲
      * */
-    override fun onPlayerDisconnect(player: ServerPlayerEntity) {
+    override fun onPlayerDisconnect(player: ServerPlayer) {
         if (isPlaying) {
             showGameResult()
             end(sync = false)
         }
         leave(player)
-        val message = PREFIX + Text.translatable("$MOD_ID.game.message.player_left_game", player.displayName)
+        val message = PREFIX + Component.translatable("$MOD_ID.game.message.player_left_game", player.displayName)
         realPlayers.forEach { //傳給玩家-> [player] 離開遊戲的訊息
             it.sendMessage(message)
         }
@@ -1509,14 +1509,14 @@ class MahjongGame(
     /**
      * 有任何玩家切換世界時結束遊戲, 向玩家顯示有人不在當前的世界
      * */
-    override fun onPlayerChangedWorld(player: ServerPlayerEntity) {
+    override fun onPlayerChangedWorld(player: ServerPlayer) {
         if (isPlaying) {
             showGameResult()
             end(sync = false)
         }
         leave(player)
         val message =
-            PREFIX + Text.translatable("$MOD_ID.game.message.player_is_not_in_this_world", player.displayName)
+            PREFIX + Component.translatable("$MOD_ID.game.message.player_is_not_in_this_world", player.displayName)
         realPlayers.forEach {  //傳給玩家-> [player] 改變世界的訊息
             it.sendMessage(message)
         }
@@ -1538,7 +1538,7 @@ class MahjongGame(
     /**
      * 判斷玩家是否是主持
      * */
-    override fun isHost(player: ServerPlayerEntity): Boolean =
+    override fun isHost(player: ServerPlayer): Boolean =
         players.firstOrNull()?.let { it.entity == player } ?: false
 
     /**
@@ -1607,6 +1607,6 @@ class MahjongGame(
          * */
         const val STICKS_PER_STACK = 5
 
-        val PREFIX get() = Text.translatable("$MOD_ID.game.riichi_mahjong.prefix")
+        val PREFIX get() = Component.translatable("$MOD_ID.game.riichi_mahjong.prefix")
     }
 }

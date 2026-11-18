@@ -1,14 +1,14 @@
 package doublemoon.mahjongcraft.scheduler.client
 
-import net.minecraft.client.MinecraftClient
-import net.minecraft.text.Text
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 
 /**
  * 儲存由數據包收到的時間, 沒有任何功能
  * */
 object ClientCountdownTimeHandler {
 
-    private val client = MinecraftClient.getInstance()
+    private val client = Minecraft.getInstance()
     private const val titleFadeInTime = 5
     private const val titleRemainTime = 10
     private const val titleFadeOutTime = 5
@@ -22,7 +22,7 @@ object ClientCountdownTimeHandler {
                 displayTime(timeBase = value.first!!, timeExtra = value.second!!)
             } else {  //兩個都為 null, 清除倒數計時, 關閉所有該關的處理程序
                 if (OptionalBehaviorHandler.waiting) OptionalBehaviorHandler.cancel()
-                client.inGameHud.clearTitle()
+                client.gui.clear()
             }
             field = value
         }
@@ -35,12 +35,12 @@ object ClientCountdownTimeHandler {
         val base = if (timeBase > 0) "§a$timeBase" else ""
         val plus = if (timeBase > 0 && timeExtra > 0) "§e + " else ""
         val extra = if (timeExtra > 0) "§c$timeExtra" else ""
-        val text = Text.of("$base$plus$extra")
+        val text = Component.nullToEmpty("$base$plus$extra")
         //TODO 改位置顯示時間
-        with(client.inGameHud) {
-            setTitle(Text.of(""))
+        with(client.gui) {
+            setTitle(Component.nullToEmpty(""))
             setSubtitle(text)
-            setTitleTicks(titleFadeInTime, titleRemainTime, titleFadeOutTime)
+            setTimes(titleFadeInTime, titleRemainTime, titleFadeOutTime)
         }
     }
 }

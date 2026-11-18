@@ -9,10 +9,10 @@ import io.github.cottonmc.cotton.gui.widget.data.VerticalAlignment
 import io.github.cottonmc.cotton.gui.widget.icon.Icon
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.client.Minecraft
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import java.util.*
 
 /**
@@ -94,7 +94,7 @@ fun WPlainPanel.image(
     y: Int,
     width: Int = 18,
     height: Int = 18,
-    imagePath: Identifier,
+    imagePath: ResourceLocation,
     init: WSprite.() -> Unit = {}
 ): WSprite {
     val sprite = WSprite(imagePath)
@@ -114,7 +114,7 @@ fun WPlainPanel.button(
     width: Int = 18,
     height: Int = 20,
     icon: Icon? = null,
-    label: Text? = null,
+    label: Component? = null,
     enabled: Boolean = true,
     textAlignment: HorizontalAlignment = HorizontalAlignment.CENTER,
     onClick: WButton.() -> Unit = {},
@@ -140,7 +140,7 @@ fun WPlainPanel.label(
     y: Int,
     width: Int? = null,
     height: Int = 18,
-    text: Text,
+    text: Component,
     color: Int = WLabel.DEFAULT_TEXT_COLOR,
     darkModeColor: Int = WLabel.DEFAULT_DARKMODE_TEXT_COLOR,
     horizontalAlignment: HorizontalAlignment = HorizontalAlignment.LEFT,
@@ -148,7 +148,7 @@ fun WPlainPanel.label(
     init: WLabel.() -> Unit = {}
 ): WLabel {
     val label = WLabel(text)
-    val tWidth = width ?: MinecraftClient.getInstance().textRenderer.getWidth(text)
+    val tWidth = width ?: Minecraft.getInstance().font.width(text)
     label.horizontalAlignment = horizontalAlignment
     label.verticalAlignment = verticalAlignment
     label.color = color
@@ -193,7 +193,7 @@ fun WPlainPanel.text(
     y: Int,
     width: Int? = null,
     height: Int = 18,
-    text: Text,
+    text: Component,
     color: Int = WLabel.DEFAULT_TEXT_COLOR,
     darkModeColor: Int = WLabel.DEFAULT_DARKMODE_TEXT_COLOR,
     horizontalAlignment: HorizontalAlignment = HorizontalAlignment.LEFT,
@@ -201,7 +201,7 @@ fun WPlainPanel.text(
     init: WText.() -> Unit = {}
 ): WText {
     val wText = WText(text)
-    val tWidth = width ?: MinecraftClient.getInstance().textRenderer.getWidth(text)
+    val tWidth = width ?: Minecraft.getInstance().font.width(text)
     wText.horizontalAlignment = horizontalAlignment
     wText.verticalAlignment = verticalAlignment
     wText.color = color
@@ -240,7 +240,7 @@ fun WPlainPanel.textField(
     width: Int = 18,
     height: Int = 18,
     text: String? = null,
-    suggestion: Text? = null,
+    suggestion: Component? = null,
     init: WTextField.() -> Unit = {}
 ): WTextField {
     val textField = WTextField(suggestion)
@@ -299,9 +299,9 @@ fun WPlainPanel.tooltipButton(
     y: Int,
     width: Int = 18,
     icon: Icon? = null,
-    label: Text? = null,
+    label: Component? = null,
     textAlignment: HorizontalAlignment = HorizontalAlignment.CENTER,
-    tooltip: Array<Text>,
+    tooltip: Array<Component>,
     onClick: WTooltipButton.() -> Unit = {},
     init: WTooltipButton.() -> Unit = {}
 ): WTooltipButton {
@@ -323,8 +323,8 @@ fun WPlainPanel.tooltipTextField(
     width: Int = 18,
     height: Int = 18,
     text: String? = null,
-    suggestion: Text? = null,
-    tooltip: Array<Text>,
+    suggestion: Component? = null,
+    tooltip: Array<Component>,
     init: WTooltipTextField.() -> Unit = {}
 ): WTooltipTextField {
     val textField = WTooltipTextField(suggestion, tooltip)
@@ -344,10 +344,10 @@ fun WPlainPanel.tooltipText(
     y: Int,
     width: Int = 18,
     height: Int = 18,
-    text: Text,
+    text: Component,
     horizontalAlignment: HorizontalAlignment = HorizontalAlignment.LEFT,
     verticalAlignment: VerticalAlignment = VerticalAlignment.TOP,
-    tooltip: Array<Text>,
+    tooltip: Array<Component>,
     init: WTooltipText.() -> Unit = {}
 ): WTooltipText {
     val wText = WTooltipText(text, tooltip)
