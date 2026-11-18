@@ -2,6 +2,7 @@ package doublemoon.mahjongcraft.client.render
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
+import doublemoon.mahjongcraft.client.game.ClientMahjongState
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
 import doublemoon.mahjongcraft.entity.MahjongTileEntity.Companion.MAHJONG_TILE_DEPTH
 import doublemoon.mahjongcraft.entity.MahjongTileEntity.Companion.MAHJONG_TILE_HEIGHT
@@ -34,7 +35,13 @@ class MahjongTileEntityRenderer(
         }
     }
 
+    /** The most recent discard glows gold so everyone can see what was just thrown. */
+    override fun highlightColor(entity: MahjongTileEntity): Int =
+        if (entity.id == ClientMahjongState.table?.lastDiscardEntityId) LAST_DISCARD_GLOW else 0
+
     companion object {
+        private const val LAST_DISCARD_GLOW = 0xFFFFCC33.toInt()
+
         /**
          * 所有的麻將牌物品, 先存著渲染的時候直接用, 省下每次實例化 ItemStack 的效能
          * */

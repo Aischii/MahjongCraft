@@ -266,5 +266,12 @@
   "mahjongcraft.hud.hint.discard": "Your turn: scroll to pick a tile, %s to discard",
   "mahjongcraft.hud.hint.riichi": "Riichi: pick the tile to discard, %s to declare",
   "mahjongcraft.hud.hint.variant": "Scroll to choose, %s to confirm, %s to go back",
-  "mahjongcraft.hud.hint.options": "Press an action key, or %s to skip"
+  "mahjongcraft.hud.hint.options": "Press an action key, or %s to skip",
+  "mahjongcraft.hud.table.you": "You",
+  "mahjongcraft.hud.table.right": "Right",
+  "mahjongcraft.hud.table.across": "Across",
+  "mahjongcraft.hud.table.left": "Left",
+  "mahjongcraft.hud.table.dora": "Dora",
+  "mahjongcraft.hud.table.waits": "Waits",
+  "mahjongcraft.hud.table.counters": "Wall %s · Honba %s · Sticks %s"
 }

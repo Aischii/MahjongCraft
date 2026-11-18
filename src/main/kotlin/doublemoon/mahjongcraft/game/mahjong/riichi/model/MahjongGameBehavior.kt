@@ -40,6 +40,7 @@ enum class MahjongGameBehavior : TextFormatting {
     AUTO_ARRANGE,//詢問自動理牌用
     MACHI,//待取(聽的牌)
     HAND_UPDATE,//同步玩家的手牌 (給手牌 HUD 用)
+    TABLE_STATE,//同步牌桌資訊 (給 HUD 用)
     ;
 
     val translateKey = "$MOD_ID.game.behavior.${name.lowercase()}"

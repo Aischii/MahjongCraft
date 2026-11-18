@@ -182,12 +182,16 @@ class WTileHints(
         private val remainingAmountWidget: WLabel
         private val furitenText get() = Component.translatable("$MOD_ID.game.furiten")
         private val noYakuText get() = Component.translatable("$MOD_ID.game.no_yaku")
-        private val tilesLeftText = { amount: Int -> Component.translatable("$MOD_ID.game.tiles_left", amount) }
+        /** The tile's name, plus how many are left when [amount] is given, e.g. "5 Pin · 3 left". */
+        private fun nameText(tile: MahjongTile, amount: Int?): Component =
+            if (amount == null) tile.toText()
+            else Component.empty().append(tile.toText()).append(" · ")
+                .append(Component.translatable("$MOD_ID.game.tiles_left", amount))
 
         init {
             val furitenWidth = client.font.width(furitenText)
             val tileWidth = (HINT_WIDTH * scale).toInt()
-            val remainingAmountWidth = client.font.width(tilesLeftText(remainingAmount))
+            val remainingAmountWidth = client.font.width(nameText(tile, remainingAmount))
             val width = maxOf(furitenWidth, tileWidth, remainingAmountWidth) + INSET * 2 //取最大的部件寬度當作寬度
             val height = (HINT_HEIGHT * scale + MARGIN * 2 + client.font.lineHeight * 2 + INSET * 2).toInt()
             setSize(width, height)
@@ -215,8 +219,8 @@ class WTileHints(
                 height = client.font.lineHeight + INSET,
                 text = when {
                     noYaku -> noYakuText
-                    remainingAmountVisible -> tilesLeftText(remainingAmount)
-                    else -> Component.nullToEmpty("")
+                    remainingAmountVisible -> nameText(tile, remainingAmount)
+                    else -> nameText(tile, null)
                 },
                 horizontalAlignment = HorizontalAlignment.CENTER,
                 verticalAlignment = VerticalAlignment.CENTER,
@@ -233,8 +237,8 @@ class WTileHints(
         fun setRemainingTiles(amount: Int, visible: Boolean, noYaku: Boolean, machi: Boolean) {
             remainingAmountWidget.text = when {
                 noYaku -> noYakuText
-                visible -> tilesLeftText(amount)
-                else -> Component.nullToEmpty("")
+                visible -> nameText(tile, amount)
+                else -> nameText(tile, null)
             }
             remainingAmountWidget.color = if (machi) Color.GREEN.toRgb() else Color.WHITE.toRgb()
         }

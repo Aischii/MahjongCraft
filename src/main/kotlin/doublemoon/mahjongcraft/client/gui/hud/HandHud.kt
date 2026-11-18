@@ -39,6 +39,9 @@ object HandHud {
     private const val PANEL = 0x90000000.toInt()
     private const val DIMMED = 0xFF606060.toInt()
 
+    /** How far each hand slot is raised right now; eases toward the target so selection slides. */
+    private val raise = FloatArray(20)
+
     private val BUTTON = Identifier.withDefaultNamespace("widget/button")
     private val BUTTON_ACTIVE = Identifier.withDefaultNamespace("widget/button_highlighted")
 
@@ -60,7 +63,8 @@ object HandHud {
         hand.forEachIndexed { index, tile ->
             if (state.hasDrawnTile && index == hand.lastIndex) x += DRAWN_GAP
             val chosen = index == state.selected && state.canChooseTile()
-            val y = panelY + PAD + RAISE - if (chosen) RAISE else 0
+            if (index < raise.size) raise[index] += ((if (chosen) RAISE.toFloat() else 0f) - raise[index]) * 0.35f
+            val y = panelY + PAD + RAISE - (raise.getOrElse(index) { 0f } + 0.5f).toInt()
             val tint = if (state.isSelectable(index) || !state.canChooseTile()) WHITE else DIMMED
             ScreenDrawing.texturedRect(graphics, x, y, TILE_W, TILE_H, tile.surfaceIdentifier, tint)
             if (chosen) graphics.outline(x - 1, y - 1, TILE_W + 2, TILE_H + 2, GOLD)

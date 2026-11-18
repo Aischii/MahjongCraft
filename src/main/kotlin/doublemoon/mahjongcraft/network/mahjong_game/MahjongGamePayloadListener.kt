@@ -3,6 +3,7 @@ package doublemoon.mahjongcraft.network.mahjong_game
 import doublemoon.mahjongcraft.MahjongCraftClient
 import doublemoon.mahjongcraft.client.game.ClientMahjongState
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.DiscardRequest
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.TableState
 import doublemoon.mahjongcraft.client.gui.widget.WTileHints
 import doublemoon.mahjongcraft.game.GameManager
 import doublemoon.mahjongcraft.game.mahjong.riichi.MahjongGame
@@ -60,6 +61,10 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
 
             MahjongGameBehavior.HAND_UPDATE -> {
                 ClientMahjongState.onHand(hands)
+            }
+
+            MahjongGameBehavior.TABLE_STATE -> {
+                ClientMahjongState.onTable(Json.decodeFromString<TableState>(extraData))
             }
 
             MahjongGameBehavior.DISCARD -> {

@@ -266,5 +266,12 @@
   "mahjongcraft.hud.hint.discard": "あなたの番：スクロールで牌を選び、%sで打牌",
   "mahjongcraft.hud.hint.riichi": "リーチ：捨てる牌を選び、%sで宣言",
   "mahjongcraft.hud.hint.variant": "スクロールで選択、%sで決定、%sで戻る",
-  "mahjongcraft.hud.hint.options": "アクションキーを押すか、%sでスキップ"
+  "mahjongcraft.hud.hint.options": "アクションキーを押すか、%sでスキップ",
+  "mahjongcraft.hud.table.you": "自分",
+  "mahjongcraft.hud.table.right": "下家",
+  "mahjongcraft.hud.table.across": "対面",
+  "mahjongcraft.hud.table.left": "上家",
+  "mahjongcraft.hud.table.dora": "ドラ",
+  "mahjongcraft.hud.table.waits": "待ち",
+  "mahjongcraft.hud.table.counters": "山 %s · 本場 %s · 供託 %s"
 }

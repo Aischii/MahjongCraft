@@ -8,9 +8,13 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.ClaimTarget
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.DiscardRequest
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTile
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.TableState
 import doublemoon.mahjongcraft.network.mahjong_game.MahjongGamePayload
 import doublemoon.mahjongcraft.network.sendPayloadToServer
 import net.fabricmc.api.EnvType
+import net.minecraft.client.Minecraft
+import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import net.minecraft.sounds.SoundEvents
 import net.fabricmc.api.Environment
 
 /**
@@ -48,6 +52,14 @@ object ClientMahjongState {
     /** Remaining base and extra thinking seconds; nulls when no countdown is running. */
     var time: Pair<Int?, Int?> = null to null
         private set
+
+    /** What the HUD shows about the table; null outside a game. */
+    var table: TableState? = null
+        private set
+
+    fun onTable(state: TableState) {
+        table = state
+    }
 
     /** True while the hand HUD and the gameplay keys are in use. */
     val active: Boolean get() = MahjongCraftClient.playing && hand.isNotEmpty()
@@ -91,6 +103,7 @@ object ClientMahjongState {
         discardRequest = request
         selected = hand.lastIndex
         if (!isSelectable(selected)) moveSelection(-1)
+        Sounds.yourTurn()
     }
 
     fun onRequest(behavior: MahjongGameBehavior, hands: List<MahjongTile>, target: ClaimTarget, data: String) {
@@ -98,6 +111,7 @@ object ClientMahjongState {
         options = ActionOptions.build(behavior, hands, target, data)
         activeGroup = null
         variantIndex = 0
+        if (options.isNotEmpty()) Sounds.yourTurn()
     }
 
     /** A null-to-null time means the game stopped waiting, so any open request is over. */
@@ -107,6 +121,7 @@ object ClientMahjongState {
     }
 
     fun reset() {
+        table = null
         hand = emptyList()
         hasDrawnTile = false
         selected = 0
@@ -129,6 +144,7 @@ object ClientMahjongState {
         if (group != null && group != ActionGroup.RIICHI) {
             val count = optionsIn(group).size
             if (count > 0) variantIndex = Math.floorMod(variantIndex + direction, count)
+            Sounds.select()
             return
         }
         moveSelection(direction)
@@ -140,6 +156,7 @@ object ClientMahjongState {
         repeat(hand.size) {
             index = Math.floorMod(index + direction, hand.size)
             if (isSelectable(index)) {
+                if (index != selected) Sounds.select()
                 selected = index
                 return
             }
@@ -186,6 +203,13 @@ object ClientMahjongState {
             activeGroup != null -> activeGroup = null
             options.isNotEmpty() -> send(MahjongGameBehavior.SKIP to "")
         }
+    }
+
+    /** Quiet UI cues so players notice their turn without staring at the screen. */
+    private object Sounds {
+        fun select() = play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.8f, 0.15f))
+        fun yourTurn() = play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.4f, 0.6f))
+        private fun play(sound: SimpleSoundInstance) = Minecraft.getInstance().soundManager.play(sound)
     }
 
     private fun send(response: Pair<MahjongGameBehavior, String>) {

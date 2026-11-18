@@ -493,6 +493,10 @@ abstract class MahjongPlayerBase : GamePlayer {
     private val machi: List<MahjongTile>
         get() = calculateMachi()
 
+    /** Tiles that would complete this hand, one per kind; empty when not tenpai or holding a drawn tile. */
+    val waits: List<MahjongTile>
+        get() = if (hands.size % 3 == 1) machi.distinctBy { it.mahjong4jTile.code }.sortedBy { it.sortOrder } else emptyList()
+
     /**
      * 根據條件得到玩家聽哪張牌, 只計算聽的牌, 沒計算有沒有超過起胡翻數
      * 門清狀態下傳進來的 [hands] 加上 [fuuroList] 的牌應該只有 13 張, 第 14 張就是拿來偵測用的

@@ -3,6 +3,7 @@ package doublemoon.mahjongcraft.game.mahjong.riichi.player
 import doublemoon.mahjongcraft.entity.toMahjongTileList
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.ClaimTarget
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.DiscardRequest
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.TableState
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongRule
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTile
@@ -70,6 +71,30 @@ class MahjongPlayer(
         sendPayloadToPlayer(
             player = entity,
             payload = MahjongGamePayload(behavior = MahjongGameBehavior.HAND_UPDATE, hands = hand)
+        )
+    }
+
+    private var lastSyncedTable: TableState? = null
+    private var waitsHand: List<MahjongTile>? = null
+    private var waitsCache: List<MahjongTile> = emptyList()
+
+    /** [waits], recalculated only when the hand changed. */
+    fun cachedWaits(): List<MahjongTile> {
+        val hand = hands.toMahjongTileList()
+        if (hand != waitsHand) {
+            waitsHand = hand
+            waitsCache = waits
+        }
+        return waitsCache
+    }
+
+    /** Sends [state] with [MahjongGameBehavior.TABLE_STATE] when it differs from the last one sent. */
+    fun syncTableIfChanged(state: TableState) {
+        if (state == lastSyncedTable) return
+        lastSyncedTable = state
+        sendPayloadToPlayer(
+            player = entity,
+            payload = MahjongGamePayload(behavior = MahjongGameBehavior.TABLE_STATE, extraData = Json.encodeToString(state))
         )
     }
 

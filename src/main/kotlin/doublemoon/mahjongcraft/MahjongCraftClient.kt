@@ -5,6 +5,7 @@ import doublemoon.mahjongcraft.client.game.MahjongKeys
 import doublemoon.mahjongcraft.scheduler.client.OptionalBehaviorHandler
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import doublemoon.mahjongcraft.client.gui.hud.HandHud
+import doublemoon.mahjongcraft.client.gui.hud.TableHud
 import doublemoon.mahjongcraft.client.render.CodeItemModelProperty
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import doublemoon.mahjongcraft.client.ModConfig
@@ -73,6 +74,7 @@ object MahjongCraftClient : ClientModInitializer {
         MahjongKeys.register(keyCategory)
         ClientTickEvents.START_CLIENT_TICK.register(MahjongKeys::handleInput)
         HudElementRegistry.addLast(id("hand")) { graphics, delta -> HandHud.extract(graphics, delta) }
+        HudElementRegistry.addLast(id("table")) { graphics, delta -> TableHud.extract(graphics, delta) }
         ClientLifecycleEvents.CLIENT_STOPPING.register { ClientScheduler.onStopping() }
         // Leaving a world mid-game never delivers GAME_OVER, so clear the table state here.
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->

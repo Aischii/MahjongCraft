@@ -46,6 +46,9 @@ abstract class ItemModelEntityRenderer<T : Entity>(
     /** Rotates, scales and offsets [pose] (starting at the entity's position) for [entity]. */
     protected abstract fun place(entity: T, pose: PoseStack)
 
+    /** A glow outline color (ARGB) to draw around [entity], or 0 for none; vanilla glowing still applies. */
+    protected open fun highlightColor(entity: T): Int = 0
+
     override fun shouldRender(
         entity: T,
         culler: Frustum,
@@ -63,6 +66,7 @@ abstract class ItemModelEntityRenderer<T : Entity>(
         val pose = PoseStack()
         place(entity, pose)
         state.transform.set(pose.last().pose())
+        highlightColor(entity).takeIf { it != 0 }?.let { state.outlineColor = it }
     }
 
     override fun submit(

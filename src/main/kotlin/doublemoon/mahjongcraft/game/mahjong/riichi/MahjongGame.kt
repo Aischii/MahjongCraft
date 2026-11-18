@@ -11,6 +11,9 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.*
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongBot
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayer
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayerBase
+import net.minecraft.sounds.SoundEvents
+import doublemoon.mahjongcraft.entity.MahjongTileEntity
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.TableState
 import doublemoon.mahjongcraft.logger
 import doublemoon.mahjongcraft.network.mahjong_game.MahjongGamePayload
 import doublemoon.mahjongcraft.network.mahjong_table.MahjongTablePayloadListener
@@ -139,10 +142,47 @@ class MahjongGame(
      * */
     private var dicePoints = 0
 
-    /** Keeps each real player's hand HUD in step with their hand. Runs every server tick. */
+    /** Whose turn it is in the current round, for the HUD. */
+    private var currentPlayer: MahjongPlayerBase? = null
+
+    /** The most recent discard and who made it, for the HUD and the table highlight. */
+    private var lastDiscard: Pair<MahjongTileEntity, MahjongPlayerBase>? = null
+
+    /**
+     * Keeps each real player's hand HUD in step with their hand and the table. Runs every server tick;
+     * a failure here only skips this tick's HUD update and must never stop the server.
+     */
     fun syncHands() {
         if (status != GameStatus.PLAYING) return
-        realPlayers.forEach { it.syncHandIfChanged() }
+        runCatching {
+            realPlayers.forEach {
+                it.syncHandIfChanged()
+                it.syncTableIfChanged(tableStateFor(it))
+            }
+        }.onFailure { if (!hudSyncFailed) logger.error("MahjongCraft HUD sync failed; HUD may be stale", it) }
+            .also { hudSyncFailed = it.isFailure }
+    }
+
+    /** Logs a HUD sync failure once instead of every tick. */
+    private var hudSyncFailed = false
+
+    private fun tableStateFor(player: MahjongPlayer): TableState {
+        // A claimed discard leaves its owner's display pile, so it's no longer highlighted.
+        val discard = lastDiscard?.takeIf { (tile, owner) -> tile in owner.discardedTilesForDisplay }
+        return TableState(
+            mySeat = seat.indexOf(player),
+            turnSeat = currentPlayer?.let { seat.indexOf(it) } ?: -1,
+            seatNames = seat.map { it.displayName },
+            riichiSeats = seat.map { it.riichi || it.doubleRiichi },
+            // The dead wall only exists once the round has dealt; before that there are no indicators.
+            doraIndicators = if (board.deadWall.size >= DEAD_WALL_SIZE) board.doraIndicators.map { it.mahjongTile } else emptyList(),
+            riichiSticks = players.sumOf { it.riichiStickAmount },
+            honba = round.honba,
+            wallRemaining = board.wall.size,
+            lastDiscardEntityId = discard?.first?.id ?: -1,
+            lastDiscardSeat = discard?.let { seat.indexOf(it.second) } ?: -1,
+            waits = player.cachedWaits(),
+        )
     }
 
     /**
@@ -281,6 +321,8 @@ class MahjongGame(
         jobRound?.cancel()
         jobRound = gameScope.launch(roundErrorHandler) {
             clearStuffs(clearRiichiSticks = clearRiichiSticks)
+            currentPlayer = null
+            lastDiscard = null
             showRoundsTitle()
             syncMahjongTable() //每個 Round 開始時同步
             board.generateAllTilesAndSpawnWall() //產生所有牌
@@ -313,6 +355,7 @@ class MahjongGame(
             roundLoop@ while (isPlaying) {
                 // 開始打牌的動作
                 val player = nextPlayer //當前執行動作的玩家, (正常是從莊家按順序開始)
+                currentPlayer = player
                 val seatIndex = seat.indexOf(player)
                 val isDealer = dealer == player //是否是莊家
                 var timeoutTile = player.hands.last() //超時操作預設丟棄的牌 (預設為手牌最後一張)
@@ -464,6 +507,8 @@ class MahjongGame(
                     return@launch
                 }
                 board.discards += tileDiscarded
+                lastDiscard = tileDiscarded to player
+                playSound(soundEvent = SoundEvents.BAMBOO_WOOD_PLACE, volume = 0.6f, pitch = 1.6f) // 打牌的聲音
                 board.sortDiscardedTilesForDisplay(player = player, openDoorPlayer = openDoorPlayer) //整理顯示用丟牌堆
                 board.sortHands(player = player)  //整理手牌
                 cannotDiscardTiles.clear()
@@ -1600,6 +1645,9 @@ class MahjongGame(
         this.isFuriten(tile.mahjong4jTile, board.discards.map { it.mahjong4jTile }, machi.map { it.mahjong4jTile })
 
     companion object {
+        /** Tiles in the dead wall (王牌) once a round has dealt. */
+        private const val DEAD_WALL_SIZE = 14
+
         /**
          * 最小等待時間,
          * 用來讓玩家丟牌、思考、等待...的過程看起來更合理

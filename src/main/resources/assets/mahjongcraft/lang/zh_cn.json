@@ -266,5 +266,12 @@
   "mahjongcraft.hud.hint.discard": "轮到你了：滚动鼠标选牌，按%s出牌",
   "mahjongcraft.hud.hint.riichi": "立直：选择要打出的牌，按%s宣告",
   "mahjongcraft.hud.hint.variant": "滚动选择，按%s确认，按%s返回",
-  "mahjongcraft.hud.hint.options": "按动作键，或按%s跳过"
+  "mahjongcraft.hud.hint.options": "按动作键，或按%s跳过",
+  "mahjongcraft.hud.table.you": "自己",
+  "mahjongcraft.hud.table.right": "下家",
+  "mahjongcraft.hud.table.across": "对家",
+  "mahjongcraft.hud.table.left": "上家",
+  "mahjongcraft.hud.table.dora": "宝牌",
+  "mahjongcraft.hud.table.waits": "听牌",
+  "mahjongcraft.hud.table.counters": "牌山 %s · 本场 %s · 供托 %s"
 }
