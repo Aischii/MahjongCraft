@@ -52,8 +52,18 @@ object ClientMahjongState {
     /** True while the hand HUD and the gameplay keys are in use. */
     val active: Boolean get() = MahjongCraftClient.playing && hand.isNotEmpty()
 
-    /** Whether the drawn tile should be drawn apart from the rest of the hand. */
-    val hasDrawnTile: Boolean get() = hand.size % 3 == 2
+    /**
+     * Whether the last tile was just drawn, so the HUD shows it apart. False after a call, when the
+     * hand also has a tile to discard but none was drawn.
+     */
+    var hasDrawnTile: Boolean = false
+        private set
+
+    /** Updates [hasDrawnTile] when the hand size changes; an unchanged size keeps it. */
+    private fun setHand(newHand: List<MahjongTile>) {
+        if (newHand.size != hand.size) hasDrawnTile = newHand.size == hand.size + 1 && newHand.size % 3 == 2
+        hand = newHand
+    }
 
     val availableGroups: List<ActionGroup>
         get() = options.map { it.group }.distinct()
@@ -72,19 +82,19 @@ object ClientMahjongState {
 
     fun onHand(newHand: List<MahjongTile>) {
         val grew = newHand.size > hand.size
-        hand = newHand
+        setHand(newHand)
         selected = if (grew && hasDrawnTile) hand.lastIndex else selected.coerceIn(0, (hand.size - 1).coerceAtLeast(0))
     }
 
     fun onDiscardRequest(hands: List<MahjongTile>, request: DiscardRequest) {
-        hand = hands
+        setHand(hands)
         discardRequest = request
         selected = hand.lastIndex
         if (!isSelectable(selected)) moveSelection(-1)
     }
 
     fun onRequest(behavior: MahjongGameBehavior, hands: List<MahjongTile>, target: ClaimTarget, data: String) {
-        if (hands.isNotEmpty()) hand = hands
+        if (hands.isNotEmpty()) setHand(hands)
         options = ActionOptions.build(behavior, hands, target, data)
         activeGroup = null
         variantIndex = 0
@@ -98,6 +108,7 @@ object ClientMahjongState {
 
     fun reset() {
         hand = emptyList()
+        hasDrawnTile = false
         selected = 0
         clearRequests()
         time = null to null
