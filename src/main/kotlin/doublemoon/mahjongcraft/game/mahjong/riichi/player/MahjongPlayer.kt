@@ -2,6 +2,7 @@ package doublemoon.mahjongcraft.game.mahjong.riichi.player
 
 import doublemoon.mahjongcraft.entity.toMahjongTileList
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.ClaimTarget
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.DiscardRequest
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongRule
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTile
@@ -58,6 +59,29 @@ class MahjongPlayer(
     var cannotDiscardTiles = listOf<MahjongTile>()
         private set
 
+    /** The hand last sent with [MahjongGameBehavior.HAND_UPDATE]; null forces the next sync. */
+    private var lastSyncedHand: List<MahjongTile>? = null
+
+    /** Sends the player's hand to their client when it changed, for the hand HUD. */
+    fun syncHandIfChanged() {
+        val hand = hands.toMahjongTileList()
+        if (hand == lastSyncedHand) return
+        lastSyncedHand = hand
+        sendPayloadToPlayer(
+            player = entity,
+            payload = MahjongGamePayload(behavior = MahjongGameBehavior.HAND_UPDATE, hands = hand)
+        )
+    }
+
+    /**
+     * Whether discarding [tileCode] is allowed right now: the tile is in the hand and not one of
+     * [cannotDiscardTiles]. Clients only offer allowed tiles, but the server checks too.
+     */
+    fun canDiscard(tileCode: Int): Boolean {
+        val tile = MahjongTile.entries.getOrNull(tileCode) ?: return false
+        return tile in hands.toMahjongTileList() && tile !in cannotDiscardTiles
+    }
+
     override fun teleport(targetWorld: ServerLevel, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
         this.entity.teleportTo(targetWorld, x, y, z, emptySet(), yaw, pitch, true)
     }
@@ -75,7 +99,7 @@ class MahjongPlayer(
         this.cannotDiscardTiles = cannotDiscardTiles
         return waitForBehaviorResult(
             behavior = MahjongGameBehavior.DISCARD,
-            extraData = skippable.toString(),
+            extraData = Json.encodeToString(DiscardRequest(skippable, cannotDiscardTiles)),
             target = ClaimTarget.SELF,
             skippable = skippable
         ) { behavior, data ->

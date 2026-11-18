@@ -1,5 +1,7 @@
 package doublemoon.mahjongcraft
 
+import doublemoon.mahjongcraft.game.GameManager
+import doublemoon.mahjongcraft.game.mahjong.riichi.MahjongGame
 import doublemoon.mahjongcraft.event.onPlayerChangedWorld
 import doublemoon.mahjongcraft.event.onPlayerDisconnect
 import doublemoon.mahjongcraft.network.mahjong_game.MahjongGamePayloadListener
@@ -33,6 +35,7 @@ object MahjongCraft : ModInitializer {
 
         // Event
         ServerTickEvents.END_SERVER_TICK.register(ServerScheduler::tick)
+        ServerTickEvents.END_SERVER_TICK.register { GameManager.games.forEach { (it as? MahjongGame)?.syncHands() } }
         ServerLifecycleEvents.SERVER_STOPPING.register(ServerScheduler::onStopping)
         ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(::onPlayerChangedWorld)
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ -> onPlayerDisconnect(handler.player) }

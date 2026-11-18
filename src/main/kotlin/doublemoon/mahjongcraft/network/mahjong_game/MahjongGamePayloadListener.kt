@@ -1,6 +1,8 @@
 package doublemoon.mahjongcraft.network.mahjong_game
 
 import doublemoon.mahjongcraft.MahjongCraftClient
+import doublemoon.mahjongcraft.client.game.ClientMahjongState
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.DiscardRequest
 import doublemoon.mahjongcraft.client.gui.widget.WTileHints
 import doublemoon.mahjongcraft.game.GameManager
 import doublemoon.mahjongcraft.game.mahjong.riichi.MahjongGame
@@ -53,11 +55,17 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
             MahjongGameBehavior.COUNTDOWN_TIME -> {
                 val times = Json.decodeFromString<Pair<Int?, Int?>>(extraData)
                 ClientCountdownTimeHandler.basicAndExtraTime = times
+                ClientMahjongState.onTime(times)
+            }
+
+            MahjongGameBehavior.HAND_UPDATE -> {
+                ClientMahjongState.onHand(hands)
             }
 
             MahjongGameBehavior.DISCARD -> {
-                val skippable = extraData.toBoolean()
-                if (skippable && MahjongCraftClient.config.quickActions.autoDrawAndDiscard) { // 自動摸切
+                val request = Json.decodeFromString<DiscardRequest>(extraData)
+                ClientMahjongState.onDiscardRequest(hands, request)
+                if (request.skippable && MahjongCraftClient.config.quickActions.autoDrawAndDiscard) { // 自動摸切
                     sendPayloadToServer(
                         payload = MahjongGamePayload(behavior = MahjongGameBehavior.SKIP)
                     )
@@ -71,6 +79,7 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
             MahjongGameBehavior.GAME_OVER -> {
                 MahjongCraftClient.playing = false
                 OptionalBehaviorHandler.cancel()
+                ClientMahjongState.reset()
             }
 
             MahjongGameBehavior.SCORE_SETTLEMENT -> {
@@ -121,7 +130,9 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
 
                     else -> {}
                 }
-                OptionalBehaviorHandler.start(behavior, hands, target, extraData)
+                // Choices show in the hand HUD; the old screen stays available by right-clicking a tile.
+                ClientMahjongState.onRequest(behavior, hands, target, extraData)
+                OptionalBehaviorHandler.start(behavior, hands, target, extraData, openScreen = false)
             }
         }
     }
@@ -162,6 +173,12 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
 
             MahjongGameBehavior.AUTO_ARRANGE -> {
                 mjPlayer.autoArrangeHands = extraData.toBoolean()
+            }
+
+            MahjongGameBehavior.DISCARD -> {
+                if (behavior in mjPlayer.waitingBehavior && mjPlayer.canDiscard(extraData.toIntOrNull() ?: -1)) {
+                    mjPlayer.behaviorResult = behavior to extraData
+                }
             }
 
             in mjPlayer.waitingBehavior -> {

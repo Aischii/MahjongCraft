@@ -1,6 +1,9 @@
 package doublemoon.mahjongcraft
 
+import doublemoon.mahjongcraft.client.game.MahjongKeys
+import doublemoon.mahjongcraft.client.gui.hud.HandHud
 import doublemoon.mahjongcraft.client.render.CodeItemModelProperty
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import doublemoon.mahjongcraft.client.ModConfig
 import doublemoon.mahjongcraft.client.gui.screen.ConfigScreen
 import doublemoon.mahjongcraft.client.gui.screen.HudPositionEditorScreen
@@ -63,6 +66,10 @@ object MahjongCraftClient : ClientModInitializer {
     override fun onInitializeClient() {
         logger.info("Initializing client")
         ClientTickEvents.END_CLIENT_TICK.register(this::tick)
+        // Gameplay keys run before vanilla reads input, so a discard click isn't also an item use.
+        MahjongKeys.register(keyCategory)
+        ClientTickEvents.START_CLIENT_TICK.register(MahjongKeys::handleInput)
+        HudElementRegistry.addLast(id("hand")) { graphics, delta -> HandHud.extract(graphics, delta) }
         ClientLifecycleEvents.CLIENT_STOPPING.register { ClientScheduler.onStopping() }
 
         // Entity Renderer

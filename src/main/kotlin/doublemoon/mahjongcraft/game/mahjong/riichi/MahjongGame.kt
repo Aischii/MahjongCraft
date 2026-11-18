@@ -139,6 +139,12 @@ class MahjongGame(
      * */
     private var dicePoints = 0
 
+    /** Keeps each real player's hand HUD in step with their hand. Runs every server tick. */
+    fun syncHands() {
+        if (status != GameStatus.PLAYING) return
+        realPlayers.forEach { it.syncHandIfChanged() }
+    }
+
     /**
      * 規則發生改變, 在等待中的已準備玩家, 除了 Bot 和 Host->全都取消準備, 並且發送訊息進行提示
      * */

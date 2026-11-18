@@ -39,5 +39,8 @@
     "java": ">=25",
     "fabric-language-kotlin": ">=1.14.2",
     "cloth-config2": ">=26.3"
-  }
+  },
+  "mixins": [
+    "mahjongcraft.mixins.json"
+  ]
 }

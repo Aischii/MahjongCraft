@@ -59,14 +59,15 @@ object OptionalBehaviorHandler {
         behavior: MahjongGameBehavior,
         hands: List<MahjongTile>,
         target: ClaimTarget,
-        extraData: String
+        extraData: String,
+        openScreen: Boolean = true,
     ) {
         waiting = true
         this.behavior = behavior
         this.hands = hands
         this.target = target
         this.extraData = extraData
-        setScreen()
+        if (openScreen) setScreen()
     }
 
     fun cancel() {
