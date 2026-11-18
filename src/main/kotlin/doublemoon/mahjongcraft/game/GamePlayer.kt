@@ -1,7 +1,7 @@
 package doublemoon.mahjongcraft.game
 
-import net.minecraft.entity.Entity
-import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.world.entity.Entity
+import net.minecraft.server.level.ServerPlayer
 
 interface GamePlayer {
 
@@ -26,11 +26,11 @@ interface GamePlayer {
      * 玩家的 uuid 字串
      * */
     val uuid: String
-        get() = entity.uuidAsString
+        get() = entity.stringUUID
 
     /**
      * 這個玩家是否是真的玩家
      * */
     val isRealPlayer: Boolean
-        get() = entity is ServerPlayerEntity
+        get() = entity is ServerPlayer
 }

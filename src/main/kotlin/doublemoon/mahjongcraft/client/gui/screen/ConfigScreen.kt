@@ -8,44 +8,44 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
 import doublemoon.mahjongcraft.network.mahjong_game.MahjongGamePayload
 import doublemoon.mahjongcraft.network.sendPayloadToServer
 import me.shedaniel.clothconfig2.api.ConfigBuilder
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.option.KeyBinding
-import net.minecraft.text.Text
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.KeyMapping
+import net.minecraft.network.chat.Component
 import java.util.*
 
 object ConfigScreen {
-    private val title = Text.translatable("config.$MOD_ID.title")
+    private val title = Component.translatable("config.$MOD_ID.title")
 
     //general
-    private val displayTableLabelsText = Text.translatable("config.$MOD_ID.display_table_labels")
-    private val hudBackgroundColorText = Text.translatable("config.$MOD_ID.hud.background_color")
-    private val hudScaleText = Text.translatable("config.$MOD_ID.hud.scale")
-    private val displayHudText = Text.translatable("config.$MOD_ID.hud.display")
-    private val displayHudWhenPlayingText = Text.translatable("config.$MOD_ID.hud.display_when_playing")
+    private val displayTableLabelsText = Component.translatable("config.$MOD_ID.display_table_labels")
+    private val hudBackgroundColorText = Component.translatable("config.$MOD_ID.hud.background_color")
+    private val hudScaleText = Component.translatable("config.$MOD_ID.hud.scale")
+    private val displayHudText = Component.translatable("config.$MOD_ID.hud.display")
+    private val displayHudWhenPlayingText = Component.translatable("config.$MOD_ID.hud.display_when_playing")
 
     //tile hints
-    private val tileHintsText = Text.translatable("config.$MOD_ID.tile_hints")
+    private val tileHintsText = Component.translatable("config.$MOD_ID.tile_hints")
 
     //quick actions
-    private val quickActionsText = Text.translatable("config.$MOD_ID.quick_actions")
-    private val autoArrangeText = Text.translatable("config.$MOD_ID.quick_actions.auto_arrange")
-    private val autoCallWinText = Text.translatable("config.$MOD_ID.quick_actions.auto_call_win")
-    private val noChiiPonKanText = Text.translatable("config.$MOD_ID.quick_actions.no_chii_pon_kan")
-    private val autoDrawAndDiscardText = Text.translatable("config.$MOD_ID.quick_actions.auto_draw_and_discard")
-    private val autoResetTooltip = Text.translatable("config.$MOD_ID.tooltip.auto_reset")
+    private val quickActionsText = Component.translatable("config.$MOD_ID.quick_actions")
+    private val autoArrangeText = Component.translatable("config.$MOD_ID.quick_actions.auto_arrange")
+    private val autoCallWinText = Component.translatable("config.$MOD_ID.quick_actions.auto_call_win")
+    private val noChiiPonKanText = Component.translatable("config.$MOD_ID.quick_actions.no_chii_pon_kan")
+    private val autoDrawAndDiscardText = Component.translatable("config.$MOD_ID.quick_actions.auto_draw_and_discard")
+    private val autoResetTooltip = Component.translatable("config.$MOD_ID.tooltip.auto_reset")
 
     private val hudPositionEditorKey = MahjongCraftClient.hudPositionEditorKey
-    private val hudPositionEditorTooltip = Text.translatable(
+    private val hudPositionEditorTooltip = Component.translatable(
         "config.$MOD_ID.tooltip.hud_position_editor",
-        hudPositionEditorKey.boundKeyLocalizedText
+        hudPositionEditorKey.translatedKeyMessage
     )
 
     private val yakuOverviewKey = MahjongCraftClient.yakuOverviewKey
-    private val yakuOverviewTooltip = Text.translatable(
+    private val yakuOverviewTooltip = Component.translatable(
         "config.$MOD_ID.tooltip.yaku_overview",
-        yakuOverviewKey.boundKeyLocalizedText
+        yakuOverviewKey.translatedKeyMessage
     )
 
     fun build(parent: Screen? = null): Screen = getConfigBuilder(parent).build()
@@ -54,32 +54,32 @@ object ConfigScreen {
         val config = MahjongCraftClient.config
         val defaultConfig = ModConfig()
         return configBuilder(title = title, parent = parent, savingRunnable = { MahjongCraftClient.saveConfig() }) {
-            category(Text.of("general")) {
+            category(Component.nullToEmpty("general")) {
                 booleanToggle(
                     text = displayTableLabelsText,
                     startValue = config.displayTableLabels,
                     defaultValue = { defaultConfig.displayTableLabels },
                 ) { config.displayTableLabels = it }
                 keyCodeField(
-                    text = Text.translatable(hudPositionEditorKey.translationKey),
-                    startKey = KeyBindingHelper.getBoundKeyOf(hudPositionEditorKey),
+                    text = Component.translatable(hudPositionEditorKey.name),
+                    startKey = KeyMappingHelper.getBoundKeyOf(hudPositionEditorKey),
                     defaultKey = { hudPositionEditorKey.defaultKey },
                     tooltipSupplier = { Optional.of(arrayOf(hudPositionEditorTooltip)) },
                     saveConsumer = {
-                        hudPositionEditorKey.setBoundKey(it)
-                        KeyBinding.updateKeysByCode()
-                        MinecraftClient.getInstance().options.write()
+                        hudPositionEditorKey.setKey(it)
+                        KeyMapping.resetMapping()
+                        Minecraft.getInstance().options.save()
                     }
                 )
                 keyCodeField(
-                    text = Text.translatable(yakuOverviewKey.translationKey),
-                    startKey = KeyBindingHelper.getBoundKeyOf(yakuOverviewKey),
+                    text = Component.translatable(yakuOverviewKey.name),
+                    startKey = KeyMappingHelper.getBoundKeyOf(yakuOverviewKey),
                     defaultKey = { yakuOverviewKey.defaultKey },
                     tooltipSupplier = { Optional.of(arrayOf(yakuOverviewTooltip)) },
                     saveConsumer = {
-                        yakuOverviewKey.setBoundKey(it)
-                        KeyBinding.updateKeysByCode()
-                        MinecraftClient.getInstance().options.write()
+                        yakuOverviewKey.setKey(it)
+                        KeyMapping.resetMapping()
+                        Minecraft.getInstance().options.save()
                     }
                 )
                 subCategory(text = tileHintsText) {
@@ -97,7 +97,7 @@ object ConfigScreen {
                         minValue = 0,
                         maxValue = 500, //最大可以放大到 500 %
                         defaultValue = { (defaultConfig.tileHints.hudAttribute.scale * 100.0).toInt() },
-                        textGetter = { Text.of("$it %") }
+                        textGetter = { Component.nullToEmpty("$it %") }
                     ) {
                         config.tileHints.hudAttribute.scale = it / 100.0
                         MahjongCraftClient.hud?.refresh()
@@ -134,7 +134,7 @@ object ConfigScreen {
                         defaultValue = { defaultConfig.quickActions.autoArrange }
                     ) {
                         config.quickActions.autoArrange = it
-                        val world = MinecraftClient.getInstance().world
+                        val world = Minecraft.getInstance().level
                         if (world != null) {
                             // 每次在遊戲內更改 AutoArrange 的設定都會同步到伺服器
                             sendPayloadToServer(

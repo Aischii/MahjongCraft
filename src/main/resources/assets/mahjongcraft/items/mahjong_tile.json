@@ -1,0 +1,278 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "mahjongcraft:code",
+    "entries": [
+      {
+        "threshold": 0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m1"
+        }
+      },
+      {
+        "threshold": 1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m2"
+        }
+      },
+      {
+        "threshold": 2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m3"
+        }
+      },
+      {
+        "threshold": 3,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m4"
+        }
+      },
+      {
+        "threshold": 4,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m5"
+        }
+      },
+      {
+        "threshold": 5,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m6"
+        }
+      },
+      {
+        "threshold": 6,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m7"
+        }
+      },
+      {
+        "threshold": 7,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m8"
+        }
+      },
+      {
+        "threshold": 8,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m9"
+        }
+      },
+      {
+        "threshold": 9,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p1"
+        }
+      },
+      {
+        "threshold": 10,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p2"
+        }
+      },
+      {
+        "threshold": 11,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p3"
+        }
+      },
+      {
+        "threshold": 12,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p4"
+        }
+      },
+      {
+        "threshold": 13,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p5"
+        }
+      },
+      {
+        "threshold": 14,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p6"
+        }
+      },
+      {
+        "threshold": 15,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p7"
+        }
+      },
+      {
+        "threshold": 16,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p8"
+        }
+      },
+      {
+        "threshold": 17,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p9"
+        }
+      },
+      {
+        "threshold": 18,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s1"
+        }
+      },
+      {
+        "threshold": 19,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s2"
+        }
+      },
+      {
+        "threshold": 20,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s3"
+        }
+      },
+      {
+        "threshold": 21,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s4"
+        }
+      },
+      {
+        "threshold": 22,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s5"
+        }
+      },
+      {
+        "threshold": 23,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s6"
+        }
+      },
+      {
+        "threshold": 24,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s7"
+        }
+      },
+      {
+        "threshold": 25,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s8"
+        }
+      },
+      {
+        "threshold": 26,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s9"
+        }
+      },
+      {
+        "threshold": 27,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_east"
+        }
+      },
+      {
+        "threshold": 28,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_south"
+        }
+      },
+      {
+        "threshold": 29,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_west"
+        }
+      },
+      {
+        "threshold": 30,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_north"
+        }
+      },
+      {
+        "threshold": 31,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_white_dragon"
+        }
+      },
+      {
+        "threshold": 32,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_green_dragon"
+        }
+      },
+      {
+        "threshold": 33,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_red_dragon"
+        }
+      },
+      {
+        "threshold": 34,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_m5_red"
+        }
+      },
+      {
+        "threshold": 35,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_p5_red"
+        }
+      },
+      {
+        "threshold": 36,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_s5_red"
+        }
+      },
+      {
+        "threshold": 37,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_tile/mahjong_tile_unknown"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "mahjongcraft:item/mahjong_tile_base"
+    }
+  }
+}

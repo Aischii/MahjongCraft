@@ -30,3 +30,6 @@ bin/
 # fabric
 
 run/
+
+# Kotlin compiler session files
+.kotlin/

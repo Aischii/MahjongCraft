@@ -1,71 +1,70 @@
 package doublemoon.mahjongcraft.item
 
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.item.ItemUsageContext
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.util.ActionResult
-import net.minecraft.util.Hand
-import net.minecraft.util.TypedActionResult
-import net.minecraft.world.World
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.CustomData
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.context.UseOnContext
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.level.Level
 
 /**
  * 麻將牌物品
  *
  * 使用 NBT 之中的 "code" 來控制牌的外觀
  * */
-class MahjongTile(settings: Settings) : Item(settings) {
+class MahjongTile(settings: Properties) : Item(settings) {
     /**
      * 使用右鍵就會觸發,
      * 不會與 [useOnBlock] 一起觸發 (應該吧?),
      * 右鍵改變外觀
      * */
-    override fun use(world: World, user: PlayerEntity, hand: Hand): TypedActionResult<ItemStack> {
-        val itemStack = user.getStackInHand(hand)
+    override fun use(world: Level, user: Player, hand: InteractionHand): InteractionResult {
+        val itemStack = user.getItemInHand(hand)
         // 僅允許伺服端執行，如果是客戶端就直接返回
-        if (user.world.isClient) return TypedActionResult.success(itemStack)
+        if (user.level().isClientSide) return InteractionResult.SUCCESS
 
-        if (!user.isSneaking) { // 沒有蹲下
-            val nbt = itemStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt() ?: NbtCompound()
-            val tileCode = nbt.getInt("code")
+        if (!user.isShiftKeyDown) { // 沒有蹲下
+            val nbt = itemStack.get(DataComponents.CUSTOM_DATA)?.copyTag() ?: CompoundTag()
+            val tileCode = nbt.getIntOr("code", 0)
             nbt.putInt("code", (tileCode + 1) % 38)
-            itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt))
-            return TypedActionResult.success(itemStack)
+            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt))
+            return InteractionResult.SUCCESS
         }
-        return TypedActionResult.pass(itemStack)
+        return InteractionResult.PASS
     }
 
     /**
      * 對方塊互動觸發,
      * 蹲下右鍵放置, 右鍵改變外觀
      * */
-    override fun useOnBlock(context: ItemUsageContext): ActionResult {
-        val player = context.player ?: return ActionResult.PASS
+    override fun useOn(context: UseOnContext): InteractionResult {
+        val player = context.player ?: return InteractionResult.PASS
         // 僅允許伺服端執行，如果是客戶端就直接返回
-        if (context.world.isClient) return ActionResult.SUCCESS
+        if (context.level.isClientSide) return InteractionResult.SUCCESS
 
-        val itemStack = context.stack
-        val nbt = itemStack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt() ?: NbtCompound()
-        val tileCode = nbt.getInt("code")
+        val itemStack = context.itemInHand
+        val nbt = itemStack.get(DataComponents.CUSTOM_DATA)?.copyTag() ?: CompoundTag()
+        val tileCode = nbt.getIntOr("code", 0)
 
-        return if (player.isSneaking) { // 有蹲下才能放置
-            val world = context.world as ServerWorld
+        return if (player.isShiftKeyDown) { // 有蹲下才能放置
+            val world = context.level as ServerLevel
             MahjongTileEntity(world = world, code = tileCode).apply {
-                val pos = context.hitPos
-                refreshPositionAndAngles(pos.x, pos.y, pos.z, (context.playerYaw + 180f), 0f)
-                world.spawnEntity(this)
+                val pos = context.clickLocation
+                snapTo(pos.x, pos.y, pos.z, (context.rotation + 180f), 0f)
+                world.addFreshEntity(this)
             }
-            if (!player.abilities.creativeMode) itemStack.decrement(1)
-            ActionResult.CONSUME
+            if (!player.abilities.instabuild) itemStack.shrink(1)
+            InteractionResult.CONSUME
         } else {  //沒蹲下, 改變牌的外觀
             nbt.putInt("code", (tileCode + 1) % 38)
-            itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt))
-            ActionResult.SUCCESS
+            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt))
+            InteractionResult.SUCCESS
         }
     }
 }

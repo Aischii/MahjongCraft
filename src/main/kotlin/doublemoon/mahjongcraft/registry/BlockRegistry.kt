@@ -3,33 +3,39 @@ package doublemoon.mahjongcraft.registry
 import doublemoon.mahjongcraft.block.MahjongStool
 import doublemoon.mahjongcraft.block.MahjongTable
 import doublemoon.mahjongcraft.id
-import net.minecraft.block.AbstractBlock
-import net.minecraft.block.Blocks
-import net.minecraft.block.piston.PistonBehavior
-import net.minecraft.registry.Registries
-import net.minecraft.registry.Registry
-import net.minecraft.sound.BlockSoundGroup
+import net.minecraft.core.Registry
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.ResourceKey
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.SoundType
+import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.material.PushReaction
+
+/** Block properties that already carry the block's registry id, which Minecraft requires before construction. */
+private fun blockProperties(name: String): BlockBehaviour.Properties =
+    BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_WOOD).setId(ResourceKey.create(Registries.BLOCK, id(name)))
 
 object BlockRegistry {
 
     val mahjongStool: MahjongStool = MahjongStool(
-        AbstractBlock.Settings.copy(Blocks.OAK_WOOD)
-            .pistonBehavior(PistonBehavior.DESTROY)
-            .nonOpaque()
+        blockProperties("mahjong_stool")
+            .pushReaction(PushReaction.POPPED)
+            .noOcclusion()
             .strength(0.3f)
-            .sounds(BlockSoundGroup.WOOL)
+            .sound(SoundType.WOOL)
     )
 
     val mahjongTable: MahjongTable = MahjongTable(
-        AbstractBlock.Settings.copy(Blocks.OAK_WOOD)
-            .pistonBehavior(PistonBehavior.IGNORE)
-            .nonOpaque()
+        blockProperties("mahjong_table")
+            .pushReaction(PushReaction.IGNORE_ENTITY)
+            .noOcclusion()
             .strength(0.7f)
-            .sounds(BlockSoundGroup.WOOL)
+            .sound(SoundType.WOOL)
     )
 
     fun register() {
-        Registry.register(Registries.BLOCK, id("mahjong_stool"), mahjongStool)
-        Registry.register(Registries.BLOCK, id("mahjong_table"), mahjongTable)
+        Registry.register(BuiltInRegistries.BLOCK, id("mahjong_stool"), mahjongStool)
+        Registry.register(BuiltInRegistries.BLOCK, id("mahjong_table"), mahjongTable)
     }
 }

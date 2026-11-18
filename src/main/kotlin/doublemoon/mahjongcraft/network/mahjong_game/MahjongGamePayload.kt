@@ -6,37 +6,37 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTile
 import doublemoon.mahjongcraft.id
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
 data class MahjongGamePayload(
     val behavior: MahjongGameBehavior,
     val hands: List<MahjongTile> = listOf(),
     val target: ClaimTarget = ClaimTarget.SELF,
     val extraData: String = "",
-) : CustomPayload {
-    constructor(byteBuf: RegistryByteBuf) : this(
-        behavior = byteBuf.readEnumConstant(MahjongGameBehavior::class.java),
-        hands = Json.decodeFromString<MutableList<MahjongTile>>(byteBuf.readString(Short.MAX_VALUE.toInt())),
-        target = byteBuf.readEnumConstant(ClaimTarget::class.java),
-        extraData = byteBuf.readString(Short.MAX_VALUE.toInt())
+) : CustomPacketPayload {
+    constructor(byteBuf: RegistryFriendlyByteBuf) : this(
+        behavior = byteBuf.readEnum(MahjongGameBehavior::class.java),
+        hands = Json.decodeFromString<MutableList<MahjongTile>>(byteBuf.readUtf(Short.MAX_VALUE.toInt())),
+        target = byteBuf.readEnum(ClaimTarget::class.java),
+        extraData = byteBuf.readUtf(Short.MAX_VALUE.toInt())
     )
 
-    fun writeByteBuf(byteBuf: RegistryByteBuf) {
+    fun writeByteBuf(byteBuf: RegistryFriendlyByteBuf) {
         with(byteBuf) {
-            writeEnumConstant(behavior)
-            writeString(Json.encodeToString(hands), Short.MAX_VALUE.toInt())
-            writeEnumConstant(target)
-            writeString(extraData, Short.MAX_VALUE.toInt())
+            writeEnum(behavior)
+            writeUtf(Json.encodeToString(hands), Short.MAX_VALUE.toInt())
+            writeEnum(target)
+            writeUtf(extraData, Short.MAX_VALUE.toInt())
         }
     }
 
-    override fun getId(): CustomPayload.Id<MahjongGamePayload> = ID
+    override fun type(): CustomPacketPayload.Type<MahjongGamePayload> = ID
 
     companion object {
-        val ID = CustomPayload.Id<MahjongGamePayload>(id("mahjong_game_payload"))
-        val CODEC: PacketCodec<RegistryByteBuf, MahjongGamePayload> =
-            PacketCodec.of(MahjongGamePayload::writeByteBuf, ::MahjongGamePayload)
+        val ID = CustomPacketPayload.Type<MahjongGamePayload>(id("mahjong_game_payload"))
+        val CODEC: StreamCodec<RegistryFriendlyByteBuf, MahjongGamePayload> =
+            StreamCodec.ofMember(MahjongGamePayload::writeByteBuf, ::MahjongGamePayload)
     }
 }

@@ -1,11 +1,12 @@
 package doublemoon.mahjongcraft.game.mahjong.riichi.player
 
+import net.minecraft.world.level.portal.TeleportTransition
 import doublemoon.mahjongcraft.entity.MahjongBotEntity
 import doublemoon.mahjongcraft.game.mahjong.riichi.MahjongGame
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTile
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Vec3d
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.Vec3
 
 /**
  * 麻將機器人,
@@ -16,8 +17,8 @@ import net.minecraft.util.math.Vec3d
  * @param gamePos 生成這個機器人的遊戲的方塊座標,
  * */
 class MahjongBot(
-    val world: ServerWorld,
-    pos: Vec3d,
+    val world: ServerLevel,
+    pos: Vec3,
     gamePos: BlockPos,
 ) : MahjongPlayerBase() {
 
@@ -26,18 +27,15 @@ class MahjongBot(
         isSpawnedByGame = true
         gameBlockPos = gamePos
         isInvisible = true //先隱形, 等開始遊戲才解除隱形
-        refreshPositionAfterTeleport(pos)  //再傳送到預設位置上
-        world.spawnEntity(this) //最後才在世界上生成
+        snapTo(pos)  //再傳送到預設位置上
+        world.addFreshEntity(this) //最後才在世界上生成
     }
 
     override var ready: Boolean = true
 
-    override fun teleport(targetWorld: ServerWorld, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
+    override fun teleport(targetWorld: ServerLevel, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
         with(entity) {
-            if (this.world != targetWorld) moveToWorld(targetWorld)
-            this.yaw = yaw
-            this.pitch = pitch
-            requestTeleport(x, y, z)
+            teleport(TeleportTransition(targetWorld, Vec3(x, y, z), Vec3.ZERO, yaw, pitch, TeleportTransition.DO_NOTHING))
         }
     }
 }

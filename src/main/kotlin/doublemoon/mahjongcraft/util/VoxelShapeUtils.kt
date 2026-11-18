@@ -1,7 +1,7 @@
 package doublemoon.mahjongcraft.util
 
-import net.minecraft.block.Block
-import net.minecraft.util.shape.VoxelShape
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.phys.shapes.VoxelShape
 
 
 /**
@@ -40,7 +40,7 @@ fun boxBySize(
     sizeY: Double,
     sizeZ: Double,
 ): VoxelShape {
-    return Block.createCuboidShape(
+    return Block.box(
         posX,
         posY,
         posZ,

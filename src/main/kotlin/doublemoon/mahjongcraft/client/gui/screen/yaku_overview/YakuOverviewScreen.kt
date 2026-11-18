@@ -11,20 +11,20 @@ import io.github.cottonmc.cotton.gui.widget.data.Color
 import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.util.Formatting
+import net.minecraft.client.Minecraft
+import net.minecraft.ChatFormatting
 import kotlin.math.floor
 
 @Environment(EnvType.CLIENT)
 class YakuOverviewScreen : CottonClientScreen(YakuOverviewGui()) {
-    override fun shouldPause(): Boolean = false
+    override fun isPauseScreen(): Boolean = false
 }
 
 @Environment(EnvType.CLIENT)
 class YakuOverviewGui : LightweightGuiDescription() {
-    private val client = MinecraftClient.getInstance()
-    private val textRenderer = client.textRenderer
-    private val fontHeight = textRenderer.fontHeight
+    private val client = Minecraft.getInstance()
+    private val textRenderer = client.font
+    private val fontHeight = textRenderer.lineHeight
 
     private val tabButtons = mutableMapOf<OverviewTab, WButton>()
     private var currentTab = OverviewTab.Han1
@@ -44,7 +44,7 @@ class YakuOverviewGui : LightweightGuiDescription() {
             ) {
                 var x = 0
                 for (tab in tabs) {
-                    val tabWidth = textRenderer.getWidth(tab.title) + BUTTON_TEXT_PADDING * 2
+                    val tabWidth = textRenderer.width(tab.title) + BUTTON_TEXT_PADDING * 2
                     val tabHeight = BUTTON_HEIGHT
                     val buttonWidget = button(
                         x = 0,
@@ -111,7 +111,7 @@ class YakuOverviewGui : LightweightGuiDescription() {
                 x = titleHorizontalPadding,
                 y = y + titleVerticalPadding,
                 height = fontHeight,
-                text = item.title.copy().formatted(Formatting.BOLD),
+                text = item.title.copy().withStyle(ChatFormatting.BOLD),
                 color = 0xbc3033
             )
 
@@ -121,7 +121,7 @@ class YakuOverviewGui : LightweightGuiDescription() {
                 y = title.y,
                 width = AVAILABLE_WIDTH - subtitleX - SCROLL_BAR_SIZE - titleHorizontalPadding,
                 height = fontHeight,
-                text = item.subtitle.text.copy().formatted(Formatting.BOLD),
+                text = item.subtitle.text.copy().withStyle(ChatFormatting.BOLD),
                 color = 0x4ae168,
                 horizontalAlignment = HorizontalAlignment.RIGHT
             )

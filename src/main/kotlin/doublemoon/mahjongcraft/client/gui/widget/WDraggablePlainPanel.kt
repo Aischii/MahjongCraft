@@ -1,11 +1,12 @@
 package doublemoon.mahjongcraft.client.gui.widget
 
+import net.minecraft.client.input.MouseButtonEvent
 import io.github.cottonmc.cotton.gui.client.BackgroundPainter
 import io.github.cottonmc.cotton.gui.widget.WPlainPanel
 import io.github.cottonmc.cotton.gui.widget.data.InputResult
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.GuiGraphicsExtractor
 
 /**
  *
@@ -26,7 +27,7 @@ class WDraggablePlainPanel(
     }
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: DrawContext, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphicsExtractor, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         super.paint(context, x, y, mouseX, mouseY)
         if (isDragging) {
             var deltaX = mouseX - anchorX
@@ -46,17 +47,17 @@ class WDraggablePlainPanel(
         }
     }
 
-    override fun onMouseDown(x: Int, y: Int, button: Int): InputResult {
-        if (button == 0) {
-            anchorX = x
-            anchorY = y
+    override fun onMouseDown(click: MouseButtonEvent, doubled: Boolean): InputResult {
+        if (click.button() == 0) {
+            anchorX = click.x().toInt()
+            anchorY = click.y().toInt()
             isDragging = true
         }
         return InputResult.PROCESSED
     }
 
-    override fun onMouseUp(x: Int, y: Int, button: Int): InputResult {
-        if (button == 0) {
+    override fun onMouseUp(click: MouseButtonEvent): InputResult {
+        if (click.button() == 0) {
             isDragging = false
             onDraggingEnd.invoke(this.x, this.y)
         }

@@ -2,7 +2,7 @@ package doublemoon.mahjongcraft.util
 
 import kotlinx.coroutines.CoroutineDispatcher
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.ServerTask
+import net.minecraft.server.TickTask
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -21,7 +21,7 @@ class QueueingDispatcher(private val enqueue: (Runnable) -> Unit) : CoroutineDis
  *
  * Game logic touches entities and the world, which must only happen on the server thread.
  * `MinecraftServer.execute` would run the block inline when already on the server thread,
- * so this queues a [ServerTask] instead.
+ * so this queues a [TickTask] instead.
  */
 fun MinecraftServer.coroutineDispatcher(): CoroutineDispatcher =
-    QueueingDispatcher { block -> send(ServerTask(ticks, block)) }
+    QueueingDispatcher { block -> schedule(TickTask(tickCount, block)) }

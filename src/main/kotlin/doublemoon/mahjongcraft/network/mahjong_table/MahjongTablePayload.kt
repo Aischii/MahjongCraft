@@ -2,36 +2,36 @@ package doublemoon.mahjongcraft.network.mahjong_table
 
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTableBehavior
 import doublemoon.mahjongcraft.id
-import net.minecraft.network.PacketByteBuf
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.util.math.BlockPos
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.core.BlockPos
 
 data class MahjongTablePayload(
     val behavior: MahjongTableBehavior,
     val pos: BlockPos,
     val extraData: String = "",
-) : CustomPayload {
-    constructor(byteBuf: PacketByteBuf) : this(
-        behavior = byteBuf.readEnumConstant(MahjongTableBehavior::class.java),
+) : CustomPacketPayload {
+    constructor(byteBuf: FriendlyByteBuf) : this(
+        behavior = byteBuf.readEnum(MahjongTableBehavior::class.java),
         pos = byteBuf.readBlockPos(),
-        extraData = byteBuf.readString(Short.MAX_VALUE.toInt())
+        extraData = byteBuf.readUtf(Short.MAX_VALUE.toInt())
     )
 
-    fun writeByteBuf(byteBuf: RegistryByteBuf) {
+    fun writeByteBuf(byteBuf: RegistryFriendlyByteBuf) {
         with(byteBuf) {
-            writeEnumConstant(behavior)
+            writeEnum(behavior)
             writeBlockPos(pos)
-            writeString(extraData, Short.MAX_VALUE.toInt())
+            writeUtf(extraData, Short.MAX_VALUE.toInt())
         }
     }
 
-    override fun getId(): CustomPayload.Id<MahjongTablePayload> = ID
+    override fun type(): CustomPacketPayload.Type<MahjongTablePayload> = ID
 
     companion object {
-        val ID = CustomPayload.Id<MahjongTablePayload>(id("mahjong_table_payload"))
-        val CODEC: PacketCodec<RegistryByteBuf, MahjongTablePayload> =
-            PacketCodec.of(MahjongTablePayload::writeByteBuf, ::MahjongTablePayload)
+        val ID = CustomPacketPayload.Type<MahjongTablePayload>(id("mahjong_table_payload"))
+        val CODEC: StreamCodec<RegistryFriendlyByteBuf, MahjongTablePayload> =
+            StreamCodec.ofMember(MahjongTablePayload::writeByteBuf, ::MahjongTablePayload)
     }
 }

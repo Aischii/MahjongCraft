@@ -5,15 +5,15 @@ import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
-interface CustomPayloadListener<T : CustomPayload> {
+interface CustomPayloadListener<T : CustomPacketPayload> {
 
-    val id: CustomPayload.Id<T>
+    val id: CustomPacketPayload.Type<T>
 
-    val codec: PacketCodec<RegistryByteBuf, T>
+    val codec: StreamCodec<RegistryFriendlyByteBuf, T>
 
     val channelType: ChannelType
 
@@ -31,8 +31,8 @@ interface CustomPayloadListener<T : CustomPayload> {
     }
 
     fun registerCommon() {
-        if (channelType.s2c) PayloadTypeRegistry.playS2C().register(id, codec)
-        if (channelType.c2s) PayloadTypeRegistry.playC2S().register(id, codec)
+        if (channelType.s2c) PayloadTypeRegistry.clientboundPlay().register(id, codec)
+        if (channelType.c2s) PayloadTypeRegistry.serverboundPlay().register(id, codec)
     }
 
     @Environment(EnvType.CLIENT)

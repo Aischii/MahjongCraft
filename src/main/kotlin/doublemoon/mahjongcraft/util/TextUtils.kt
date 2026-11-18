@@ -1,19 +1,19 @@
 package doublemoon.mahjongcraft.util
 
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
 
 /**
  * 簡化 [MutableText.append] 用
  * */
-operator fun <T : MutableText> T.plus(text: Text): MutableText =
+operator fun <T : MutableComponent> T.plus(text: Component): MutableComponent =
     this.append(text)
 
-operator fun <T : MutableText> T.plus(text: String): MutableText =
+operator fun <T : MutableComponent> T.plus(text: String): MutableComponent =
     this.append(text)
 
 
 interface TextFormatting {
-    fun toText(): Text
+    fun toText(): Component
 }
 

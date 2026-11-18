@@ -14,8 +14,8 @@ import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import io.github.cottonmc.cotton.gui.widget.data.VerticalAlignment
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.text.Text
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 
 @Environment(EnvType.CLIENT)
 class HudPositionEditorScreen(hud: MahjongCraftHud) : CottonClientScreen(HudPositionEditorGui(hud)) {
@@ -24,8 +24,8 @@ class HudPositionEditorScreen(hud: MahjongCraftHud) : CottonClientScreen(HudPosi
         (description as HudPositionEditorGui).reposition(width, height)
     }
 
-    override fun close() {
-        super.close()
+    override fun onClose() {
+        super.onClose()
         MahjongCraftClient.hud?.reposition()
     }
 }
@@ -34,14 +34,14 @@ class HudPositionEditorScreen(hud: MahjongCraftHud) : CottonClientScreen(HudPosi
 class HudPositionEditorGui(
     private val hud: MahjongCraftHud
 ) : LightweightGuiDescription() {
-    private val window = MinecraftClient.getInstance().window
+    private val window = Minecraft.getInstance().window
     private val config = MahjongCraftClient.config
-    private val quickActionsText = createCenteredTextWidget(Text.translatable("config.$MOD_ID.quick_actions"))
+    private val quickActionsText = createCenteredTextWidget(Component.translatable("config.$MOD_ID.quick_actions"))
     private val quickActions = WDraggablePlainPanel(color = config.quickActions.hudAttribute.backgroundColor) { x, y ->
         config.quickActions.hudAttribute.setPosition(x, y)
         MahjongCraftClient.saveConfig()
     }.also { it.add(quickActionsText, 0, 0, it.width, it.height) }
-    private val tileHintsText = createCenteredTextWidget(Text.translatable("config.$MOD_ID.tile_hints"))
+    private val tileHintsText = createCenteredTextWidget(Component.translatable("config.$MOD_ID.tile_hints"))
     private val tileHints = WDraggablePlainPanel(color = config.tileHints.hudAttribute.backgroundColor) { _, y ->
         config.tileHints.hudAttribute.setPosition(0, y) //牌的提示不能調整 x 軸, 這是永遠置中的
         MahjongCraftClient.saveConfig()
@@ -75,11 +75,11 @@ class HudPositionEditorGui(
     }
 
     private fun HudAttribute.setPosition(x: Int, y: Int) {
-        this.x = x / window.scaledWidth.toDouble()
-        this.y = y / window.scaledHeight.toDouble()
+        this.x = x / window.guiScaledWidth.toDouble()
+        this.y = y / window.guiScaledHeight.toDouble()
     }
 
-    private fun createCenteredTextWidget(text: Text, color: Int = Color.WHITE.toRgb()): WText =
+    private fun createCenteredTextWidget(text: Component, color: Int = Color.WHITE.toRgb()): WText =
         WText(text, color).apply {
             verticalAlignment = VerticalAlignment.CENTER
             horizontalAlignment = HorizontalAlignment.CENTER

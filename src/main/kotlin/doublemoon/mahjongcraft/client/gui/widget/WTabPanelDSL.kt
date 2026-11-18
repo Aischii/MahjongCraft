@@ -6,7 +6,7 @@ import io.github.cottonmc.cotton.gui.widget.WWidget
 import io.github.cottonmc.cotton.gui.widget.icon.Icon
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 
 /**
@@ -34,9 +34,9 @@ fun LightweightGuiDescription.rootTabPanel(
 @Environment(EnvType.CLIENT)
 fun WTabPanel.tab(
     widget: WWidget,
-    title: Text? = null,
+    title: Component? = null,
     icon: Icon? = null,
-    tooltip: Collection<Text>? = null
+    tooltip: Collection<Component>? = null
 ): WTabPanel.Tab {
     val tab = WTabPanel.Tab.Builder(widget).also { builder ->
         title?.also { builder.title(it) }

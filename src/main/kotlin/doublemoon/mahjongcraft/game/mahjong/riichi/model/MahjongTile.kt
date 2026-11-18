@@ -4,8 +4,8 @@ import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
 import doublemoon.mahjongcraft.id
 import doublemoon.mahjongcraft.util.TextFormatting
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.Identifier
 import org.mahjong4j.tile.Tile
 import org.mahjong4j.tile.TileType
 
@@ -57,6 +57,26 @@ enum class MahjongTile : TextFormatting {
     S5_RED,
 
     UNKNOWN;
+
+    /**
+     * Short label shown under the tile in the HUD: `1m`-`9m`, `1p`-`9p`, `1s`-`9s`,
+     * `E` `S` `W` `N` for winds, `Wh` `Gr` `Rd` for dragons; red fives use their number (drawn red).
+     */
+    val shortLabel: String
+        get() = when (this) {
+            EAST -> "E"
+            SOUTH -> "S"
+            WEST -> "W"
+            NORTH -> "N"
+            WHITE_DRAGON -> "Wh"
+            GREEN_DRAGON -> "Gr"
+            RED_DRAGON -> "Rd"
+            M5_RED -> "5m"
+            P5_RED -> "5p"
+            S5_RED -> "5s"
+            UNKNOWN -> "?"
+            else -> "${name.substring(1)}${name[0].lowercaseChar()}"
+        }
 
     /**
      * 這張牌的牌面的材質位置
@@ -142,12 +162,12 @@ enum class MahjongTile : TextFormatting {
             }
         }
 
-    override fun toText(): Text = when (mahjong4jTile.type) {
-        TileType.MANZU -> Text.translatable("$MOD_ID.game.tile.man", mahjong4jTile.number)
-        TileType.PINZU -> Text.translatable("$MOD_ID.game.tile.pin", mahjong4jTile.number)
-        TileType.SOHZU -> Text.translatable("$MOD_ID.game.tile.sou", mahjong4jTile.number)
-        TileType.FONPAI, TileType.SANGEN -> Text.translatable("$MOD_ID.game.tile.${name.lowercase()}")
-        else -> Text.of("")
+    override fun toText(): Component = when (mahjong4jTile.type) {
+        TileType.MANZU -> Component.translatable("$MOD_ID.game.tile.man", mahjong4jTile.number)
+        TileType.PINZU -> Component.translatable("$MOD_ID.game.tile.pin", mahjong4jTile.number)
+        TileType.SOHZU -> Component.translatable("$MOD_ID.game.tile.sou", mahjong4jTile.number)
+        TileType.FONPAI, TileType.SANGEN -> Component.translatable("$MOD_ID.game.tile.${name.lowercase()}")
+        else -> Component.nullToEmpty("")
     }
 
     companion object {

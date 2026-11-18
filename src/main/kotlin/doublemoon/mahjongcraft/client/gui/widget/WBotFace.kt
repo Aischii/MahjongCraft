@@ -7,7 +7,7 @@ import io.github.cottonmc.cotton.gui.widget.data.Color
 import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.GuiGraphicsExtractor
 
 class WBotFace(
     var code: Int? = null,
@@ -17,7 +17,7 @@ class WBotFace(
     override fun canResize(): Boolean = true
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: DrawContext, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphicsExtractor, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         val tile = code?.let { MahjongTile.entries[it] } ?: MahjongTile.UNKNOWN
         val boxWidth = height * 48 / 64   //配合牌的材質的寬高比, 高比較大, 以高為準, 寬用計算的
         val imgX = when (alignment) {

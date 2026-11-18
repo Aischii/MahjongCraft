@@ -2,6 +2,8 @@ package doublemoon.mahjongcraft.game.mahjong.riichi.player
 
 import doublemoon.mahjongcraft.entity.toMahjongTileList
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.ClaimTarget
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.DiscardRequest
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.TableState
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongRule
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTile
@@ -11,15 +13,15 @@ import doublemoon.mahjongcraft.scheduler.server.ServerScheduler
 import doublemoon.mahjongcraft.util.delayOnServer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.text.Text
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.network.chat.Component
 
 /**
  * 麻將玩家
  * */
 class MahjongPlayer(
-    override val entity: ServerPlayerEntity,
+    override val entity: ServerPlayer,
 ) : MahjongPlayerBase() {
 
     init {
@@ -30,8 +32,8 @@ class MahjongPlayer(
         )
     }
 
-    fun sendMessage(text: Text, overlay: Boolean = true) {
-        entity.sendMessage(text, overlay)
+    fun sendMessage(text: Component, overlay: Boolean = true) {
+        if (overlay) entity.sendOverlayMessage(text) else entity.sendSystemMessage(text)
     }
 
     /**
@@ -58,8 +60,55 @@ class MahjongPlayer(
     var cannotDiscardTiles = listOf<MahjongTile>()
         private set
 
-    override fun teleport(targetWorld: ServerWorld, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
-        this.entity.teleport(targetWorld, x, y, z, yaw, pitch)
+    /** The hand last sent with [MahjongGameBehavior.HAND_UPDATE]; null forces the next sync. */
+    private var lastSyncedHand: List<MahjongTile>? = null
+
+    /** Sends the player's hand to their client when it changed, for the hand HUD. */
+    fun syncHandIfChanged() {
+        val hand = hands.toMahjongTileList()
+        if (hand == lastSyncedHand) return
+        lastSyncedHand = hand
+        sendPayloadToPlayer(
+            player = entity,
+            payload = MahjongGamePayload(behavior = MahjongGameBehavior.HAND_UPDATE, hands = hand)
+        )
+    }
+
+    private var lastSyncedTable: TableState? = null
+    private var waitsHand: List<MahjongTile>? = null
+    private var waitsCache: List<MahjongTile> = emptyList()
+
+    /** [waits], recalculated only when the hand changed. */
+    fun cachedWaits(): List<MahjongTile> {
+        val hand = hands.toMahjongTileList()
+        if (hand != waitsHand) {
+            waitsHand = hand
+            waitsCache = waits
+        }
+        return waitsCache
+    }
+
+    /** Sends [state] with [MahjongGameBehavior.TABLE_STATE] when it differs from the last one sent. */
+    fun syncTableIfChanged(state: TableState) {
+        if (state == lastSyncedTable) return
+        lastSyncedTable = state
+        sendPayloadToPlayer(
+            player = entity,
+            payload = MahjongGamePayload(behavior = MahjongGameBehavior.TABLE_STATE, extraData = Json.encodeToString(state))
+        )
+    }
+
+    /**
+     * Whether discarding [tileCode] is allowed right now: the tile is in the hand and not one of
+     * [cannotDiscardTiles]. Clients only offer allowed tiles, but the server checks too.
+     */
+    fun canDiscard(tileCode: Int): Boolean {
+        val tile = MahjongTile.entries.getOrNull(tileCode) ?: return false
+        return tile in hands.toMahjongTileList() && tile !in cannotDiscardTiles
+    }
+
+    override fun teleport(targetWorld: ServerLevel, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
+        this.entity.teleportTo(targetWorld, x, y, z, emptySet(), yaw, pitch, true)
     }
 
     /**
@@ -75,7 +124,7 @@ class MahjongPlayer(
         this.cannotDiscardTiles = cannotDiscardTiles
         return waitForBehaviorResult(
             behavior = MahjongGameBehavior.DISCARD,
-            extraData = skippable.toString(),
+            extraData = Json.encodeToString(DiscardRequest(skippable, cannotDiscardTiles)),
             target = ClaimTarget.SELF,
             skippable = skippable
         ) { behavior, data ->

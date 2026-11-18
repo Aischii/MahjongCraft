@@ -1,5 +1,13 @@
 package doublemoon.mahjongcraft
 
+import doublemoon.mahjongcraft.client.game.ClientMahjongState
+import doublemoon.mahjongcraft.client.game.MahjongKeys
+import doublemoon.mahjongcraft.scheduler.client.OptionalBehaviorHandler
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
+import doublemoon.mahjongcraft.client.gui.hud.HandHud
+import doublemoon.mahjongcraft.client.gui.hud.TableHud
+import doublemoon.mahjongcraft.client.render.CodeItemModelProperty
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import doublemoon.mahjongcraft.client.ModConfig
 import doublemoon.mahjongcraft.client.gui.screen.ConfigScreen
 import doublemoon.mahjongcraft.client.gui.screen.HudPositionEditorScreen
@@ -20,19 +28,16 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.TitleScreen
-import net.minecraft.client.item.ClampedModelPredicateProvider
-import net.minecraft.client.item.ModelPredicateProviderRegistry
-import net.minecraft.client.option.KeyBinding
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactories
-import net.minecraft.client.util.InputUtil
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.util.Identifier
-import org.lwjgl.glfw.GLFW
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.TitleScreen
+import net.minecraft.client.KeyMapping
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers
+import com.mojang.blaze3d.platform.InputConstants
+import net.minecraft.core.component.DataComponents
+import net.minecraft.resources.Identifier
 
 @Environment(EnvType.CLIENT)
 object MahjongCraftClient : ClientModInitializer {
@@ -47,22 +52,36 @@ object MahjongCraftClient : ClientModInitializer {
     var hud: MahjongCraftHud? = null
         private set
 
+    /** Shown in the controls screen as `key.category.mahjongcraft.main`. Declared before the keys that use it. */
+    private val keyCategory: KeyMapping.Category = KeyMapping.Category.register(id("main"))
+
     //KeyBinding
-    private val configKey: KeyBinding = registerKeyBinding(
+    private val configKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_config_gui",
-        code = GLFW.GLFW_KEY_SEMICOLON,
+        code = InputConstants.KEY_SEMICOLON,
     )
-    val hudPositionEditorKey: KeyBinding = registerKeyBinding(
+    val hudPositionEditorKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_hud_position_editor",
     )
-    val yakuOverviewKey: KeyBinding = registerKeyBinding(
+    val yakuOverviewKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_yaku_overview",
     )
 
     override fun onInitializeClient() {
         logger.info("Initializing client")
         ClientTickEvents.END_CLIENT_TICK.register(this::tick)
+        // Gameplay keys run before vanilla reads input, so a discard click isn't also an item use.
+        MahjongKeys.register(keyCategory)
+        ClientTickEvents.START_CLIENT_TICK.register(MahjongKeys::handleInput)
+        HudElementRegistry.addLast(id("hand")) { graphics, delta -> HandHud.extract(graphics, delta) }
+        HudElementRegistry.addLast(id("table")) { graphics, delta -> TableHud.extract(graphics, delta) }
         ClientLifecycleEvents.CLIENT_STOPPING.register { ClientScheduler.onStopping() }
+        // Leaving a world mid-game never delivers GAME_OVER, so clear the table state here.
+        ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
+            playing = false
+            OptionalBehaviorHandler.cancel()
+            ClientMahjongState.reset()
+        }
 
         // Entity Renderer
         EntityRendererRegistry.register(EntityTypeRegistry.dice, ::DiceEntityRenderer)
@@ -72,23 +91,10 @@ object MahjongCraftClient : ClientModInitializer {
         EntityRendererRegistry.register(EntityTypeRegistry.mahjongTile, ::MahjongTileEntityRenderer)
 
         // BlockEntity Renderer
-        BlockEntityRendererFactories.register(BlockEntityTypeRegistry.mahjongTable, ::MahjongTableBlockEntityRenderer)
+        BlockEntityRenderers.register(BlockEntityTypeRegistry.mahjongTable, ::MahjongTableBlockEntityRenderer)
 
-        // Model Predicate Provider
-        val modelPredicateProvider = ClampedModelPredicateProvider { stack, _, _, _ ->
-            val code = stack.get(DataComponentTypes.CUSTOM_DATA)?.copyNbt()?.getInt("code") ?: 0
-            code / 100f  // 這個值必須介於 0f ~ 1f 之間，所以 MahjongTile.code 除以 100 後，會對應到材質檔案之中的 predicate.code 欄位
-        }
-        ModelPredicateProviderRegistry.register(
-            ItemRegistry.mahjongTile,
-            Identifier("code"),
-            modelPredicateProvider
-        )
-        ModelPredicateProviderRegistry.register(
-            ItemRegistry.mahjongScoringStick,
-            Identifier("code"),
-            modelPredicateProvider
-        )
+        // Item models pick the tile / scoring stick by its code (see assets/mahjongcraft/items/)
+        CodeItemModelProperty.register()
 
         // Packet
         MahjongTablePayloadListener.registerClient()
@@ -108,17 +114,17 @@ object MahjongCraftClient : ClientModInitializer {
 
     fun saveConfig() = AutoConfig.getConfigHolder(ModConfig::class.java).save()
 
-    private fun tick(client: MinecraftClient) {
-        if (configKey.wasPressed()) client.setScreen(ConfigScreen.build(null))
-        if (hudPositionEditorKey.wasPressed()) hud?.also { client.setScreen(HudPositionEditorScreen(it)) }
-        if (yakuOverviewKey.wasPressed()) client.setScreen(YakuOverviewScreen())
+    private fun tick(client: Minecraft) {
+        if (configKey.consumeClick()) client.gui.setScreen(ConfigScreen.build(null))
+        if (hudPositionEditorKey.consumeClick()) hud?.also { client.gui.setScreen(HudPositionEditorScreen(it)) }
+        if (yakuOverviewKey.consumeClick()) client.gui.setScreen(YakuOverviewScreen())
         ClientScheduler.tick(client)
     }
 
     private fun registerKeyBinding(
         translationKey: String,
-        type: InputUtil.Type = InputUtil.Type.KEYSYM,
-        code: Int = InputUtil.UNKNOWN_KEY.code,
-        category: String = "key.category.$MOD_ID.main",
-    ): KeyBinding = KeyBindingHelper.registerKeyBinding(KeyBinding(translationKey, type, code, category))
+        type: InputConstants.Type = InputConstants.Type.KEYBOARD,
+        code: Int = InputConstants.UNKNOWN.value,
+    ): KeyMapping = KeyMappingHelper.registerKeyMapping(KeyMapping(translationKey, type, code, keyCategory))
+
 }

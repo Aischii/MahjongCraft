@@ -5,16 +5,10 @@
     "WWW"
   ],
   "key": {
-    "W": {
-      "item": "minecraft:white_concrete"
-    },
+    "W": "minecraft:white_concrete",
     "D": [
-      {
-        "item": "minecraft:red_dye"
-      },
-      {
-        "item": "minecraft:black_dye"
-      }
+      "minecraft:red_dye",
+      "minecraft:black_dye"
     ]
   },
   "result": {

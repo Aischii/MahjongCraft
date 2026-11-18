@@ -1,5 +1,6 @@
 package doublemoon.mahjongcraft.client.render
 
+import com.mojang.blaze3d.vertex.PoseStack
 import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.MahjongCraftClient
 import doublemoon.mahjongcraft.block.MahjongTable
@@ -8,47 +9,87 @@ import doublemoon.mahjongcraft.blockentity.MahjongTableBlockEntity
 import doublemoon.mahjongcraft.game.GameStatus
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.Wind
 import doublemoon.mahjongcraft.util.RenderHelper
-import doublemoon.mahjongcraft.util.plus
 import io.github.cottonmc.cotton.gui.widget.data.Color
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.block.entity.BlockEntityRenderer
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.text.Text
+import net.minecraft.client.gui.Font
+import net.minecraft.client.renderer.SubmitNodeCollector
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer
+import net.minecraft.client.renderer.state.level.CameraRenderState
+import net.minecraft.network.chat.Component
+import net.minecraft.world.phys.Vec3
+
+/** One floating text line above the table, relative to the table's block. */
+@Environment(EnvType.CLIENT)
+data class TableLabel(val x: Double, val y: Double, val z: Double, val text: Component, val color: Int)
 
 @Environment(EnvType.CLIENT)
-class MahjongTableBlockEntityRenderer(
-    context: BlockEntityRendererFactory.Context
-) : BlockEntityRenderer<MahjongTableBlockEntity> {
-    private val textRenderer = context.textRenderer
+class MahjongTableRenderState : BlockEntityRenderState() {
+    val labels = mutableListOf<TableLabel>()
+    var labelLight = 0
+}
 
-    override fun render(
+/**
+ * Draws the table's floating labels: status, player count and ready count while waiting, and the
+ * round plus each seat's wind and points while playing.
+ */
+@Environment(EnvType.CLIENT)
+class MahjongTableBlockEntityRenderer(
+    context: BlockEntityRendererProvider.Context,
+) : BlockEntityRenderer<MahjongTableBlockEntity, MahjongTableRenderState> {
+    private val font: Font = context.font()
+
+    override fun createRenderState(): MahjongTableRenderState = MahjongTableRenderState()
+
+    override fun extractRenderState(
         blockEntity: MahjongTableBlockEntity,
-        tickDelta: Float,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider,
-        light: Int,
-        overlay: Int
+        state: MahjongTableRenderState,
+        partialTicks: Float,
+        cameraPosition: Vec3,
+        breakProgress: ModelFeatureRenderer.CrumblingOverlay?,
     ) {
+        super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress)
+        state.labels.clear()
         if (!MahjongCraftClient.config.displayTableLabels) return
-        if (blockEntity.cachedState[MahjongTable.PART] != MahjongTablePart.BOTTOM_CENTER) return //只有 BOTTOM_CENTER 才渲染
-        renderCenterLabels(blockEntity, matrices, vertexConsumers)
-        renderPlayerLabels(blockEntity, matrices, vertexConsumers)
+        if (blockEntity.blockState.getValue(MahjongTable.PART) != MahjongTablePart.BOTTOM_CENTER) return //只有 BOTTOM_CENTER 才渲染
+        val level = blockEntity.level ?: return
+        state.labelLight = RenderHelper.getLightLevel(level, blockEntity.blockPos.above())
+        addCenterLabels(blockEntity, state.labels)
+        addPlayerLabels(blockEntity, state.labels)
+    }
+
+    override fun submit(
+        state: MahjongTableRenderState,
+        poseStack: PoseStack,
+        submitNodeCollector: SubmitNodeCollector,
+        camera: CameraRenderState,
+    ) {
+        state.labels.forEach {
+            RenderHelper.submitLabel(
+                font = font,
+                poseStack = poseStack,
+                collector = submitNodeCollector,
+                cameraOrientation = camera.orientation,
+                offsetX = it.x,
+                offsetY = it.y,
+                offsetZ = it.z,
+                text = it.text,
+                color = it.color,
+                light = state.labelLight,
+            )
+        }
     }
 
     /**
      * 渲染玩家的標籤,
      * 印出以莊家為東, 每個玩家的風, 以及分數, 莊家(東)風的顏色不一樣
      * */
-    private fun renderPlayerLabels(
-        blockEntity: MahjongTableBlockEntity,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider
-    ) {
+    private fun addPlayerLabels(blockEntity: MahjongTableBlockEntity, labels: MutableList<TableLabel>) {
         if (!blockEntity.playing || blockEntity.seat.size != 4) return //只有遊戲中才能渲染
-        val blockPos = blockEntity.pos
+        val blockPos = blockEntity.blockPos
         val dealer = blockEntity.dealer
         val seat = blockEntity.seat
         val dealerSeatIndex = seat.indexOf(dealer).also { if (it == -1) return }
@@ -60,23 +101,18 @@ class MahjongTableBlockEntityRenderer(
                 else -> blockPos.south().south()
             }
             val windIndex = (dealerSeatIndex - index).let { if (it >= 0) 4 - it else -it } % 4
-            buildList {
-                this += Wind.entries[windIndex].toText()
-                this += Text.of(blockEntity.points[index].toString())
-                reverse()
-                forEachIndexed { index1, text ->
-                    RenderHelper.renderLabel(
-                        textRenderer = textRenderer,
-                        matrices = matrices,
-                        offsetX = 0.5 + (bPos.x - blockPos.x),
-                        offsetY = 1.0 + (bPos.y - blockPos.y) + WIND_PADDING + (LABEL_INTERVAL * index1),
-                        offsetZ = 0.5 + (bPos.z - blockPos.z),
-                        text = text,
-                        color = if (stringUUID == dealer) 0xEEB24F else Color.WHITE.toRgb(), //東風的顏色會不一樣
-                        light = RenderHelper.getLightLevel(blockEntity.world!!, blockEntity.pos.up()),
-                        vertexConsumers = vertexConsumers
-                    )
-                }
+            val lines = listOf(
+                Component.nullToEmpty(blockEntity.points[index].toString()),
+                Wind.entries[windIndex].toText(),
+            )
+            lines.forEachIndexed { line, text ->
+                labels += TableLabel(
+                    x = 0.5 + (bPos.x - blockPos.x),
+                    y = 1.0 + (bPos.y - blockPos.y) + WIND_PADDING + (LABEL_INTERVAL * line),
+                    z = 0.5 + (bPos.z - blockPos.z),
+                    text = text,
+                    color = if (stringUUID == dealer) 0xEEB24F else Color.WHITE.toRgb(), //東風的顏色會不一樣
+                )
             }
         }
     }
@@ -84,41 +120,22 @@ class MahjongTableBlockEntityRenderer(
     /**
      * 渲染位於桌子正中央上方的標籤
      * */
-    private fun renderCenterLabels(
-        blockEntity: MahjongTableBlockEntity,
-        matrices: MatrixStack,
-        vertexConsumers: VertexConsumerProvider
-    ) {
+    private fun addCenterLabels(blockEntity: MahjongTableBlockEntity, labels: MutableList<TableLabel>) {
         val playerAmount = blockEntity.players.count { it.isNotEmpty() }
         val readyAmount = blockEntity.ready.count { it }
-        val currentReady = READY + ": $readyAmount/4"
-        val currentPlayers = PLAYER + ": $playerAmount/4"
-        val currentStatus = STATUS + ": " + (if (blockEntity.playing) PLAYING else WAITING)
         val labelPadding = if (blockEntity.playing) PLAYING_PADDING else WAITING_PADDING
-        buildList {
-            this += currentStatus
+        val lines = buildList {
+            this += Component.empty().append(STATUS).append(": ").append(if (blockEntity.playing) PLAYING else WAITING)
             if (!blockEntity.playing) { //沒在遊戲中才會顯示
-                this += currentPlayers
-                this += currentReady
+                this += Component.empty().append(PLAYER).append(": $playerAmount/4")
+                this += Component.empty().append(READY).append(": $readyAmount/4")
             } else { //在遊戲中才顯示
                 val round = blockEntity.round
-                val windText = round.wind.toText()
-                this += Text.translatable("$MOD_ID.game.round.title", windText, round.round + 1) //ex: 東 4 局
+                this += Component.translatable("$MOD_ID.game.round.title", round.wind.toText(), round.round + 1) //ex: 東 4 局
             }
-            reverse()
-            forEachIndexed { index, text -> //渲染文字
-                RenderHelper.renderLabel(
-                    textRenderer = textRenderer,
-                    matrices = matrices,
-                    offsetX = 0.5,
-                    offsetY = 1.0 + labelPadding + (LABEL_INTERVAL * index),
-                    offsetZ = 0.5,
-                    text = text,
-                    color = Color.WHITE.toRgb(),
-                    light = RenderHelper.getLightLevel(blockEntity.world!!, blockEntity.pos.up()),
-                    vertexConsumers = vertexConsumers
-                )
-            }
+        }.reversed()
+        lines.forEachIndexed { index, text ->
+            labels += TableLabel(0.5, 1.0 + labelPadding + (LABEL_INTERVAL * index), 0.5, text, Color.WHITE.toRgb())
         }
     }
 
@@ -127,10 +144,10 @@ class MahjongTableBlockEntityRenderer(
         private const val PLAYING_PADDING = 1.6
         private const val WIND_PADDING = 1.6
         private const val LABEL_INTERVAL = 0.25
-        private val READY get() = Text.translatable("$MOD_ID.gui.button.ready")
-        private val PLAYER get() = Text.translatable("$MOD_ID.game.player")
-        private val STATUS get() = Text.translatable("$MOD_ID.game.status")
-        private val WAITING = GameStatus.WAITING.toText()
-        private val PLAYING = GameStatus.PLAYING.toText()
+        private val READY get() = Component.translatable("$MOD_ID.gui.button.ready")
+        private val PLAYER get() = Component.translatable("$MOD_ID.game.player")
+        private val STATUS get() = Component.translatable("$MOD_ID.game.status")
+        private val WAITING get() = GameStatus.WAITING.toText()
+        private val PLAYING get() = GameStatus.PLAYING.toText()
     }
 }

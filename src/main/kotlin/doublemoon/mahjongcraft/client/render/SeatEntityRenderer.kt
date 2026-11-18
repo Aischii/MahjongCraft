@@ -3,15 +3,15 @@ package doublemoon.mahjongcraft.client.render
 import doublemoon.mahjongcraft.entity.SeatEntity
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.render.entity.EntityRenderer
-import net.minecraft.client.render.entity.EntityRendererFactory
-import net.minecraft.util.Identifier
+import net.minecraft.client.renderer.entity.EntityRenderer
+import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.client.renderer.entity.state.EntityRenderState
 
+/** Seats are invisible; this renderer draws nothing. */
 @Environment(EnvType.CLIENT)
 class SeatEntityRenderer(
-    context: EntityRendererFactory.Context
-) : EntityRenderer<SeatEntity>(context) {
+    context: EntityRendererProvider.Context,
+) : EntityRenderer<SeatEntity, EntityRenderState>(context) {
 
-    override fun getTexture(entity: SeatEntity): Identifier? = null
-
+    override fun createRenderState(): EntityRenderState = EntityRenderState()
 }

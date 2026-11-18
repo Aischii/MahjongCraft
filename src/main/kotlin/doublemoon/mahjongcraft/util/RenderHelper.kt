@@ -1,132 +1,78 @@
 package doublemoon.mahjongcraft.util
 
-import com.mojang.authlib.GameProfile
+import com.mojang.blaze3d.vertex.PoseStack
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.font.TextRenderer
-import net.minecraft.client.font.TextRenderer.TextLayerType
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.PlayerSkinDrawer
-import net.minecraft.client.gui.hud.PlayerListHud
-import net.minecraft.client.render.LightmapTextureManager
-import net.minecraft.client.render.OverlayTexture
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.entity.LivingEntityRenderer
-import net.minecraft.client.render.entity.PlayerModelPart
-import net.minecraft.client.render.item.ItemRenderer
-import net.minecraft.client.render.model.json.ModelTransformationMode
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.RotationAxis
-import net.minecraft.world.LightType
-import net.minecraft.world.World
+import net.minecraft.client.gui.Font
+import net.minecraft.client.gui.Font.DisplayMode
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.gui.components.PlayerFaceExtractor
+import net.minecraft.client.renderer.SubmitNodeCollector
+import net.minecraft.core.BlockPos
+import net.minecraft.network.chat.Component
+import net.minecraft.util.LightCoordsUtil
+import net.minecraft.world.item.component.ResolvableProfile
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.LightLayer
+import org.joml.Quaternionfc
 
 @Environment(EnvType.CLIENT)
 object RenderHelper {
-    /**
-     * 渲染物品用
-     * */
-    fun renderItem(
-        itemRenderer: ItemRenderer,
-        matrices: MatrixStack,
-        offsetX: Double,
-        offsetY: Double,
-        offsetZ: Double,
-        stack: ItemStack,
-        mode: ModelTransformationMode = ModelTransformationMode.GROUND,
-        overlay: Int = OverlayTexture.DEFAULT_UV,
-        light: Int,
-        vertexConsumer: VertexConsumerProvider,
-        world: World? = null,
-        seed: Int = 0,
-    ) {
-        with(matrices) {
-            push()
-            translate(offsetX, offsetY, offsetZ)
-            itemRenderer.renderItem(
-                stack,
-                mode,
-                light,
-                overlay,
-                matrices,
-                vertexConsumer,
-                world,
-                seed
-            )
-            pop()
-        }
-    }
 
     /**
-     * 渲染文字用
-     * */
-    fun renderLabel(
-        textRenderer: TextRenderer,
-        matrices: MatrixStack,
+     * Submits a camera-facing text label at ([offsetX], [offsetY], [offsetZ]) from the pose origin.
+     *
+     * [color] is RGB; it is drawn fully opaque.
+     */
+    fun submitLabel(
+        font: Font,
+        poseStack: PoseStack,
+        collector: SubmitNodeCollector,
+        cameraOrientation: Quaternionfc,
         offsetX: Double,
         offsetY: Double,
         offsetZ: Double,
-        text: Text,
+        text: Component,
         color: Int,
+        light: Int,
         scale: Float = 0.02f,
         backgroundColor: Int = (.4f * 255f).toInt() shl 24,
-        light: Int,
-        vertexConsumers: VertexConsumerProvider,
         shadow: Boolean = false,
-        textLayerType: TextLayerType = TextLayerType.NORMAL,
+        displayMode: DisplayMode = DisplayMode.NORMAL,
     ) {
-        with(matrices) {
-            push()
-            val client = MinecraftClient.getInstance()
-            val offset = -textRenderer.getWidth(text) / 2f
-            val matrix4f = matrices.peek().positionMatrix
-            translate(offsetX, offsetY, offsetZ)
-            scale(scale, scale, scale)
-            multiply(client.entityRenderDispatcher.rotation)
-            multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180f))
-            textRenderer.draw(
-                text,
-                offset,
-                0f,
-                color,
-                shadow,
-                matrix4f,
-                vertexConsumers,
-                textLayerType,
-                backgroundColor,
-                light
-            )
-            pop()
-        }
+        poseStack.pushPose()
+        poseStack.translate(offsetX, offsetY, offsetZ)
+        // Face the camera; text is drawn with y pointing down, so flip y (as vanilla does for name tags).
+        poseStack.rotate(cameraOrientation)
+        poseStack.scale(scale, -scale, scale)
+        collector.submitText(
+            poseStack,
+            -font.width(text) / 2f,
+            0f,
+            text.visualOrderText,
+            shadow,
+            displayMode,
+            light,
+            OPAQUE or color,
+            backgroundColor,
+            0,
+        )
+        poseStack.popPose()
     }
 
     /**
-     * 渲染玩家的臉, 參考自 [PlayerListHud]
-     * */
-    fun renderPlayerFace(
-        context: DrawContext,
-        gameProfile: GameProfile,
-        x: Int,
-        y: Int,
-        size: Int,
-    ) {
-        val client = MinecraftClient.getInstance()
-        val playerEntity = client.world?.getPlayerByUuid(gameProfile.id)
-        val hatVisible = playerEntity != null && playerEntity.isPartVisible(PlayerModelPart.HAT)
-        val upsideDown = playerEntity != null && LivingEntityRenderer.shouldFlipUpsideDown(playerEntity)
-
-        val skinTextures = client.skinProvider.getSkinTextures(gameProfile)
-        val texture = skinTextures.texture
-
-        PlayerSkinDrawer.draw(context, texture, x, y, size, hatVisible, upsideDown)
+     * Draws a player's face in a GUI. The skin is looked up in the background and cached by
+     * Minecraft, so the default face shows until it arrives.
+     */
+    fun renderPlayerFace(graphics: GuiGraphicsExtractor, profile: ResolvableProfile, x: Int, y: Int, size: Int) {
+        PlayerFaceExtractor.extractRenderState(graphics, profile, x, y, size)
     }
 
-    fun getLightLevel(world: World, pos: BlockPos): Int {
-        val bLight = world.lightingProvider.get(LightType.BLOCK).getLightLevel(pos)
-        val sLight = world.lightingProvider.get(LightType.SKY).getLightLevel(pos)
-        return LightmapTextureManager.pack(bLight, sLight)
+    fun getLightLevel(world: Level, pos: BlockPos): Int {
+        val bLight = world.getBrightness(LightLayer.BLOCK, pos)
+        val sLight = world.getBrightness(LightLayer.SKY, pos)
+        return LightCoordsUtil.pack(bLight, sLight)
     }
+
+    private const val OPAQUE = 0xFF000000.toInt()
 }

@@ -1,8 +1,8 @@
 package doublemoon.mahjongcraft.block.enums
 
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.util.StringRepresentable
 
-enum class MahjongTablePart : StringIdentifiable {
+enum class MahjongTablePart : StringRepresentable {
     //中心
     BOTTOM_CENTER,
 
@@ -30,5 +30,5 @@ enum class MahjongTablePart : StringIdentifiable {
     //property must be lowercase
     override fun toString(): String = this.name.lowercase()
 
-    override fun asString(): String = this.name.lowercase()
+    override fun getSerializedName(): String = this.name.lowercase()
 }

@@ -18,11 +18,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.text.Text
-import net.minecraft.util.hit.EntityHitResult
-import net.minecraft.util.hit.HitResult
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.network.chat.Component
+import net.minecraft.world.phys.EntityHitResult
+import net.minecraft.world.phys.HitResult
 
 /**
  * 專門在 HUD 渲染牌的提示時使用的
@@ -47,14 +47,14 @@ class WTileHints(
     private var hitResult: EntityHitResult? = null
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: DrawContext, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphicsExtractor, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         val target =
-            MinecraftClient.getInstance().crosshairTarget?.takeIf { it.type == HitResult.Type.ENTITY } as EntityHitResult?
+            Minecraft.getInstance().hitResult?.takeIf { it.type == HitResult.Type.ENTITY } as EntityHitResult?
         hitResult =
             target?.takeIf { it.entity is MahjongTileEntity && (it.entity as MahjongTileEntity).mahjongTile != MahjongTile.UNKNOWN }
         updateHints(hitResult)
         //下面是改寫 super.paint() 的部分
-        if (backgroundPainter != null && backgroundVisible) backgroundPainter.paintBackground(context, x, y, this)
+        backgroundPainter?.takeIf { backgroundVisible }?.paintBackground(context, x, y, this)
         children.forEach { it.paint(context, x + it.x, y + it.y, mouseX - it.x, mouseY - it.y) }
     }
 
@@ -72,8 +72,8 @@ class WTileHints(
         if (mahjongTile == MahjongTile.UNKNOWN) return
         val mahjongTable = mahjongTileEntity.mahjongTable
         val remainingAmount = mahjongTable?.remainingTiles?.get(mahjongTileEntity.mahjong4jTile.code) ?: 0
-        val player = MinecraftClient.getInstance().player
-        val playerUuidString = player?.uuidAsString
+        val player = Minecraft.getInstance().player
+        val playerUuidString = player?.stringUUID
         val remainingAmountVisible =
             playerUuidString != null && mahjongTable != null && playerUuidString in mahjongTable.players
         if (tileHintItem == null) {
@@ -176,27 +176,31 @@ class WTileHints(
         noYaku: Boolean = false,
         machi: Boolean = false,
     ) : WPlainPanel() {
-        private val client = MinecraftClient.getInstance()
+        private val client = Minecraft.getInstance()
         private val furitenWidget: WLabel
         private val tileWidget: WMahjongTile
         private val remainingAmountWidget: WLabel
-        private val furitenText get() = Text.translatable("$MOD_ID.game.furiten")
-        private val noYakuText get() = Text.translatable("$MOD_ID.game.no_yaku")
-        private val tilesLeftText = { amount: Int -> Text.translatable("$MOD_ID.game.tiles_left", amount) }
+        private val furitenText get() = Component.translatable("$MOD_ID.game.furiten")
+        private val noYakuText get() = Component.translatable("$MOD_ID.game.no_yaku")
+        /** The tile's name, plus how many are left when [amount] is given, e.g. "5 Pin · 3 left". */
+        private fun nameText(tile: MahjongTile, amount: Int?): Component =
+            if (amount == null) tile.toText()
+            else Component.empty().append(tile.toText()).append(" · ")
+                .append(Component.translatable("$MOD_ID.game.tiles_left", amount))
 
         init {
-            val furitenWidth = client.textRenderer.getWidth(furitenText)
+            val furitenWidth = client.font.width(furitenText)
             val tileWidth = (HINT_WIDTH * scale).toInt()
-            val remainingAmountWidth = client.textRenderer.getWidth(tilesLeftText(remainingAmount))
+            val remainingAmountWidth = client.font.width(nameText(tile, remainingAmount))
             val width = maxOf(furitenWidth, tileWidth, remainingAmountWidth) + INSET * 2 //取最大的部件寬度當作寬度
-            val height = (HINT_HEIGHT * scale + MARGIN * 2 + client.textRenderer.fontHeight * 2 + INSET * 2).toInt()
+            val height = (HINT_HEIGHT * scale + MARGIN * 2 + client.font.lineHeight * 2 + INSET * 2).toInt()
             setSize(width, height)
             furitenWidget = label(
                 x = 0,
                 y = INSET,
                 width = width,
-                height = client.textRenderer.fontHeight,
-                text = if (furiten) furitenText else Text.of(""),
+                height = client.font.lineHeight,
+                text = if (furiten) furitenText else Component.nullToEmpty(""),
                 horizontalAlignment = HorizontalAlignment.CENTER,
                 verticalAlignment = VerticalAlignment.CENTER,
                 color = Color.PURPLE_DYE.toRgb()
@@ -212,11 +216,11 @@ class WTileHints(
                 x = 0,
                 y = tileWidget.let { it.y + it.height } + MARGIN,
                 width = width,
-                height = client.textRenderer.fontHeight + INSET,
+                height = client.font.lineHeight + INSET,
                 text = when {
                     noYaku -> noYakuText
-                    remainingAmountVisible -> tilesLeftText(remainingAmount)
-                    else -> Text.of("")
+                    remainingAmountVisible -> nameText(tile, remainingAmount)
+                    else -> nameText(tile, null)
                 },
                 horizontalAlignment = HorizontalAlignment.CENTER,
                 verticalAlignment = VerticalAlignment.CENTER,
@@ -233,8 +237,8 @@ class WTileHints(
         fun setRemainingTiles(amount: Int, visible: Boolean, noYaku: Boolean, machi: Boolean) {
             remainingAmountWidget.text = when {
                 noYaku -> noYakuText
-                visible -> tilesLeftText(amount)
-                else -> Text.of("")
+                visible -> nameText(tile, amount)
+                else -> nameText(tile, null)
             }
             remainingAmountWidget.color = if (machi) Color.GREEN.toRgb() else Color.WHITE.toRgb()
         }

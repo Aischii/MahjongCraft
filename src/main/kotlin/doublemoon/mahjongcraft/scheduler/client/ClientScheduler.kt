@@ -7,7 +7,7 @@ import doublemoon.mahjongcraft.scheduler.RepeatAction
 import java.util.concurrent.CopyOnWriteArrayList
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
+import net.minecraft.client.Minecraft
 
 /**
  * 要嚴格防止在任務中呼叫其它任務
@@ -23,13 +23,13 @@ object ClientScheduler {
     private var doesWorldExist: Boolean = false
 
     //1 tick = 50 ms
-    fun tick(client: MinecraftClient) {
+    fun tick(client: Minecraft) {
         if ((client.window == null) == doesWorldExist) {
-            doesWorldExist = (client.world != null)
+            doesWorldExist = (client.level != null)
             loopActions.forEach { it.resetTimer() }
             queuedActions.filterIsInstance<RepeatAction>().forEach { it.resetTimer() }
         }
-        if (client.world == null || client.player == null) {
+        if (client.level == null || client.player == null) {
             queuedActions.clear()
             return
         }
