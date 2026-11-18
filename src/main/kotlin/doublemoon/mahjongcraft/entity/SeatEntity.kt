@@ -1,5 +1,8 @@
 package doublemoon.mahjongcraft.entity
 
+import net.minecraft.world.damagesource.DamageSource
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.world.level.storage.ValueInput
 import doublemoon.mahjongcraft.registry.EntityTypeRegistry
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
@@ -35,18 +38,21 @@ class SeatEntity(
     override fun tick() {
         super.tick()
         if (sourceBlock == null) sourceBlock = blockPosition()
-        if (!level().isClientSide && (passengers.isEmpty() || level().isEmptyBlock(sourceBlock))) remove(RemovalReason.DISCARDED)
+        val source = sourceBlock ?: blockPosition()
+        if (!level().isClientSide && (passengers.isEmpty() || level().isEmptyBlock(source))) remove(RemovalReason.DISCARDED)
     }
 
     override fun getOnPos(offset: Float): BlockPos {
         return super.getOnPos(0.0f)
     }
 
-    override fun defineSynchedData(builder: SynchedEntityData.Builder?) {}
+    override fun defineSynchedData(builder: SynchedEntityData.Builder) {}
+    /** Game pieces can't be damaged. */
+    override fun hurtServer(level: ServerLevel, source: DamageSource, damage: Float): Boolean = false
 
-    override fun readAdditionalSaveData(nbt: CompoundTag?) {}
+    override fun readAdditionalSaveData(input: ValueInput) {}
 
-    override fun addAdditionalSaveData(nbt: CompoundTag?) {}
+    override fun addAdditionalSaveData(output: ValueOutput) {}
 
 
     override fun getDismountLocationForPassenger(passenger: LivingEntity): Vec3 =
@@ -102,7 +108,7 @@ class SeatEntity(
                 stopSitOffsetY = stopSitOffsetY
             )
             world.addFreshEntity(seatEntity)
-            entity.startRiding(seatEntity, false)
+            entity.startRiding(seatEntity, false, true)
         }
 
         /**

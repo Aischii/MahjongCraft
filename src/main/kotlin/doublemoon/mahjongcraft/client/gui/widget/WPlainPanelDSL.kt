@@ -12,7 +12,7 @@ import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
 import net.minecraft.world.item.ItemStack
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import java.util.*
 
 /**
@@ -94,7 +94,7 @@ fun WPlainPanel.image(
     y: Int,
     width: Int = 18,
     height: Int = 18,
-    imagePath: ResourceLocation,
+    imagePath: Identifier,
     init: WSprite.() -> Unit = {}
 ): WSprite {
     val sprite = WSprite(imagePath)
@@ -175,7 +175,7 @@ fun WPlainPanel.dynamicLabel(
     init: WDynamicLabel.() -> Unit = {}
 ): WDynamicLabel {
     val label = WDynamicLabel(text)
-    label.setAlignment(horizontalAlignment)
+    label.setHorizontalAlignment(horizontalAlignment)
     label.setColor(color, darkModeColor)
     label.init()
     this.add(label, x, y,width ?: label.width,height ?: label.height)
@@ -243,7 +243,7 @@ fun WPlainPanel.textField(
     suggestion: Component? = null,
     init: WTextField.() -> Unit = {}
 ): WTextField {
-    val textField = WTextField(suggestion)
+    val textField = suggestion?.let { WTextField(it) } ?: WTextField()
     text?.let { textField.text = it }
     textField.init()
     this.add(textField, x, y, width, height)
@@ -327,7 +327,7 @@ fun WPlainPanel.tooltipTextField(
     tooltip: Array<Component>,
     init: WTooltipTextField.() -> Unit = {}
 ): WTooltipTextField {
-    val textField = WTooltipTextField(suggestion, tooltip)
+    val textField = WTooltipTextField(suggestion ?: Component.empty(), tooltip)
     text?.let { textField.text = it }
     textField.init()
     this.add(textField, x, y, width, height)

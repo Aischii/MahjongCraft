@@ -1,5 +1,9 @@
 package doublemoon.mahjongcraft.entity
 
+import net.minecraft.world.damagesource.DamageSource
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.world.level.storage.ValueInput
 import doublemoon.mahjongcraft.blockentity.MahjongTableBlockEntity
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
@@ -53,18 +57,21 @@ abstract class GameEntity(
         autoRemove()
     }
 
+    /** Game pieces can't be damaged. */
+    override fun hurtServer(level: ServerLevel, source: DamageSource, damage: Float): Boolean = false
+
     override fun defineSynchedData(builder: SynchedEntityData.Builder) {
         builder.define(GAME_BLOCK_POS, blockPosition())
         builder.define(SPAWNED_BY_GAME, false)
     }
 
-    override fun readAdditionalSaveData(nbt: CompoundTag) {
-        gameBlockPos = NbtUtils.readBlockPos(nbt, "GameBlockPos").get()
-        isSpawnedByGame = nbt.getBoolean("SpawnedByGame")
+    override fun readAdditionalSaveData(nbt: ValueInput) {
+        gameBlockPos = nbt.read("GameBlockPos", BlockPos.CODEC).orElse(blockPosition())
+        isSpawnedByGame = nbt.getBooleanOr("SpawnedByGame", false)
     }
 
-    override fun addAdditionalSaveData(nbt: CompoundTag) {
-        nbt.put("GameBlockPos", NbtUtils.writeBlockPos(gameBlockPos))
+    override fun addAdditionalSaveData(nbt: ValueOutput) {
+        nbt.store("GameBlockPos", BlockPos.CODEC, gameBlockPos)
         nbt.putBoolean("SpawnedByGame", isSpawnedByGame)
     }
 

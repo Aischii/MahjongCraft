@@ -44,7 +44,7 @@ object MahjongTileCodePayloadListener : CustomPayloadListener<MahjongTileCodePay
     ) {
         val (id, _) = payload
         val player = context.player()
-        val server = player.server
+        val server = player.level().server
 
         for (world in server.allLevels) {
             val entity = world.getEntity(id) as? MahjongTileEntity ?: continue

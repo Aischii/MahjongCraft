@@ -8,7 +8,7 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
 import doublemoon.mahjongcraft.network.mahjong_game.MahjongGamePayload
 import doublemoon.mahjongcraft.network.sendPayloadToServer
 import me.shedaniel.clothconfig2.api.ConfigBuilder
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.KeyMapping
@@ -62,7 +62,7 @@ object ConfigScreen {
                 ) { config.displayTableLabels = it }
                 keyCodeField(
                     text = Component.translatable(hudPositionEditorKey.name),
-                    startKey = KeyBindingHelper.getBoundKeyOf(hudPositionEditorKey),
+                    startKey = KeyMappingHelper.getBoundKeyOf(hudPositionEditorKey),
                     defaultKey = { hudPositionEditorKey.defaultKey },
                     tooltipSupplier = { Optional.of(arrayOf(hudPositionEditorTooltip)) },
                     saveConsumer = {
@@ -73,7 +73,7 @@ object ConfigScreen {
                 )
                 keyCodeField(
                     text = Component.translatable(yakuOverviewKey.name),
-                    startKey = KeyBindingHelper.getBoundKeyOf(yakuOverviewKey),
+                    startKey = KeyMappingHelper.getBoundKeyOf(yakuOverviewKey),
                     defaultKey = { yakuOverviewKey.defaultKey },
                     tooltipSupplier = { Optional.of(arrayOf(yakuOverviewTooltip)) },
                     saveConsumer = {

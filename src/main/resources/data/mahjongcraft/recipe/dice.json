@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:white_concrete",
+    "minecraft:red_dye",
+    "minecraft:black_dye"
+  ],
+  "result": {
+    "id": "mahjongcraft:dice",
+    "count": 2
+  }
+}

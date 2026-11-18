@@ -31,7 +31,7 @@ class MahjongPlayer(
     }
 
     fun sendMessage(text: Component, overlay: Boolean = true) {
-        entity.displayClientMessage(text, overlay)
+        if (overlay) entity.sendOverlayMessage(text) else entity.sendSystemMessage(text)
     }
 
     /**
@@ -59,7 +59,7 @@ class MahjongPlayer(
         private set
 
     override fun teleport(targetWorld: ServerLevel, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
-        this.entity.teleportTo(targetWorld, x, y, z, yaw, pitch)
+        this.entity.teleportTo(targetWorld, x, y, z, emptySet(), yaw, pitch, true)
     }
 
     /**

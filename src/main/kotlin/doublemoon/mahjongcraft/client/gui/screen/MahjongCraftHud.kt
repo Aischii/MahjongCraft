@@ -2,12 +2,14 @@ package doublemoon.mahjongcraft.client.gui.screen
 
 import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.MahjongCraftClient
+import doublemoon.mahjongcraft.id
 import doublemoon.mahjongcraft.client.gui.widget.WTileHints
 import io.github.cottonmc.cotton.gui.client.BackgroundPainter
-import io.github.cottonmc.cotton.gui.client.CottonHud
+import io.github.cottonmc.cotton.gui.client.WidgetHudElement
 import io.github.cottonmc.cotton.gui.widget.WDynamicLabel
 import io.github.cottonmc.cotton.gui.widget.WPlainPanel
 import net.fabricmc.api.EnvType
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
@@ -35,8 +37,20 @@ class MahjongCraftHud {
     private val tileHints = config.tileHints
     private val tileHintsRoot = WTileHints(tileHints)
 
+    // Each panel is registered once as a HUD element and drawn only while visible.
+    private var showQuickActions = false
+    private var showTileHints = false
+    private val quickActionsElement = WidgetHudElement(quickActionsRoot)
+    private val tileHintsElement = WidgetHudElement(tileHintsRoot)
+
     init {
         initQuickActions()
+        HudElementRegistry.addLast(id("quick_actions")) { graphics, delta ->
+            if (showQuickActions) quickActionsElement.extractRenderState(graphics, delta)
+        }
+        HudElementRegistry.addLast(id("tile_hints")) { graphics, delta ->
+            if (showTileHints) tileHintsElement.extractRenderState(graphics, delta)
+        }
         refresh()
         reposition()
     }
@@ -44,12 +58,8 @@ class MahjongCraftHud {
     fun refresh() {
         quickActionsRoot.backgroundPainter = BackgroundPainter.createColorful(quickActions.hudAttribute.backgroundColor)
         tileHintsRoot.backgroundPainter = BackgroundPainter.createColorful(tileHints.hudAttribute.backgroundColor)
-        if (MahjongCraftClient.playing) {
-            quickActionsRoot.also { if (quickActions.displayHudWhenPlaying) CottonHud.add(it) else CottonHud.remove(it) }
-        } else {
-            CottonHud.remove(quickActionsRoot)
-        }
-        tileHintsRoot.also { if (tileHints.displayHud) CottonHud.add(it) else CottonHud.remove(it) }
+        showQuickActions = MahjongCraftClient.playing && quickActions.displayHudWhenPlaying
+        showTileHints = tileHints.displayHud
     }
 
     fun reposition() {

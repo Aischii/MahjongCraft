@@ -5,13 +5,13 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererProvider
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.client.renderer.entity.state.EntityRenderState
 
+/** Seats are invisible; this renderer draws nothing. */
 @Environment(EnvType.CLIENT)
 class SeatEntityRenderer(
-    context: EntityRendererProvider.Context
-) : EntityRenderer<SeatEntity>(context) {
+    context: EntityRendererProvider.Context,
+) : EntityRenderer<SeatEntity, EntityRenderState>(context) {
 
-    override fun getTextureLocation(entity: SeatEntity): ResourceLocation? = null
-
+    override fun createRenderState(): EntityRenderState = EntityRenderState()
 }

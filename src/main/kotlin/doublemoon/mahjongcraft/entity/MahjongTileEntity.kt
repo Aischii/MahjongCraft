@@ -1,5 +1,9 @@
 package doublemoon.mahjongcraft.entity
 
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.world.level.storage.ValueInput
 import doublemoon.mahjongcraft.blockentity.MahjongTableBlockEntity
 import doublemoon.mahjongcraft.game.GameManager
 import doublemoon.mahjongcraft.game.mahjong.riichi.MahjongBoard
@@ -201,7 +205,7 @@ class MahjongTileEntity(
     }
 
     //實體碰撞
-    override fun canBeCollidedWith(): Boolean = true
+    override fun canBeCollidedWith(other: Entity?): Boolean = true
 
     override fun getDimensions(pose: Pose): EntityDimensions =
         if (facing == TileFacing.HORIZONTAL) {
@@ -211,7 +215,7 @@ class MahjongTileEntity(
         }
 
     //玩家與實體互動 (右鍵)
-    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
+    override fun interact(player: Player, hand: InteractionHand, location: Vec3): InteractionResult {
         if (!level().isClientSide) {
             player as ServerPlayer
             if (!isSpawnedByGame) {  // 不是由遊戲產生, 是手動放置的一般實體
@@ -253,17 +257,17 @@ class MahjongTileEntity(
         builder.define(GAME_TILE_POSITION, Json.encodeToString(TilePosition.WALL))
     }
 
-    override fun readAdditionalSaveData(nbt: CompoundTag) {
+    override fun readAdditionalSaveData(nbt: ValueInput) {
         super.readAdditionalSaveData(nbt)
-        code = nbt.getInt("Code")
-        ownerUUID = nbt.getString("OwnerUUID")
-        gamePlayers = Json.decodeFromString(nbt.getString("GamePlayers"))
-        facing = Json.decodeFromString(nbt.getString("Facing"))
-        canSpectate = nbt.getBoolean("GameCanSpectate")
-        inGameTilePosition = Json.decodeFromString(nbt.getString("GameTilePosition"))
+        code = nbt.getIntOr("Code", 0)
+        ownerUUID = nbt.getStringOr("OwnerUUID", "")
+        gamePlayers = Json.decodeFromString(nbt.getStringOr("GamePlayers", ""))
+        facing = Json.decodeFromString(nbt.getStringOr("Facing", ""))
+        canSpectate = nbt.getBooleanOr("GameCanSpectate", false)
+        inGameTilePosition = Json.decodeFromString(nbt.getStringOr("GameTilePosition", ""))
     }
 
-    override fun addAdditionalSaveData(nbt: CompoundTag) {
+    override fun addAdditionalSaveData(nbt: ValueOutput) {
         super.addAdditionalSaveData(nbt)
         nbt.putInt("Code", code)
         nbt.putString("OwnerUUID", ownerUUID)

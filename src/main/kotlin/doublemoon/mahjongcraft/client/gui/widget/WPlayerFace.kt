@@ -1,27 +1,18 @@
 package doublemoon.mahjongcraft.client.gui.widget
 
-import com.mojang.authlib.GameProfile
 import doublemoon.mahjongcraft.util.RenderHelper
 import io.github.cottonmc.cotton.gui.widget.WWidget
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.world.level.block.entity.SkullBlockEntity
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.world.item.component.ResolvableProfile
 import java.util.*
-import kotlin.jvm.optionals.getOrNull
 import kotlin.math.min
 
 class WPlayerFace(
     uuid: UUID,
     name: String,
 ) : WWidget() {
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
-
-    @Volatile
-    private var gameProfile = GameProfile(uuid, name)
 
     // constructor 不能含有 private set 只好這樣用
     var uuid: UUID = uuid
@@ -29,38 +20,19 @@ class WPlayerFace(
     var name: String = name
         private set
 
-    init {
-        loadGameProfileProperties()
-    }
+    /** Minecraft resolves the skin in the background; the default face shows until then. */
+    private var profile = ResolvableProfile.createUnresolved(uuid)
 
     fun setUuidAndName(uuid: UUID, name: String) {
         this.uuid = uuid
         this.name = name
-        gameProfile = GameProfile(uuid, name)
-        loadGameProfileProperties()
+        profile = ResolvableProfile.createUnresolved(uuid)
     }
 
     override fun canResize(): Boolean = true
 
-    private fun loadGameProfileProperties() {
-        val requestedUuid = uuid
-        val requestedName = name
-        coroutineScope.launch(Dispatchers.IO) {
-            val profile = SkullBlockEntity.fetchGameProfile(requestedUuid).get().getOrNull()
-                ?: SkullBlockEntity.fetchGameProfile(requestedName).get().getOrNull()
-            // A slower, older fetch must not overwrite the face of a newer setUuidAndName call.
-            if (profile != null && uuid == requestedUuid) gameProfile = profile
-        }
-    }
-
     @Environment(EnvType.CLIENT)
-    override fun paint(context: GuiGraphics, x: Int, y: Int, mouseX: Int, mouseY: Int) {
-        RenderHelper.renderPlayerFace(
-            context = context,
-            gameProfile = gameProfile,
-            x = x,
-            y = y,
-            size = min(width, height)
-        )
+    override fun paint(context: GuiGraphicsExtractor, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+        RenderHelper.renderPlayerFace(context, profile, x, y, min(width, height))
     }
 }

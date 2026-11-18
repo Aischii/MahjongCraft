@@ -19,7 +19,7 @@ import kotlinx.serialization.json.Json
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.EntityHitResult
 import net.minecraft.world.phys.HitResult
@@ -47,14 +47,14 @@ class WTileHints(
     private var hitResult: EntityHitResult? = null
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: GuiGraphics, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphicsExtractor, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         val target =
             Minecraft.getInstance().hitResult?.takeIf { it.type == HitResult.Type.ENTITY } as EntityHitResult?
         hitResult =
             target?.takeIf { it.entity is MahjongTileEntity && (it.entity as MahjongTileEntity).mahjongTile != MahjongTile.UNKNOWN }
         updateHints(hitResult)
         //下面是改寫 super.paint() 的部分
-        if (backgroundPainter != null && backgroundVisible) backgroundPainter.paintBackground(context, x, y, this)
+        backgroundPainter?.takeIf { backgroundVisible }?.paintBackground(context, x, y, this)
         children.forEach { it.paint(context, x + it.x, y + it.y, mouseX - it.x, mouseY - it.y) }
     }
 

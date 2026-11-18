@@ -1,5 +1,6 @@
 package doublemoon.mahjongcraft.game.mahjong.riichi.player
 
+import net.minecraft.world.level.portal.TeleportTransition
 import doublemoon.mahjongcraft.entity.MahjongBotEntity
 import doublemoon.mahjongcraft.game.mahjong.riichi.MahjongGame
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTile
@@ -26,7 +27,7 @@ class MahjongBot(
         isSpawnedByGame = true
         gameBlockPos = gamePos
         isInvisible = true //先隱形, 等開始遊戲才解除隱形
-        moveTo(pos)  //再傳送到預設位置上
+        snapTo(pos)  //再傳送到預設位置上
         world.addFreshEntity(this) //最後才在世界上生成
     }
 
@@ -34,10 +35,7 @@ class MahjongBot(
 
     override fun teleport(targetWorld: ServerLevel, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
         with(entity) {
-            if (this.level() != targetWorld) changeDimension(targetWorld)
-            this.yRot = yaw
-            this.xRot = pitch
-            teleportTo(x, y, z)
+            teleport(TeleportTransition(targetWorld, Vec3(x, y, z), Vec3.ZERO, yaw, pitch, TeleportTransition.DO_NOTHING))
         }
     }
 }

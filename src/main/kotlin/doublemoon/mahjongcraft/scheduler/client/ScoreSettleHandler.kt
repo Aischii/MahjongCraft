@@ -29,7 +29,7 @@ object ScoreSettleHandler {
     private fun setScreen(settlement: ScoreSettlement) {
         ClientScheduler.scheduleDelayAction {
             screen = ScoreSettlementScreen(settlement = settlement)
-            client.setScreen(screen)
+            client.gui.setScreen(screen)
         }
     }
 
@@ -40,7 +40,7 @@ object ScoreSettleHandler {
     @Environment(EnvType.CLIENT)
     fun closeScreen() {
         CoroutineScope(Dispatchers.Default).launch {
-            if (client.screen == screen) {
+            if (client.gui.screen() == screen) {
                 ClientScheduler.scheduleDelayAction { screen.onClose() }
             }
         }

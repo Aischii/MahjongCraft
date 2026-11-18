@@ -1,5 +1,7 @@
 package doublemoon.mahjongcraft.entity
 
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.world.level.storage.ValueInput
 import doublemoon.mahjongcraft.registry.EntityTypeRegistry
 import doublemoon.mahjongcraft.registry.ItemRegistry
 import net.minecraft.world.entity.EntityType
@@ -44,7 +46,7 @@ class DiceEntity(
         yaw?.let { setRot(it, 0f) }
     }
 
-    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
+    override fun interact(player: Player, hand: InteractionHand, location: Vec3): InteractionResult {
         if (!player.level().isClientSide) {
             player as ServerPlayer
             if (!isSpawnedByGame && player.isShiftKeyDown) { //不是由遊戲產生, 是手動放置的一般實體
@@ -108,13 +110,13 @@ class DiceEntity(
         builder.define(POINT, DicePoint.random().name)
     }
 
-    override fun readAdditionalSaveData(nbt: CompoundTag) {
+    override fun readAdditionalSaveData(nbt: ValueInput) {
         super.readAdditionalSaveData(nbt)
-        val pointStr = nbt.get("Point")?.asString ?: DicePoint.random().name //避免指令召喚的骰子沒有 nbt 導致無法召喚
+        val pointStr = nbt.getStringOr("Point", DicePoint.random().name) //避免指令召喚的骰子沒有 nbt 導致無法召喚
         point = DicePoint.valueOf(pointStr)
     }
 
-    override fun addAdditionalSaveData(nbt: CompoundTag) {
+    override fun addAdditionalSaveData(nbt: ValueOutput) {
         super.addAdditionalSaveData(nbt)
         nbt.putString("Point", point.name)
     }

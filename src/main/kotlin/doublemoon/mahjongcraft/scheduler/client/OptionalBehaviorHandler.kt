@@ -35,7 +35,7 @@ object OptionalBehaviorHandler {
     fun setScreen() {
         ClientScheduler.scheduleDelayAction {
             screen = MahjongGameBehaviorScreen(behavior, hands, target, extraData)
-            client.setScreen(screen!!)
+            client.gui.setScreen(screen!!)
         }
     }
 
@@ -46,7 +46,7 @@ object OptionalBehaviorHandler {
     private fun closeScreen() {
         CoroutineScope(Dispatchers.Default).launch {
             val nowScreen = screen
-            if (nowScreen != null && client.screen == nowScreen) {
+            if (nowScreen != null && client.gui.screen() == nowScreen) {
                 ClientScheduler.scheduleDelayAction { nowScreen.onClose() }
             }
         }

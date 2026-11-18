@@ -236,7 +236,7 @@ class RuleEditorGui(
     }
 
     private fun back() {
-        client.setScreen(MahjongTableWaitingScreen(mahjongTable = mahjongTable))
+        client.gui.setScreen(MahjongTableWaitingScreen(mahjongTable = mahjongTable))
     }
 
     companion object {
@@ -322,7 +322,7 @@ class RuleEditorGui(
         )
 
         private fun refreshButtonLabel() {
-            selectButton.label = nowLabel
+            selectButton.setLabel(nowLabel)
         }
 
         private fun refreshButtonTooltip() {
@@ -344,7 +344,7 @@ class RuleEditorGui(
                 label = buttonText,
                 onClick = {
                     enabled = !enabled
-                    label = buttonText
+                    setLabel(buttonText)
                     this@RuleToggleItem.onClick.invoke(enabled)
                 }
             )

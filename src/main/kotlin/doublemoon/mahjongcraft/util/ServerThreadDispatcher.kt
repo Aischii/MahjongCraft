@@ -24,4 +24,4 @@ class QueueingDispatcher(private val enqueue: (Runnable) -> Unit) : CoroutineDis
  * so this queues a [TickTask] instead.
  */
 fun MinecraftServer.coroutineDispatcher(): CoroutineDispatcher =
-    QueueingDispatcher { block -> tell(TickTask(tickCount, block)) }
+    QueueingDispatcher { block -> schedule(TickTask(tickCount, block)) }

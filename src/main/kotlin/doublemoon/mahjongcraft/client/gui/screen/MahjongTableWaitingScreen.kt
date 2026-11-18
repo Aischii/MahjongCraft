@@ -22,7 +22,7 @@ import net.minecraft.client.player.LocalPlayer
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.network.chat.Component
 import net.minecraft.ChatFormatting
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import java.util.*
 
 @Environment(EnvType.CLIENT)
@@ -181,8 +181,7 @@ class MahjongTableGui(
     fun refresh() {
         with(joinOrLeave) {
             isEnabled = if (isInThisGame) true else "" in players  //空位的時候, 會以 "" 表示
-            label =
-                if (!isInThisGame) Component.translatable("$MOD_ID.gui.button.join") else Component.translatable("$MOD_ID.gui.button.leave")
+            setLabel(if (!isInThisGame) Component.translatable("$MOD_ID.gui.button.join") else Component.translatable("$MOD_ID.gui.button.leave"))
         }
         playerInfoItems.forEach {
             it.entityName = playerEntityNames[it.number]
@@ -215,7 +214,7 @@ class MahjongTableGui(
                         tooltip = arrayOf(Component.translatable("$MOD_ID.gui.tooltip.clickable.when_all_ready"))
                     )
                     (rootPanel as WPlainPanel).add(
-                        start,
+                        start!!,
                         joinOrLeave.x,
                         joinOrLeave.y - BUTTON_HEIGHT - BUTTON_PADDING,
                         BUTTON_WIDTH,
@@ -238,7 +237,7 @@ class MahjongTableGui(
                 if (addBot == null) {
                     addBot = WButton(Component.translatable("$MOD_ID.gui.button.add_bot"))
                     (rootPanel as WPlainPanel).add(
-                        addBot,
+                        addBot!!,
                         start!!.x,
                         start!!.y - BUTTON_HEIGHT - BUTTON_PADDING,
                         BUTTON_WIDTH,
@@ -261,7 +260,7 @@ class MahjongTableGui(
                 if (editRules == null) {
                     editRules = WButton(Component.translatable("$MOD_ID.gui.button.edit_rules"))
                     (rootPanel as WPlainPanel).add(
-                        editRules,
+                        editRules!!,
                         addBot!!.x,
                         addBot!!.y - BUTTON_HEIGHT - BUTTON_PADDING,
                         BUTTON_WIDTH,
@@ -287,7 +286,7 @@ class MahjongTableGui(
                         kick[it] = WButton(kickText)
                         val buttonWidth = client.font.width(kickText) + 12
                         (rootPanel as WPlainPanel).add(
-                            kick[it],
+                            kick[it]!!,
                             playerInfoItems[0].x - BUTTON_PADDING - buttonWidth,
                             playerInfoItems[playerIndex].y + 2,
                             buttonWidth,
@@ -315,7 +314,7 @@ class MahjongTableGui(
                 if (readyOrNot == null) {
                     readyOrNot = WButton()
                     (rootPanel as WPlainPanel).add(
-                        readyOrNot,
+                        readyOrNot!!,
                         joinOrLeave.x,
                         joinOrLeave.y - BUTTON_HEIGHT - BUTTON_PADDING,
                         BUTTON_WIDTH,
@@ -323,11 +322,11 @@ class MahjongTableGui(
                     )
                 }
                 readyOrNot!!.apply {
-                    label = if (isReady) {
+                    setLabel(if (isReady) {
                         Component.translatable("$MOD_ID.gui.button.not_ready")
                     } else {
                         Component.translatable("$MOD_ID.gui.button.ready")
-                    }
+                    })
                     onClick = Runnable {
                         if (isReady) {
                             sendPayloadToServer(
@@ -353,6 +352,8 @@ class MahjongTableGui(
                 clearNotHostButtons()
             }
         }
+        // Buttons added above after the screen was built need a host for clicks and keyboard focus.
+        rootPanel.validate(this)
     }
 
     //只有 host 才有的按紐
@@ -466,7 +467,7 @@ class MahjongTableGui(
                             face.y,
                             face.width,
                             face.height,
-                            ResourceLocation("minecraft:textures/item/structure_void.png")
+                            Identifier.parse("minecraft:textures/item/structure_void.png")
                         )
                     }
                 }
@@ -501,7 +502,7 @@ class MahjongTableGui(
             ): WWidget = when {
                 isBot -> botFace(x, y, width, height)
                 uuid != null && name != null -> playerFace(x, y, width, height, uuid, name)
-                else -> image(x, y, width, height, ResourceLocation("minecraft:textures/item/structure_void.png"))
+                else -> image(x, y, width, height, Identifier.parse("minecraft:textures/item/structure_void.png"))
             }
         }
     }

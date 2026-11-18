@@ -219,25 +219,25 @@ class MahjongBoard(
                 when (index / 34) { //這裡面朝的方向就是以遊戲內的東為準，按照麻將桌"順"時針東南西北的方向
                     0 -> { //遊戲中面朝東
                         tableCenterPos.add(directionOffset, yOffset, -startingPos + stackWidth).apply {
-                            tile.moveTo(this)
+                            tile.snapTo(this)
                             tile.yRot = -90f
                         }
                     }
                     1 -> { //遊戲中面朝南
                         tableCenterPos.add(startingPos - stackWidth, yOffset, directionOffset).apply {
-                            tile.moveTo(this)
+                            tile.snapTo(this)
                             tile.yRot = 0f
                         }
                     }
                     2 -> { //遊戲中面朝西
                         tableCenterPos.add(-directionOffset, yOffset, startingPos - stackWidth).apply {
-                            tile.moveTo(this)
+                            tile.snapTo(this)
                             tile.yRot = 90f
                         }
                     }
                     else -> { //遊戲中面朝北
                         tableCenterPos.add(-startingPos + stackWidth, yOffset, -directionOffset).apply {
-                            tile.moveTo(this)
+                            tile.snapTo(this)
                             tile.yRot = 180f
                         }
                     }
@@ -264,10 +264,10 @@ class MahjongBoard(
                 //偏移王牌區
                 val gap = MAHJONG_TILE_SMALL_PADDING * 20
                 when (it.direction) {
-                    Direction.EAST -> it.moveTo(it.x, it.y, it.z + gap)
-                    Direction.SOUTH -> it.moveTo(it.x - gap, it.y, it.z)
-                    Direction.WEST -> it.moveTo(it.x, it.y, it.z - gap)
-                    Direction.NORTH -> it.moveTo(it.x + gap, it.y, it.z)
+                    Direction.EAST -> it.snapTo(it.x, it.y, it.z + gap)
+                    Direction.SOUTH -> it.snapTo(it.x - gap, it.y, it.z)
+                    Direction.WEST -> it.snapTo(it.x, it.y, it.z - gap)
+                    Direction.NORTH -> it.snapTo(it.x + gap, it.y, it.z)
                     else -> {
                     }
                 }
@@ -284,22 +284,22 @@ class MahjongBoard(
                             if (index % 2 == 0) {
                                 it.forEach { tile ->
                                     when (direction) {
-                                        Direction.EAST -> tile.moveTo(
+                                        Direction.EAST -> tile.snapTo(
                                             tile.x,
                                             tile.y,
                                             tile.z + MAHJONG_TILE_WIDTH
                                         )
-                                        Direction.SOUTH -> tile.moveTo(
+                                        Direction.SOUTH -> tile.snapTo(
                                             tile.x - MAHJONG_TILE_WIDTH,
                                             tile.y,
                                             tile.z
                                         )
-                                        Direction.WEST -> tile.moveTo(
+                                        Direction.WEST -> tile.snapTo(
                                             tile.x,
                                             tile.y,
                                             tile.z - MAHJONG_TILE_WIDTH
                                         )
-                                        Direction.NORTH -> tile.moveTo(
+                                        Direction.NORTH -> tile.snapTo(
                                             tile.x + MAHJONG_TILE_WIDTH,
                                             tile.y,
                                             tile.z
@@ -312,22 +312,22 @@ class MahjongBoard(
                             val posY = if (index % 2 == 0) it[0].y else it[1].y
                             val offset = (MAHJONG_TILE_WIDTH + MAHJONG_TILE_SMALL_PADDING) * (index / 2)
                             when (direction) {
-                                Direction.EAST -> mahjongTile.moveTo(
+                                Direction.EAST -> mahjongTile.snapTo(
                                     it[0].x,
                                     posY,
                                     it[0].z - offset
                                 )
-                                Direction.SOUTH -> mahjongTile.moveTo(
+                                Direction.SOUTH -> mahjongTile.snapTo(
                                     it[0].x + offset,
                                     posY,
                                     it[0].z
                                 )
-                                Direction.WEST -> mahjongTile.moveTo(
+                                Direction.WEST -> mahjongTile.snapTo(
                                     it[0].x,
                                     posY,
                                     it[0].z + offset
                                 )
-                                Direction.NORTH -> mahjongTile.moveTo(
+                                Direction.NORTH -> mahjongTile.snapTo(
                                     it[0].x - offset,
                                     posY,
                                     it[0].z
@@ -417,25 +417,25 @@ class MahjongBoard(
                 when (seatIndex) { //這裡的方向就是以遊戲內的面朝東為準，按照麻將桌"逆"時針東南西北的方向
                     0 -> { //東
                         tableCenterPos.add(directionOffset, 0.0, startingPos - stackOffset).apply {
-                            hTile.moveTo(this)
+                            hTile.snapTo(this)
                             hTile.yRot = -90f
                         }
                     }
                     3 -> { //南
                         tableCenterPos.add(-startingPos + stackOffset, 0.0, directionOffset).apply {
-                            hTile.moveTo(this)
+                            hTile.snapTo(this)
                             hTile.yRot = 0f
                         }
                     }
                     2 -> { //西
                         tableCenterPos.add(-directionOffset, 0.0, -startingPos + stackOffset).apply {
-                            hTile.moveTo(this)
+                            hTile.snapTo(this)
                             hTile.yRot = 90f
                         }
                     }
                     else -> { //北
                         tableCenterPos.add(startingPos - stackOffset, 0.0, -directionOffset).apply {
-                            hTile.moveTo(this)
+                            hTile.snapTo(this)
                             hTile.yRot = 180f
                         }
                     }
@@ -534,7 +534,7 @@ class MahjongBoard(
                 }
             nowPos = if (firstTileInThisLine) nowPos else nowPos.add(smallGapOffset) //第 1 張牌不會有縫隙偏移
             val yRot = if (isRiichiTile) tileRot - 90 else tileRot
-            tileEntity.moveTo(nowPos.x, nowPos.y, nowPos.z, yRot, 0f)
+            tileEntity.snapTo(nowPos.x, nowPos.y, nowPos.z, yRot, 0f)
             tileEntity.facing = TileFacing.UP
         }
     }
@@ -693,7 +693,7 @@ class MahjongBoard(
                     else tileRot
 
                 // 將牌傳送
-                it.moveTo(pos.x, pos.y, pos.z, yRot, 0f)
+                it.snapTo(pos.x, pos.y, pos.z, yRot, 0f)
                 it.facing = TileFacing.UP
 
                 lastTile = it
@@ -706,7 +706,7 @@ class MahjongBoard(
                 val claimTile = fuuro.claimTile
                 val claimTilePos = fuuro.claimTile.position()
                 val pos = claimTilePos.add(kakanOffset)
-                it.moveTo(pos.x, pos.y, pos.z, claimTile.yRot, 0f) //傳送到鳴的牌的上面
+                it.snapTo(pos.x, pos.y, pos.z, claimTile.yRot, 0f) //傳送到鳴的牌的上面
                 it.facing = TileFacing.UP
             }
         }
@@ -727,7 +727,7 @@ class MahjongBoard(
                     }
 
                     // 將牌傳送
-                    tileMjEntity.moveTo(nowPos.x, nowPos.y, nowPos.z, tileRot, 0f)
+                    tileMjEntity.snapTo(nowPos.x, nowPos.y, nowPos.z, tileRot, 0f)
                     // index == 1 or 2 是中間兩張牌->面朝上, 否則是旁邊兩張->面朝下
                     tileMjEntity.facing = if (index == 1 || index == 2) TileFacing.UP else TileFacing.DOWN
 
@@ -759,7 +759,7 @@ class MahjongBoard(
             Direction.NORTH -> basePos.add(-MAHJONG_TILE_WIDTH.toDouble(), 0.0, 0.0)
             else -> basePos
         }
-        lastWallTile.moveTo(tilePos)
+        lastWallTile.snapTo(tilePos)
         lastWallTile.yRot = direction.toYRot()
         deadWall.add(0, lastWallTile)
         deadWall -= tile
@@ -768,7 +768,7 @@ class MahjongBoard(
         player.drawTile(tile)
         if (kanCount % 2 == 1) {
             val nowLastWallTile = wall.last() //這張牌要往下降, 不然會浮空
-            nowLastWallTile.moveTo(
+            nowLastWallTile.snapTo(
                 nowLastWallTile.position().add(
                     0.0,
                     -MAHJONG_TILE_DEPTH.toDouble(),
@@ -808,7 +808,7 @@ class MahjongBoard(
             code = ScoringStick.P1000.code //1000 點棒的編號
             gameBlockPos = game.pos
             isSpawnedByGame = true
-            moveTo(stickPos) //先移到位置上
+            snapTo(stickPos) //先移到位置上
             yRot = stickYaw //再轉個方向
             ServerScheduler.scheduleDelayAction { level().addFreshEntity(this) } //再生成到世界上
         }
@@ -870,7 +870,7 @@ class MahjongBoard(
         val offsetY = stackOffset.multiply(stackIndex, stackIndex, stackIndex)  // Y軸上的偏移
         val pos = startingPos.add(offsetXZ).add(offsetY)
         stick.yRot = stickYaw
-        stick.moveTo(pos)
+        stick.snapTo(pos)
     }
 
     /**

@@ -1,5 +1,8 @@
 package doublemoon.mahjongcraft.entity
 
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.world.level.storage.ValueInput
 import doublemoon.mahjongcraft.blockentity.MahjongTableBlockEntity
 import doublemoon.mahjongcraft.entity.MahjongTileEntity.Companion.MAHJONG_TILE_HEIGHT
 import doublemoon.mahjongcraft.entity.MahjongTileEntity.Companion.MAHJONG_TILE_SCALE
@@ -30,13 +33,13 @@ class MahjongBotEntity(
         get() = entityData[CODE]
 
     init {
-        isInvulnerable = true
+        setPermanentlyInvulnerable(true)
     }
 
     //可以看到實體才有實體碰撞
-    override fun canBeCollidedWith(): Boolean = !isInvisible && !isRemoved
+    override fun canBeCollidedWith(other: Entity?): Boolean = !isInvisible && !isRemoved
 
-    override fun isPickable(): Boolean = canBeCollidedWith()
+    override fun isPickable(): Boolean = !isInvisible && !isRemoved
 
     //目前機器人實體在麻將桌按下 加入機器人 的時候 (即遊戲還沒開始的時候) 就存在了,
     override fun autoRemove() {
@@ -55,12 +58,12 @@ class MahjongBotEntity(
         builder.define(CODE, 0)
     }
 
-    override fun readAdditionalSaveData(nbt: CompoundTag) {
+    override fun readAdditionalSaveData(nbt: ValueInput) {
         super.readAdditionalSaveData(nbt)
-        code = nbt.getInt("Code")
+        code = nbt.getIntOr("Code", 0)
     }
 
-    override fun addAdditionalSaveData(nbt: CompoundTag) {
+    override fun addAdditionalSaveData(nbt: ValueOutput) {
         super.addAdditionalSaveData(nbt)
         nbt.putInt("Code", code)
     }

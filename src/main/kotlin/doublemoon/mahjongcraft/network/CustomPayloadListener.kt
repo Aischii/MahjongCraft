@@ -31,8 +31,8 @@ interface CustomPayloadListener<T : CustomPacketPayload> {
     }
 
     fun registerCommon() {
-        if (channelType.s2c) PayloadTypeRegistry.playS2C().register(id, codec)
-        if (channelType.c2s) PayloadTypeRegistry.playC2S().register(id, codec)
+        if (channelType.s2c) PayloadTypeRegistry.clientboundPlay().register(id, codec)
+        if (channelType.c2s) PayloadTypeRegistry.serverboundPlay().register(id, codec)
     }
 
     @Environment(EnvType.CLIENT)

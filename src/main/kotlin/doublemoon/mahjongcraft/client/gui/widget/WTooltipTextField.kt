@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component
 
 
 class WTooltipTextField(
-    suggestion: Component?,
+    suggestion: Component,
     var tooltip: Array<Component>
 ) : WTextField(suggestion) {
     @Environment(EnvType.CLIENT)

@@ -6,16 +6,10 @@
     "WWL"
   ],
   "key": {
-    "W": {
-      "item": "minecraft:white_concrete"
-    },
+    "W": "minecraft:white_concrete",
     "L": [
-      {
-        "item": "minecraft:lime_concrete"
-      },
-      {
-        "item": "minecraft:green_concrete"
-      }
+      "minecraft:lime_concrete",
+      "minecraft:green_concrete"
     ]
   },
   "result": {

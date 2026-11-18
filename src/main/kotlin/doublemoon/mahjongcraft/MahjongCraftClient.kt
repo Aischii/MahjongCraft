@@ -1,5 +1,6 @@
 package doublemoon.mahjongcraft
 
+import doublemoon.mahjongcraft.client.render.CodeItemModelProperty
 import doublemoon.mahjongcraft.client.ModConfig
 import doublemoon.mahjongcraft.client.gui.screen.ConfigScreen
 import doublemoon.mahjongcraft.client.gui.screen.HudPositionEditorScreen
@@ -20,19 +21,16 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.TitleScreen
-import net.minecraft.client.renderer.item.ClampedItemPropertyFunction
-import net.minecraft.client.renderer.item.ItemProperties
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.core.component.DataComponents
-import net.minecraft.resources.ResourceLocation
-import org.lwjgl.glfw.GLFW
+import net.minecraft.resources.Identifier
 
 @Environment(EnvType.CLIENT)
 object MahjongCraftClient : ClientModInitializer {
@@ -47,10 +45,13 @@ object MahjongCraftClient : ClientModInitializer {
     var hud: MahjongCraftHud? = null
         private set
 
+    /** Shown in the controls screen as `key.category.mahjongcraft.main`. Declared before the keys that use it. */
+    private val keyCategory: KeyMapping.Category = KeyMapping.Category.register(id("main"))
+
     //KeyBinding
     private val configKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_config_gui",
-        code = GLFW.GLFW_KEY_SEMICOLON,
+        code = InputConstants.KEY_SEMICOLON,
     )
     val hudPositionEditorKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_hud_position_editor",
@@ -74,21 +75,8 @@ object MahjongCraftClient : ClientModInitializer {
         // BlockEntity Renderer
         BlockEntityRenderers.register(BlockEntityTypeRegistry.mahjongTable, ::MahjongTableBlockEntityRenderer)
 
-        // Model Predicate Provider
-        val modelPredicateProvider = ClampedItemPropertyFunction { stack, _, _, _ ->
-            val code = stack.get(DataComponents.CUSTOM_DATA)?.copyTag()?.getInt("code") ?: 0
-            code / 100f  // 這個值必須介於 0f ~ 1f 之間，所以 MahjongTile.code 除以 100 後，會對應到材質檔案之中的 predicate.code 欄位
-        }
-        ItemProperties.register(
-            ItemRegistry.mahjongTile,
-            ResourceLocation("code"),
-            modelPredicateProvider
-        )
-        ItemProperties.register(
-            ItemRegistry.mahjongScoringStick,
-            ResourceLocation("code"),
-            modelPredicateProvider
-        )
+        // Item models pick the tile / scoring stick by its code (see assets/mahjongcraft/items/)
+        CodeItemModelProperty.register()
 
         // Packet
         MahjongTablePayloadListener.registerClient()
@@ -109,16 +97,16 @@ object MahjongCraftClient : ClientModInitializer {
     fun saveConfig() = AutoConfig.getConfigHolder(ModConfig::class.java).save()
 
     private fun tick(client: Minecraft) {
-        if (configKey.consumeClick()) client.setScreen(ConfigScreen.build(null))
-        if (hudPositionEditorKey.consumeClick()) hud?.also { client.setScreen(HudPositionEditorScreen(it)) }
-        if (yakuOverviewKey.consumeClick()) client.setScreen(YakuOverviewScreen())
+        if (configKey.consumeClick()) client.gui.setScreen(ConfigScreen.build(null))
+        if (hudPositionEditorKey.consumeClick()) hud?.also { client.gui.setScreen(HudPositionEditorScreen(it)) }
+        if (yakuOverviewKey.consumeClick()) client.gui.setScreen(YakuOverviewScreen())
         ClientScheduler.tick(client)
     }
 
     private fun registerKeyBinding(
         translationKey: String,
-        type: InputConstants.Type = InputConstants.Type.KEYSYM,
+        type: InputConstants.Type = InputConstants.Type.KEYBOARD,
         code: Int = InputConstants.UNKNOWN.value,
-        category: String = "key.category.$MOD_ID.main",
-    ): KeyMapping = KeyBindingHelper.registerKeyBinding(KeyMapping(translationKey, type, code, category))
+    ): KeyMapping = KeyMappingHelper.registerKeyMapping(KeyMapping(translationKey, type, code, keyCategory))
+
 }

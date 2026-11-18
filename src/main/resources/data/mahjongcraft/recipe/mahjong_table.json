@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "LLL",
+    " | ",
+    " = "
+  ],
+  "key": {
+    "L": [
+      "minecraft:lime_carpet",
+      "minecraft:green_carpet"
+    ],
+    "|": "#minecraft:wooden_fences",
+    "=": "#minecraft:wooden_slabs"
+  },
+  "result": {
+    "id": "mahjongcraft:mahjong_table",
+    "count": 1
+  }
+}

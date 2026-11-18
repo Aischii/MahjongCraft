@@ -51,14 +51,14 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
                 ClientScheduler.scheduleDelayAction {
                     val mahjongTableBlockEntity =
                         world.getBlockEntity(pos) as MahjongTableBlockEntity? ?: return@scheduleDelayAction
-                    client.setScreen(MahjongTableWaitingScreen(mahjongTable = mahjongTableBlockEntity))
+                    client.gui.setScreen(MahjongTableWaitingScreen(mahjongTable = mahjongTableBlockEntity))
                 }
             }
             MahjongTableBehavior.OPEN_RULES_EDITOR_GUI -> {  //開啟規則編輯器 GUI
                 ClientScheduler.scheduleDelayAction {
                     val mahjongTableBlockEntity =
                         world.getBlockEntity(pos) as MahjongTableBlockEntity? ?: return@scheduleDelayAction
-                    client.setScreen(RuleEditorScreen(mahjongTable = mahjongTableBlockEntity))
+                    client.gui.setScreen(RuleEditorScreen(mahjongTable = mahjongTableBlockEntity))
                 }
             }
             else -> {

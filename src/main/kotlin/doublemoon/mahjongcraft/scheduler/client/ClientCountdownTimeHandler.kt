@@ -22,7 +22,7 @@ object ClientCountdownTimeHandler {
                 displayTime(timeBase = value.first!!, timeExtra = value.second!!)
             } else {  //兩個都為 null, 清除倒數計時, 關閉所有該關的處理程序
                 if (OptionalBehaviorHandler.waiting) OptionalBehaviorHandler.cancel()
-                client.gui.clear()
+                client.gui.hud.clearTitles()
             }
             field = value
         }
@@ -37,7 +37,7 @@ object ClientCountdownTimeHandler {
         val extra = if (timeExtra > 0) "§c$timeExtra" else ""
         val text = Component.nullToEmpty("$base$plus$extra")
         //TODO 改位置顯示時間
-        with(client.gui) {
+        with(client.gui.hud) {
             setTitle(Component.nullToEmpty(""))
             setSubtitle(text)
             setTimes(titleFadeInTime, titleRemainTime, titleFadeOutTime)

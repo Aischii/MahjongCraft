@@ -896,7 +896,7 @@ class MahjongGame(
                     it.append(text)
                 }
             }
-            val ruleHoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, ruleTooltip)
+            val ruleHoverEvent = HoverEvent.ShowText(ruleTooltip)
             val ruleStyle = Style.EMPTY.withColor(ChatFormatting.GREEN).withHoverEvent(ruleHoverEvent)
             val ruleText = (Component.literal("§a[") + Component.translatable("$MOD_ID.game.rules") + "§a]").withStyle(ruleStyle)
             val scoreText = Component.translatable("$MOD_ID.game.score")
@@ -1343,8 +1343,8 @@ class MahjongGame(
             ).apply {
                 isSpawnedByGame = true
                 gameBlockPos = this@MahjongGame.pos
-                val sin = Mth.sin(yRot * 0.017453292F - 11)
-                val cos = Mth.cos(yRot * 0.017453292F - 11)
+                val sin = Mth.sin(yRot * 0.017453292 - 11)
+                val cos = Mth.cos(yRot * 0.017453292 - 11)
                 val range = if (it == 0) (15..90) else (-90..-15)
                 val randomMoveXPercentage = ((range).random()) / 100.0
                 val randomMoveZPercentage = ((range).random()) / 100.0

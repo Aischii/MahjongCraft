@@ -1,5 +1,9 @@
 package doublemoon.mahjongcraft.entity
 
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.world.level.storage.ValueInput
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.ScoringStick
 import doublemoon.mahjongcraft.registry.EntityTypeRegistry
 import doublemoon.mahjongcraft.registry.ItemRegistry
@@ -33,9 +37,9 @@ class MahjongScoringStickEntity(
     val scoringStick: ScoringStick
         get() = ScoringStick.entries[code]
 
-    override fun canBeCollidedWith(): Boolean = true
+    override fun canBeCollidedWith(other: Entity?): Boolean = true
 
-    override fun interact(player: Player, hand: InteractionHand): InteractionResult {
+    override fun interact(player: Player, hand: InteractionHand, location: Vec3): InteractionResult {
         if (!level().isClientSide) {
             player as ServerPlayer
             if (!isSpawnedByGame && player.isShiftKeyDown) {  //不是由遊戲產生, 是手動放置的一般實體
@@ -58,12 +62,12 @@ class MahjongScoringStickEntity(
         builder.define(CODE, ScoringStick.P100.code)
     }
 
-    override fun readAdditionalSaveData(nbt: CompoundTag) {
+    override fun readAdditionalSaveData(nbt: ValueInput) {
         super.readAdditionalSaveData(nbt)
-        code = nbt.getInt("Code")
+        code = nbt.getIntOr("Code", 0)
     }
 
-    override fun addAdditionalSaveData(nbt: CompoundTag) {
+    override fun addAdditionalSaveData(nbt: ValueOutput) {
         super.addAdditionalSaveData(nbt)
         nbt.putInt("Code", code)
     }

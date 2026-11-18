@@ -5,7 +5,7 @@ import doublemoon.mahjongcraft.entity.MahjongTileEntity
 import doublemoon.mahjongcraft.id
 import doublemoon.mahjongcraft.util.TextFormatting
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import org.mahjong4j.tile.Tile
 import org.mahjong4j.tile.TileType
 
@@ -61,7 +61,7 @@ enum class MahjongTile : TextFormatting {
     /**
      * 這張牌的牌面的材質位置
      * */
-    val surfaceIdentifier: ResourceLocation
+    val surfaceIdentifier: Identifier
         get() = id("textures/item/mahjong_tile/mahjong_tile_${name.lowercase()}.png")
 
     /**

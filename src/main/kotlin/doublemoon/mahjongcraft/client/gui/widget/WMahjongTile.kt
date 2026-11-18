@@ -6,8 +6,7 @@ import io.github.cottonmc.cotton.gui.widget.WWidget
 import io.github.cottonmc.cotton.gui.widget.data.Color
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.GuiGraphics
-import com.mojang.math.Axis
+import net.minecraft.client.gui.GuiGraphicsExtractor
 
 class WMahjongTile(
     var mahjongTile: MahjongTile,
@@ -26,7 +25,7 @@ class WMahjongTile(
     }
 
     @Environment(EnvType.CLIENT)
-    override fun paint(context: GuiGraphics, x: Int, y: Int, mouseX: Int, mouseY: Int) {
+    override fun paint(context: GuiGraphicsExtractor, x: Int, y: Int, mouseX: Int, mouseY: Int) {
         if (direction == TileDirection.NORMAL) {
             ScreenDrawing.texturedRect(
                 context,
@@ -40,15 +39,15 @@ class WMahjongTile(
         } else {
             val matrices = context.pose()
             //這裡的 height 跟 width 都是反著用的, 因為我們把 matrices 轉成橫的才把直的印上去, 所以應該套用原本直的高跟寬
-            matrices.pushPose()
+            matrices.pushMatrix()
             when (direction) {
                 TileDirection.RIGHT -> {
-                    matrices.translate((x + width).toDouble(), y.toDouble(), 0.0)
-                    matrices.mulPose(Axis.ZP.rotationDegrees(90f))
+                    matrices.translate((x + width).toFloat(), y.toFloat())
+                    matrices.rotate(Math.toRadians(90.0).toFloat())
                 }
                 TileDirection.LEFT -> {
-                    matrices.translate(x.toDouble(), (y + height).toDouble(), 0.0)
-                    matrices.mulPose(Axis.ZN.rotationDegrees(90f))
+                    matrices.translate(x.toFloat(), (y + height).toFloat())
+                    matrices.rotate(Math.toRadians(-90.0).toFloat())
                 }
                 else -> return //這種情況不會發生
             }
@@ -61,7 +60,7 @@ class WMahjongTile(
                 mahjongTile.surfaceIdentifier,
                 Color.WHITE.toRgb()
             )
-            matrices.popPose()
+            matrices.popMatrix()
         }
     }
 

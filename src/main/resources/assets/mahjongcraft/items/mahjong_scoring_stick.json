@@ -1,0 +1,40 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "mahjongcraft:code",
+    "entries": [
+      {
+        "threshold": 0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_scoring_stick/100"
+        }
+      },
+      {
+        "threshold": 1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_scoring_stick/1000"
+        }
+      },
+      {
+        "threshold": 2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_scoring_stick/5000"
+        }
+      },
+      {
+        "threshold": 3,
+        "model": {
+          "type": "minecraft:model",
+          "model": "mahjongcraft:item/mahjong_scoring_stick/10000"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "mahjongcraft:item/mahjong_scoring_stick_base"
+    }
+  }
+}

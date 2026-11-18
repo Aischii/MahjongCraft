@@ -32,10 +32,10 @@ class MahjongStool(settings: Properties) : Block(settings) {
         }
 
     override fun getShape(
-        state: BlockState?,
-        world: BlockGetter?,
-        pos: BlockPos?,
-        context: CollisionContext?,
+        state: BlockState,
+        world: BlockGetter,
+        pos: BlockPos,
+        context: CollisionContext,
     ): VoxelShape = SHAPE
 
     companion object {

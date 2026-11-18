@@ -1,5 +1,7 @@
 package doublemoon.mahjongcraft.blockentity
 
+import net.minecraft.world.level.storage.ValueOutput
+import net.minecraft.world.level.storage.ValueInput
 import doublemoon.mahjongcraft.block.MahjongTable
 import doublemoon.mahjongcraft.block.enums.MahjongTablePart
 import doublemoon.mahjongcraft.client.gui.screen.MahjongTableGui
@@ -77,24 +79,24 @@ class MahjongTableBlockEntity(
         }
     }
 
-    override fun loadAdditional(nbt: CompoundTag, registryLookup: HolderLookup.Provider) {
+    override fun loadAdditional(nbt: ValueInput) {
         with(nbt) {
             repeat(4) {
-                players[it] = getString("PlayerStringUUID$it")
-                playerEntityNames[it] = getString("PlayerEntityName$it")
-                bots[it] = getBoolean("Bot$it")
-                ready[it] = getBoolean("PlayerReady$it")
-                seat[it] = getString("Seat$it")
-                points[it] = getInt("Point$it")
+                players[it] = getStringOr("PlayerStringUUID$it", "")
+                playerEntityNames[it] = getStringOr("PlayerEntityName$it", "")
+                bots[it] = getBooleanOr("Bot$it", false)
+                ready[it] = getBooleanOr("PlayerReady$it", false)
+                seat[it] = getStringOr("Seat$it", "")
+                points[it] = getIntOr("Point$it", 0)
             }
-            dealer = getString("Dealer")
-            rule = MahjongRule.fromJsonString(getString("Rule"))
-            playing = getBoolean("Playing")
-            round = Json.decodeFromString(getString("Round"))
+            dealer = getStringOr("Dealer", "")
+            rule = MahjongRule.fromJsonString(getStringOr("Rule", ""))
+            playing = getBooleanOr("Playing", false)
+            round = Json.decodeFromString(getStringOr("Round", ""))
         }
         level?.isClientSide?.let { isClient ->
             if (isClient) { //當有同步 tag 的情況出現
-                val screen = Minecraft.getInstance().screen
+                val screen = Minecraft.getInstance().gui.screen()
                 if (screen is MahjongTableWaitingScreen && (screen.description as MahjongTableGui).mahjongTable == this) {
                     if (!playing) {  //遊戲還沒開始, 刷新開著這個麻將桌視窗的玩家的視窗
                         screen.refresh()
@@ -106,7 +108,7 @@ class MahjongTableBlockEntity(
         }
     }
 
-    override fun saveAdditional(nbt: CompoundTag, registryLookup: HolderLookup.Provider) {
+    override fun saveAdditional(nbt: ValueOutput) {
         if (blockState.getValue(MahjongTable.PART) == MahjongTablePart.BOTTOM_CENTER) {
             with(nbt) {
                 repeat(4) {
@@ -126,7 +128,7 @@ class MahjongTableBlockEntity(
     }
 
     override fun getUpdateTag(registryLookup: HolderLookup.Provider): CompoundTag =
-        CompoundTag().also { saveAdditional(it, registryLookup) }
+        saveCustomOnly(registryLookup)
 
     override fun getUpdatePacket(): Packet<ClientGamePacketListener> = ClientboundBlockEntityDataPacket.create(this)
 

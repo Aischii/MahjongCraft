@@ -29,7 +29,7 @@ object YakuSettleHandler {
     private fun setScreen(settlements: List<YakuSettlement>) {
         ClientScheduler.scheduleDelayAction {
             screen = YakuSettlementScreen(settlements = settlements)
-            client.setScreen(screen)
+            client.gui.setScreen(screen)
         }
     }
 
@@ -40,7 +40,7 @@ object YakuSettleHandler {
     @Environment(EnvType.CLIENT)
     private fun closeScreen() {
         CoroutineScope(Dispatchers.Default).launch {
-            if (client.screen == screen) {
+            if (client.gui.screen() == screen) {
                 ClientScheduler.scheduleDelayAction { screen.onClose() }
             }
         }

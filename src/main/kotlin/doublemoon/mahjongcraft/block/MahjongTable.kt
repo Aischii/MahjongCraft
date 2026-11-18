@@ -1,6 +1,5 @@
 package doublemoon.mahjongcraft.block
 
-import com.mojang.serialization.MapCodec
 import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.block.enums.MahjongTablePart
 import doublemoon.mahjongcraft.blockentity.MahjongTableBlockEntity
@@ -71,7 +70,7 @@ class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
         super.setPlacedBy(world, pos, state, placer, itemStack)
         if (!world.isClientSide) {
             peripheryPos(pos).forEach { (part, position) -> world.setBlockAndUpdate(position, state.setValue(PART, part)) }
-            world.blockUpdated(pos, Blocks.AIR)
+            world.updateNeighborsAt(pos, Blocks.AIR)
             state.updateNeighbourShapes(world, pos, 3)
         }
     }
@@ -102,8 +101,6 @@ class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
         builder.add(PART)
     }
 
-    override fun codec(): MapCodec<out BaseEntityBlock> = simpleCodec(::MahjongTable)
-
     override fun useWithoutItem(
         state: BlockState,
         world: Level,
@@ -119,9 +116,8 @@ class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
             if (!GameManager.isInAnyGame(player) || game.isInGame(player)) {
                 //如果玩家沒有在任何遊戲中, 或者玩家在"這個"遊戲中
                 if (game.status == GameStatus.PLAYING) { //如果遊戲已經開始,傳訊息->遊戲已經開始了
-                    player.displayClientMessage(
-                        Component.translatable("$MOD_ID.game.message.already_started").withStyle(ChatFormatting.YELLOW),
-                        true
+                    player.sendOverlayMessage(
+                        Component.translatable("$MOD_ID.game.message.already_started").withStyle(ChatFormatting.YELLOW)
                     )
                 } else {  // 如果遊戲尚未開始, 讓玩家開啟麻將桌 gui
                     sendPayloadToPlayer(
@@ -135,7 +131,7 @@ class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
             } else {  //玩家已經在某個遊戲中, 且不是"這個"遊戲
                 val message = Component.translatable("$MOD_ID.game.message.already_in_a_game")
                     .withStyle(ChatFormatting.YELLOW) + " (" + game.name + ")"
-                player.displayClientMessage(message, true)
+                player.sendOverlayMessage(message)
             }
         }
         return InteractionResult.SUCCESS
@@ -144,7 +140,7 @@ class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
     override fun newBlockEntity(pos: BlockPos, state: BlockState): BlockEntity? =
         if (state.getValue(PART) == MahjongTablePart.BOTTOM_CENTER) MahjongTableBlockEntity(pos, state) else null
 
-    override fun <T : BlockEntity?> getTicker(
+    override fun <T : BlockEntity> getTicker(
         world: Level,
         state: BlockState,
         type: BlockEntityType<T>,
