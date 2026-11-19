@@ -34,6 +34,7 @@ object MahjongCraft : ModInitializer {
         SoundRegistry.register()
         doublemoon.mahjongcraft.game.progress.MahjongGameRules.register()
         doublemoon.mahjongcraft.game.progress.MahjongLoot.register()
+        doublemoon.mahjongcraft.game.progress.MahjongCommands.register()
 
         // Event
         ServerTickEvents.END_SERVER_TICK.register(ServerScheduler::tick)
@@ -46,9 +47,11 @@ object MahjongCraft : ModInitializer {
         MahjongTablePayloadListener.registerCommon()
         MahjongGamePayloadListener.registerCommon()
         MahjongTileCodePayloadListener.registerCommon()
+        doublemoon.mahjongcraft.network.mahjong_stats.MahjongStatsPayloadListener.registerCommon()
 
         MahjongTablePayloadListener.registerServer()
         MahjongGamePayloadListener.registerServer()
         MahjongTileCodePayloadListener.registerServer()
+        doublemoon.mahjongcraft.network.mahjong_stats.MahjongStatsPayloadListener.registerServer()
     }
 }

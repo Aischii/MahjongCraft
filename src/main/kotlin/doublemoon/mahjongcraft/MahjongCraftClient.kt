@@ -110,6 +110,7 @@ object MahjongCraftClient : ClientModInitializer {
         MahjongTablePayloadListener.registerClient()
         MahjongGamePayloadListener.registerClient()
         MahjongTileCodePayloadListener.registerClient()
+        doublemoon.mahjongcraft.network.mahjong_stats.MahjongStatsPayloadListener.registerClient()
 
         // Config
         AutoConfig.register(ModConfig::class.java, ::GsonConfigSerializer)

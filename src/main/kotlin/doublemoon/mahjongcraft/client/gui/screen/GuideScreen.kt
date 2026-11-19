@@ -5,6 +5,9 @@ import doublemoon.mahjongcraft.MahjongCraftClient
 import doublemoon.mahjongcraft.client.game.MahjongKeys
 import doublemoon.mahjongcraft.client.gui.screen.yaku_overview.YakuOverviewScreen
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.ActionGroup
+import doublemoon.mahjongcraft.game.progress.PlayerStats
+import doublemoon.mahjongcraft.game.progress.StatsText
+import doublemoon.mahjongcraft.network.mahjong_stats.MahjongStatsPayloadListener
 import doublemoon.mahjongcraft.registry.BlockRegistry
 import doublemoon.mahjongcraft.registry.ItemRegistry
 import net.fabricmc.api.EnvType
@@ -28,13 +31,15 @@ import net.minecraft.world.level.ItemLike
 class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
     Screen(Minecraft.getInstance(), Minecraft.getInstance().font, Component.translatable("item.$MOD_ID.mahjong_book")) {
 
-    enum class Tab { CRAFTING, CONTROLS, RULES, YAKU }
+    enum class Tab { CRAFTING, CONTROLS, RULES, YAKU, STATS }
 
     /** One line of the page: optional item icon, then text. */
     private class Line(val text: FormattedCharSequence, val icon: ItemStack? = null, val color: Int = WHITE)
 
     private var lines: List<Line> = emptyList()
     private var scroll = 0
+    /** This player's stats from the server; null until the reply arrives. */
+    private var stats: PlayerStats? = null
 
     private val panelW get() = minOf(320, width - 32)
     private val panelX get() = (width - panelW) / 2
@@ -42,6 +47,7 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
     private val panelBottom get() = height - 36
 
     override fun init() {
+        if (tab == Tab.STATS && stats == null) MahjongStatsPayloadListener.request()
         val tabW = (panelW - (Tab.entries.size - 1) * 4) / Tab.entries.size
         Tab.entries.forEachIndexed { i, t ->
             addRenderableWidget(
@@ -64,6 +70,12 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
         tab = t
         scroll = 0
         rebuildWidgets()
+    }
+
+    /** Called when the server's reply to the Stats tab's request arrives. */
+    fun showStats(stats: PlayerStats) {
+        this.stats = stats
+        if (tab == Tab.STATS) rebuildWidgets()
     }
 
     private fun maxScroll(): Int = maxOf(0, lines.size * LINE_H - (panelBottom - panelTop - PAD * 2))
@@ -157,6 +169,16 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
                 paragraph(Component.translatable("$MOD_ID.guide.rules.$it"))
             }
             Tab.YAKU -> paragraph(Component.translatable("$MOD_ID.guide.yaku.intro"))
+            Tab.STATS -> {
+                val current = stats
+                if (current == null) {
+                    paragraph(Component.translatable("$MOD_ID.guide.stats.loading"), GREY)
+                } else {
+                    StatsText.lines(current).forEach { paragraph(it) }
+                    out += Line(FormattedCharSequence.EMPTY)
+                    paragraph(Component.translatable("$MOD_ID.guide.stats.command"), GREY)
+                }
+            }
         }
         return out
     }

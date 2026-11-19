@@ -325,5 +325,21 @@
   "mahjongcraft.guide.rules.furiten.title": "振听",
   "mahjongcraft.guide.rules.furiten": "如果你打出过自己在听的牌，就不能荣和，只能自摸。",
   "mahjongcraft.guide.yaku.intro": "每个和牌都至少需要一个役。役和宝牌越多，番数越高，点数也越高。役种概览列出所有役及其番数。",
-  "mahjongcraft.guide.yaku.open": "打开役种概览"
+  "mahjongcraft.guide.yaku.open": "打开役种概览",
+  "mahjongcraft.guide.tab.stats": "战绩",
+  "mahjongcraft.guide.stats.loading": "正在读取战绩…",
+  "mahjongcraft.guide.stats.command": "战绩按世界分别记录。用 /mahjong stats <玩家> 可以查看任何人的战绩。",
+  "mahjongcraft.stats.title": "%s 的麻将战绩",
+  "mahjongcraft.stats.none": "还没有打过任何一局。",
+  "mahjongcraft.stats.games": "场数: %s · 一位: %s (%s%%)",
+  "mahjongcraft.stats.hands": "局数: %s · 和牌: %s (%s%%) · 放铳: %s (%s%%)",
+  "mahjongcraft.stats.riichi": "立直次数: %s",
+  "mahjongcraft.stats.top_yaku": "最常和的役: ",
+  "mahjongcraft.stats.recent": "最近的对局:",
+  "mahjongcraft.stats.points": "%s 点",
+  "mahjongcraft.stats.place.1": "一位",
+  "mahjongcraft.stats.place.2": "二位",
+  "mahjongcraft.stats.place.3": "三位",
+  "mahjongcraft.stats.place.4": "四位",
+  "mahjongcraft.stats.unknown_player": "这个世界里没有 %s 的麻将战绩"
 }

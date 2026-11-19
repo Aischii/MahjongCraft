@@ -63,12 +63,25 @@ To play you need a table with a Tile Set loaded; the tiles, sticks and dice on t
 
 ## Mahjong Guide
 
-Right-click with the Mahjong Guide to open it. It has four tabs:
+Right-click with the Mahjong Guide to open it. It has five tabs:
 
 - **Crafting:** every recipe in the mod.
 - **Controls:** your current key bindings, so it stays right if you change them.
 - **Rules:** a short how-to-play: starting a game, the goal, turns, calls, riichi, winning and furiten.
 - **Yaku:** what yaku are, with a button to the full Yaku Overview.
+- **Stats:** your own mahjong record in this world.
+
+## Stats
+
+Each world (or server) keeps a mahjong record for every player. Bots are not recorded.
+
+- Games played and how often you finished first.
+- Hands played, hands won and how often you dealt into someone's Ron.
+- How many times you declared riichi.
+- Your three most-won yaku.
+- Your last 10 games, with placement and final points.
+
+See your own record in the Guide's Stats tab or with `/mahjong stats`, and anyone else's with `/mahjong stats <player>`.
 
 ## Advancements
 

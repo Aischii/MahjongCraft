@@ -325,5 +325,21 @@
   "mahjongcraft.guide.rules.furiten.title": "Furiten",
   "mahjongcraft.guide.rules.furiten": "If you discarded one of your own waiting tiles, you cannot win by Ron, only by Tsumo.",
   "mahjongcraft.guide.yaku.intro": "Every winning hand needs at least one yaku. More yaku and dora mean more han, and more han means more points. The Yaku Overview lists every yaku with how many han it is worth.",
-  "mahjongcraft.guide.yaku.open": "Open Yaku Overview"
+  "mahjongcraft.guide.yaku.open": "Open Yaku Overview",
+  "mahjongcraft.guide.tab.stats": "Stats",
+  "mahjongcraft.guide.stats.loading": "Loading your stats…",
+  "mahjongcraft.guide.stats.command": "Stats are kept per world. See anyone's with /mahjong stats <player>.",
+  "mahjongcraft.stats.title": "%s's mahjong record",
+  "mahjongcraft.stats.none": "No hands played yet.",
+  "mahjongcraft.stats.games": "Games: %s · 1st place: %s (%s%%)",
+  "mahjongcraft.stats.hands": "Hands: %s · Won: %s (%s%%) · Dealt in: %s (%s%%)",
+  "mahjongcraft.stats.riichi": "Riichi declared: %s",
+  "mahjongcraft.stats.top_yaku": "Top yaku: ",
+  "mahjongcraft.stats.recent": "Last games:",
+  "mahjongcraft.stats.points": "%s points",
+  "mahjongcraft.stats.place.1": "1st",
+  "mahjongcraft.stats.place.2": "2nd",
+  "mahjongcraft.stats.place.3": "3rd",
+  "mahjongcraft.stats.place.4": "4th",
+  "mahjongcraft.stats.unknown_player": "No mahjong record for %s in this world"
 }

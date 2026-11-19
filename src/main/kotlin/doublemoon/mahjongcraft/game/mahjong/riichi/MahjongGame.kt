@@ -10,7 +10,7 @@ import doublemoon.mahjongcraft.game.GameStatus
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.*
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongBot
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayer
-import doublemoon.mahjongcraft.game.progress.MahjongAdvancements
+import doublemoon.mahjongcraft.game.progress.MahjongProgress
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayerBase
 import net.minecraft.sounds.SoundEvents
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
@@ -541,7 +541,7 @@ class MahjongGame(
                 if (riichiSengen != null) {
                     // 立直棒的點數會在流局或者有人贏牌的時候結算減去
                     player.riichi(riichiSengenTile = tileDiscarded, isFirstRound = board.isFirstRound)
-                    (player as? MahjongPlayer)?.let(MahjongAdvancements::onRiichi)
+                    (player as? MahjongPlayer)?.let(MahjongProgress::onRiichi)
                     board.sortDiscardedTilesForDisplay(player = player, openDoorPlayer = openDoorPlayer)
                     board.putRiichiStick(player = player)
                     player.playSoundAtSeat(SoundRegistry.riichi)
@@ -788,7 +788,7 @@ class MahjongGame(
                 roundDraw(roundExhaustiveDraw)
             }
 
-            MahjongAdvancements.onHandEnd(realPlayers)
+            MahjongProgress.onHandEnd(realPlayers)
 
             //結束後等待一下
             delayOnServer(3000L)
@@ -917,8 +917,7 @@ class MahjongGame(
 
     /** The game reached its last hand (not broken off): credit the player who finished first. */
     private fun onGameFinished() {
-        val first = players.maxByOrNull { it.points }
-        MahjongAdvancements.onGameWon(first as? MahjongPlayer)
+        MahjongProgress.onGameFinished(players.sortedByDescending { it.points })
     }
 
     /**
@@ -1184,6 +1183,7 @@ class MahjongGame(
             it.points += score
             totalScore += basicScore //總分除去已經計算的場棒分數, 只會累計基本分數
         }
+        (target as? MahjongPlayer)?.let(MahjongProgress::onDealIn)
         target.also { //被榮和的玩家
             val riichiStickPoints =
                 if (it.riichi || it.doubleRiichi) ScoringStick.P1000.point else 0 //這個玩家這輪有沒有立直,有->還要減去立直棒的點數
@@ -1351,7 +1351,7 @@ class MahjongGame(
         scoreSettlement: ScoreSettlement? = null,
     ) {
         if (yakuSettlementList != null) {
-            MahjongAdvancements.onWins(this, yakuSettlementList)
+            MahjongProgress.onWins(this, yakuSettlementList)
             this.forEach { //發送給玩家役結算畫面的數據
                 sendPayloadToPlayer(
                     player = it.entity,

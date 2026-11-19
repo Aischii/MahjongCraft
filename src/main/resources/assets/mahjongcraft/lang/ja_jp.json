@@ -325,5 +325,21 @@
   "mahjongcraft.guide.rules.furiten.title": "フリテン",
   "mahjongcraft.guide.rules.furiten": "自分の待ち牌を捨てていると、ロンはできずツモでのみ和了できます。",
   "mahjongcraft.guide.yaku.intro": "和了には役が1つ以上必要です。役やドラが多いほど翻が増え、点数も上がります。役の概要で全ての役と翻数を確認できます。",
-  "mahjongcraft.guide.yaku.open": "役の概要を開く"
+  "mahjongcraft.guide.yaku.open": "役の概要を開く",
+  "mahjongcraft.guide.tab.stats": "成績",
+  "mahjongcraft.guide.stats.loading": "成績を読み込み中…",
+  "mahjongcraft.guide.stats.command": "成績はワールドごとに記録されます。/mahjong stats <プレイヤー> で他の人の成績も見られます。",
+  "mahjongcraft.stats.title": "%s の麻雀成績",
+  "mahjongcraft.stats.none": "まだ一局も打っていません。",
+  "mahjongcraft.stats.games": "対局数: %s · 1位: %s (%s%%)",
+  "mahjongcraft.stats.hands": "局数: %s · 和了: %s (%s%%) · 放銃: %s (%s%%)",
+  "mahjongcraft.stats.riichi": "リーチ回数: %s",
+  "mahjongcraft.stats.top_yaku": "よく和了る役: ",
+  "mahjongcraft.stats.recent": "最近の対局:",
+  "mahjongcraft.stats.points": "%s 点",
+  "mahjongcraft.stats.place.1": "1位",
+  "mahjongcraft.stats.place.2": "2位",
+  "mahjongcraft.stats.place.3": "3位",
+  "mahjongcraft.stats.place.4": "4位",
+  "mahjongcraft.stats.unknown_player": "このワールドに %s の麻雀成績はありません"
 }
