@@ -1,0 +1,135 @@
+# Publishes a GitHub release when a version tag (v0.5.0, …) is pushed, or from the Actions tab.
+# The tag must match modVersion in gradle.properties. Notes = the version's CHANGELOG.md section,
+# the requirements, then GitHub's list of changes since the previous release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v0.5.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
+
+      - name: Read versions from gradle.properties
+        id: props
+        run: |
+          prop() { grep -E "^$1\s*=" gradle.properties | head -1 | cut -d= -f2- | tr -d ' \r'; }
+          {
+            echo "mod=$(prop modVersion)"
+            echo "minecraft=$(prop minecraftVersion)"
+            echo "loader=$(prop loaderVersion)"
+            echo "fabric=$(prop fabricVersion)"
+            echo "flk=$(prop fabricKotlinVersion)"
+            echo "cloth=$(prop clothConfigVersion)"
+            echo "java=$(prop javaVersion)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check the tag matches the mod version
+        run: |
+          if [ "$TAG" != "v${{ steps.props.outputs.mod }}" ]; then
+            echo "::error::Tag $TAG does not match modVersion ${{ steps.props.outputs.mod }} (expected v${{ steps.props.outputs.mod }})."
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            25
+            21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build and test
+        run: ./gradlew build
+
+      - name: Find the mod jar
+        id: jar
+        run: |
+          jar=$(ls build/libs/*.jar | grep -v -- '-sources.jar$' | head -1)
+          [ -n "$jar" ] || { echo "::error::No mod jar in build/libs"; exit 1; }
+          echo "path=$jar" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$jar")" >> "$GITHUB_OUTPUT"
+
+      - name: Write the release notes
+        env:
+          MOD: ${{ steps.props.outputs.mod }}
+          MC: ${{ steps.props.outputs.minecraft }}
+          LOADER: ${{ steps.props.outputs.loader }}
+          FABRIC: ${{ steps.props.outputs.fabric }}
+          FLK: ${{ steps.props.outputs.flk }}
+          CLOTH: ${{ steps.props.outputs.cloth }}
+          JAVA: ${{ steps.props.outputs.java }}
+          JAR: ${{ steps.jar.outputs.name }}
+        run: |
+          # This version's section of CHANGELOG.md (from its "## <version>" heading to the next "## ").
+          awk -v v="$MOD" '
+            /^## / { if (found) exit; if ($2 == v) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > changelog.md
+          if [ ! -s changelog.md ]; then
+            echo "::error::CHANGELOG.md has no '## $MOD' section."
+            exit 1
+          fi
+          {
+            cat changelog.md
+            echo
+            echo "## Download"
+            echo
+            echo "Put **\`$JAR\`** in your \`mods\` folder. On a server, the server and every player need it."
+            echo
+            echo "## Requirements"
+            echo
+            echo "| | Version |"
+            echo "|---|---|"
+            echo "| Minecraft | $MC |"
+            echo "| Java | $JAVA |"
+            echo "| [Fabric Loader](https://fabricmc.net/use/) | $LOADER or newer |"
+            echo "| [Fabric API](https://modrinth.com/mod/fabric-api) | $FABRIC |"
+            echo "| [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) | $FLK |"
+            echo "| [Cloth Config API](https://modrinth.com/mod/cloth-config) | $CLOTH |"
+            echo "| [Mod Menu](https://modrinth.com/mod/modmenu) | optional |"
+            echo
+            echo "How to play, controls and crafting: see the [README](https://github.com/${GITHUB_REPOSITORY}/blob/$TAG/README.md)."
+            echo
+            echo "MahjongCraft was created by [doublemoon1119](https://github.com/doublemoon1119/MahjongCraft); this is a fork."
+            echo
+          } > notes.md
+          cat notes.md
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JAR_PATH: ${{ steps.jar.outputs.path }}
+          MC: ${{ steps.props.outputs.minecraft }}
+        run: |
+          # The commit list starts at the previous v* tag, or at the original mod's last tag for the first release.
+          prev=$(git tag --list 'v*' --sort=-v:refname | grep -vx "$TAG" | head -1 || true)
+          [ -n "$prev" ] || prev=$(git tag --list 'mc*' --sort=-creatordate | head -1 || true)
+          start=()
+          [ -n "$prev" ] && start=(--notes-start-tag "$prev")
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$JAR_PATH" --clobber
+            gh release edit "$TAG" --notes-file notes.md
+          else
+            gh release create "$TAG" "$JAR_PATH" \
+              --title "MahjongCraft $TAG for Minecraft $MC" \
+              --notes-file notes.md --generate-notes "${start[@]}" \
+              --latest --verify-tag
+          fi

@@ -1,0 +1,41 @@
+# Builds and tests every push and pull request. The jar is kept as a downloadable test build.
+name: Build
+
+on:
+  push:
+    branches: ["**"]
+    tags-ignore: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Java 25 builds the mod (Gradle toolchain); Java 21 runs Gradle itself and is listed last so it
+      # becomes JAVA_HOME.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            25
+            21
+
+      # Caches Gradle and validates the wrapper.
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build and test
+        run: ./gradlew build
+
+      - name: Keep the mod jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: mahjongcraft-${{ github.sha }}
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+          if-no-files-found: error

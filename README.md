@@ -32,8 +32,9 @@ A Fabric mod for Minecraft that lets you play Japanese (Riichi) Mahjong in game,
 ## Installing
 
 1. Install Fabric Loader for Minecraft 26.3.
-2. Put these jars in your `mods` folder: MahjongCraft, Fabric API, Fabric Language Kotlin and Cloth Config. Mod Menu is optional.
-3. Start the game. On a server, the server and every player need the mod.
+2. Download the latest `mahjongcraft-mc26.3-….jar` from [Releases](https://github.com/Aischii/MahjongCraft/releases/latest). Each release lists the exact versions it needs; what changed is in the [changelog](CHANGELOG.md).
+3. Put these jars in your `mods` folder: MahjongCraft, Fabric API, Fabric Language Kotlin and Cloth Config. Mod Menu is optional.
+4. Start the game. On a server, the server and every player need the mod.
 
 ## Getting started
 
