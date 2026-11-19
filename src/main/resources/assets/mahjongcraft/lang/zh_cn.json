@@ -264,6 +264,7 @@
   "mahjongcraft.hud.action.draw": "流局",
   "mahjongcraft.hud.action.skip": "跳过",
   "mahjongcraft.hud.hint.discard": "轮到你了：滚动鼠标选牌，按%s出牌",
+  "mahjongcraft.hud.hint.auto_discard": "立直中：自动摸切",
   "mahjongcraft.hud.hint.riichi": "立直：选择要打出的牌，按%s宣告",
   "mahjongcraft.hud.hint.variant": "滚动选择，按%s确认，按%s返回",
   "mahjongcraft.hud.hint.options": "按动作键，或按%s跳过",

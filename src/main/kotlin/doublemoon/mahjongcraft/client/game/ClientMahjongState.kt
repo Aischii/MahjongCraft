@@ -103,7 +103,7 @@ object ClientMahjongState {
         discardRequest = request
         selected = hand.lastIndex
         if (!isSelectable(selected)) moveSelection(-1)
-        Sounds.yourTurn()
+        if (!request.auto) Sounds.yourTurn()
     }
 
     fun onRequest(behavior: MahjongGameBehavior, hands: List<MahjongTile>, target: ClaimTarget, data: String) {
@@ -171,7 +171,7 @@ object ClientMahjongState {
                 optionsIn(group).firstOrNull { it.tiles.first() == tile }?.let { send(it.response()) }
             }
             null -> {
-                if (discardRequest == null || !isSelectable(selected)) return
+                if (discardRequest == null || discardRequest?.auto == true || !isSelectable(selected)) return
                 send(MahjongGameBehavior.DISCARD to MahjongTile.entries.indexOf(hand[selected]).toString())
             }
             else -> optionsIn(group).getOrNull(variantIndex)?.let { send(it.response()) }

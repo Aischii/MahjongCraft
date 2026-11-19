@@ -149,6 +149,7 @@ object HandHud {
             state.activeGroup != null ->
                 Component.translatable("$MOD_ID.hud.hint.variant", MahjongKeys.keyFor(state.activeGroup!!).translatedKeyMessage, skip)
             state.options.isNotEmpty() -> Component.translatable("$MOD_ID.hud.hint.options", skip)
+            state.discardRequest?.auto == true -> Component.translatable("$MOD_ID.hud.hint.auto_discard")
             state.discardRequest != null -> Component.translatable("$MOD_ID.hud.hint.discard", use)
             else -> null
         }

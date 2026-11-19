@@ -881,12 +881,14 @@ abstract class MahjongPlayerBase : GamePlayer {
      * @param timeoutTile 當超時的時候會丟出去的牌
      * @param cannotDiscardTiles 不能丟掉的牌的列表,需要輸入 [MahjongTile]
      * @param skippable 客戶端可以跳過的, 會影響到自動摸切而已
+     * @param auto In riichi with nothing to decide: discard [timeoutTile] without asking.
      * @return 要丟出的牌的編號 [MahjongTile.code]
      * */
     open suspend fun askToDiscardTile(
         timeoutTile: MahjongTile,
         cannotDiscardTiles: List<MahjongTile>,
         skippable: Boolean,
+        auto: Boolean = false,
     ): MahjongTile = hands.findLast { it.mahjongTile !in cannotDiscardTiles }?.mahjongTile ?: timeoutTile
 
     /**

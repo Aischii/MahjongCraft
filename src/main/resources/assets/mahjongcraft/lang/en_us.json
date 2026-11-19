@@ -264,6 +264,7 @@
   "mahjongcraft.hud.action.draw": "Draw",
   "mahjongcraft.hud.action.skip": "Skip",
   "mahjongcraft.hud.hint.discard": "Your turn: scroll to pick a tile, %s to discard",
+  "mahjongcraft.hud.hint.auto_discard": "Riichi: discarding the drawn tile for you",
   "mahjongcraft.hud.hint.riichi": "Riichi: pick the tile to discard, %s to declare",
   "mahjongcraft.hud.hint.variant": "Scroll to choose, %s to confirm, %s to go back",
   "mahjongcraft.hud.hint.options": "Press an action key, or %s to skip",

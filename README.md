@@ -81,6 +81,8 @@ While you are seated, your hand is shown along the bottom of the screen and the 
 | Abortive draw (Kyuushu Kyuuhai) | N |
 | Skip / pass | Z |
 
+After you declare riichi, your drawn tile is discarded for you automatically. The game still stops when you can Tsumo, Ron, Kan or Kita.
+
 When an action can be done more than one way (for example two different Chii pairs), press its key again to cycle through them, then confirm.
 
 | Other action | Default key |

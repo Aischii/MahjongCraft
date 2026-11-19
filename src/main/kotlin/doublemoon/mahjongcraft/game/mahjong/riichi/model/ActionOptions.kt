@@ -47,6 +47,8 @@ enum class ActionGroup { CHII, PON, KAN, KITA, RIICHI, WIN, DRAW, SKIP }
 data class DiscardRequest(
     val skippable: Boolean,
     val cannotDiscard: List<MahjongTile> = emptyList(),
+    /** In riichi: the server discards the drawn tile itself; the client only shows it. */
+    val auto: Boolean = false,
 )
 
 object ActionOptions {

@@ -264,6 +264,7 @@
   "mahjongcraft.hud.action.draw": "流局",
   "mahjongcraft.hud.action.skip": "スキップ",
   "mahjongcraft.hud.hint.discard": "あなたの番：スクロールで牌を選び、%sで打牌",
+  "mahjongcraft.hud.hint.auto_discard": "リーチ中：ツモ切りします",
   "mahjongcraft.hud.hint.riichi": "リーチ：捨てる牌を選び、%sで宣言",
   "mahjongcraft.hud.hint.variant": "スクロールで選択、%sで決定、%sで戻る",
   "mahjongcraft.hud.hint.options": "アクションキーを押すか、%sでスキップ",
