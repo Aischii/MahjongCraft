@@ -2,6 +2,11 @@
 
 All notable changes to this fork of MahjongCraft. Each release's notes on GitHub are taken from its section here.
 
+## 0.5.1
+
+### Playing
+- **Riichi autoplay:** after you declare riichi, the tile you draw is discarded for you after a short pause. The game still stops for Tsumo, Ron, Kan and Kita, so you never miss a win or a call. The hint above your hand shows when it's on.
+
 ## 0.5.0
 
 The first release of this fork, for **Minecraft 26.3**. It includes everything since the original mod's 0.3.13 (Minecraft 1.20.6).

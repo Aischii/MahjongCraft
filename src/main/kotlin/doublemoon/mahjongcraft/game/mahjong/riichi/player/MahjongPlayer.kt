@@ -17,6 +17,9 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.network.chat.Component
 
+/** How long riichi autoplay shows the drawn tile before discarding it. */
+private const val AUTO_DISCARD_MS = 800L
+
 /**
  * 麻將玩家
  * */
@@ -120,7 +123,9 @@ class MahjongPlayer(
         timeoutTile: MahjongTile,
         cannotDiscardTiles: List<MahjongTile>,
         skippable: Boolean,
+        auto: Boolean,
     ): MahjongTile {
+        if (auto) return autoDiscard(timeoutTile, cannotDiscardTiles)
         this.cannotDiscardTiles = cannotDiscardTiles
         return waitForBehaviorResult(
             behavior = MahjongGameBehavior.DISCARD,
@@ -134,6 +139,32 @@ class MahjongPlayer(
                 MahjongTile.entries[tileCode]
             } else timeoutTile
         }
+    }
+
+    /**
+     * Riichi autoplay: shows the drawn tile for [AUTO_DISCARD_MS], then discards it. Tsumo and
+     * Kan were already asked before this, so there is nothing left to choose.
+     */
+    private suspend fun autoDiscard(tile: MahjongTile, cannotDiscardTiles: List<MahjongTile>): MahjongTile {
+        sendPayloadToPlayer(
+            player = entity,
+            payload = MahjongGamePayload(
+                behavior = MahjongGameBehavior.DISCARD,
+                hands = hands.toMahjongTileList(),
+                target = ClaimTarget.SELF,
+                extraData = Json.encodeToString(DiscardRequest(false, cannotDiscardTiles, auto = true))
+            )
+        )
+        delayOnServer(AUTO_DISCARD_MS)
+        // Two nulls end the request on the client, as after a normal countdown.
+        sendPayloadToPlayer(
+            player = entity,
+            payload = MahjongGamePayload(
+                behavior = MahjongGameBehavior.COUNTDOWN_TIME,
+                extraData = Json.encodeToString<Pair<Int?, Int?>>(null to null)
+            )
+        )
+        return tile
     }
 
     /**

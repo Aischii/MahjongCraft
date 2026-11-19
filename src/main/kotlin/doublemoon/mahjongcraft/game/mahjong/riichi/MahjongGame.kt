@@ -545,7 +545,9 @@ class MahjongGame(
                     riichiSengen ?: player.askToDiscardTile(
                         timeoutTile = timeoutTile.mahjongTile,
                         cannotDiscardTiles = cannotDiscardTiles,
-                        skippable = drewTile //這次有沒有拿牌代表客戶端能不能 跳過(即自動摸切)
+                        skippable = drewTile, //這次有沒有拿牌代表客戶端能不能 跳過(即自動摸切)
+                        // Riichi autoplay: the hand is locked, so the drawn tile goes out by itself.
+                        auto = player.riichi || player.doubleRiichi,
                     )
                 val tileDiscarded = player.discardTile(tileToDiscard) //玩家丟掉的牌
                 if (tileDiscarded == null) {
