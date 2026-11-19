@@ -68,10 +68,13 @@ class MahjongTableGui(
             if (index == -1) return false
             return ready[index]
         }
+    /** 4, or 3 for a 3-player (sanma) table; seats past this are unused. */
+    private val seats: Int
+        get() = mahjongTable.rule.seats
     private val isAllReady: Boolean
-        get() = (false !in mahjongTable.ready)
+        get() = (false !in mahjongTable.ready.take(seats))
     private val isFull: Boolean
-        get() = "" !in players
+        get() = "" !in players.take(seats)
     private val playerAmount: Int
         get() = players.filterNot { it == "" }.size
 
@@ -147,7 +150,7 @@ class MahjongTableGui(
                 ).forEachIndexed { index, text ->
                     val y = if (index > 0) ruleTexts[index - 1].let { it.y + it.height } + 3 else 0
                     ruleTexts += when (index) {
-                        3 -> tooltipText( //起始點數
+                        4 -> tooltipText( //起始點數
                             x = 0,
                             y = y,
                             width = 132,
@@ -161,7 +164,7 @@ class MahjongTableGui(
                                 )
                             )
                         )
-                        4 -> tooltipText( //一位必要點數
+                        5 -> tooltipText( //一位必要點數
                             x = 0,
                             y = y,
                             width = 132,
@@ -182,7 +185,7 @@ class MahjongTableGui(
      * */
     fun refresh() {
         with(joinOrLeave) {
-            isEnabled = if (isInThisGame) true else "" in players  //空位的時候, 會以 "" 表示
+            isEnabled = if (isInThisGame) true else !isFull  //空位的時候, 會以 "" 表示
             setLabel(if (!isInThisGame) Component.translatable("$MOD_ID.gui.button.join") else Component.translatable("$MOD_ID.gui.button.leave"))
         }
         playerInfoItems.forEach {
@@ -190,6 +193,7 @@ class MahjongTableGui(
             it.stringUUID = players[it.number]
             it.isBot = bots[it.number]
             it.ready = ready[it.number]
+            it.unused = it.number >= seats
             it.fresh()
         }
         rule.toTexts(
@@ -409,6 +413,8 @@ class MahjongTableGui(
         var stringUUID: String = ""
         var isBot: Boolean = false
         var ready: Boolean = false
+        /** This seat isn't used at a 3-player table. */
+        var unused: Boolean = false
         private val client = Minecraft.getInstance()
         private val fontHeight = client.font.lineHeight
         private val ttPlayer = Component.translatable("$MOD_ID.game.player")
@@ -416,6 +422,7 @@ class MahjongTableGui(
         private val ttReady = Component.translatable("$MOD_ID.gui.button.ready")
         private val ttNotReady = Component.translatable("$MOD_ID.gui.button.not_ready")
         private val ttEmpty = Component.translatable("$MOD_ID.game.empty")
+        private val ttUnused = Component.translatable("$MOD_ID.game.seat_unused").withStyle(ChatFormatting.GRAY)
 
         init {
             this.setSize(WIDTH, HEIGHT)
@@ -441,6 +448,11 @@ class MahjongTableGui(
         )
 
         fun fresh() {
+            if (unused) {
+                numberAndReady.text = playerNum
+                name.text = ttUnused
+                return
+            }
             when {
                 isBot -> {
                     if (face !is WBotFace) {

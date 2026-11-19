@@ -342,5 +342,15 @@
   "mahjongcraft.stats.place.3": "3rd",
   "mahjongcraft.stats.place.4": "4th",
   "mahjongcraft.stats.unknown_player": "No mahjong record for %s in this world",
-  "mahjongcraft.gui.tooltip.click_to_cycle": "Click for the next option"
+  "mahjongcraft.gui.tooltip.click_to_cycle": "Click for the next option",
+  "mahjongcraft.game.players": "Players",
+  "mahjongcraft.game.players.four": "4 (Yonma)",
+  "mahjongcraft.game.players.three": "3 (Sanma)",
+  "mahjongcraft.game.seat_unused": "Not used",
+  "key.mahjongcraft.kita": "Kita (set North aside)",
+  "mahjongcraft.hud.action.kita": "Kita",
+  "mahjongcraft.game.behavior.kita": "Kita",
+  "mahjongcraft.game.yaku.kita": "Kita (North dora)",
+  "mahjongcraft.guide.rules.sanma.title": "3-player (Sanma)",
+  "mahjongcraft.guide.rules.sanma": "Set Players to 3 in Edit Rules. The 2m–8m tiles are left out, there is no Chii, and you start with 35,000 points. Set a North aside with the Kita key: it counts as a dora and you draw a replacement tile. A Tsumo is paid only by the two other players."
 }

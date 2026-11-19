@@ -89,19 +89,20 @@ class MahjongTableBlockEntityRenderer(
      * 印出以莊家為東, 每個玩家的風, 以及分數, 莊家(東)風的顏色不一樣
      * */
     private fun addPlayerLabels(blockEntity: MahjongTableBlockEntity, labels: MutableList<TableLabel>) {
-        if (!blockEntity.playing || blockEntity.seat.size != 4) return //只有遊戲中才能渲染
+        val seats = blockEntity.rule.seats
+        if (!blockEntity.playing || blockEntity.seat.size < seats) return //只有遊戲中才能渲染
         val blockPos = blockEntity.blockPos
         val dealer = blockEntity.dealer
         val seat = blockEntity.seat
         val dealerSeatIndex = seat.indexOf(dealer).also { if (it == -1) return }
-        seat.forEachIndexed { index, stringUUID ->
+        seat.take(seats).forEachIndexed { index, stringUUID ->
             val bPos = when (index) {
                 0 -> blockPos.east().east()
                 1 -> blockPos.north().north()
                 2 -> blockPos.west().west()
                 else -> blockPos.south().south()
             }
-            val windIndex = (dealerSeatIndex - index).let { if (it >= 0) 4 - it else -it } % 4
+            val windIndex = (index - dealerSeatIndex + seats) % seats //莊家是東, 往下家依序是南西(北)
             val lines = listOf(
                 Component.nullToEmpty(blockEntity.points[index].toString()),
                 Wind.entries[windIndex].toText(),

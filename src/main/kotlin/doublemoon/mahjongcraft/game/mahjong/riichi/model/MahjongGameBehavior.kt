@@ -39,7 +39,8 @@ enum class MahjongGameBehavior : TextFormatting {
     COUNTDOWN_TIME,//倒數時間用
     AUTO_ARRANGE,//詢問自動理牌用
     MACHI,//待取(聽的牌)
-    HAND_UPDATE,//同步玩家的手牌 (給手牌 HUD 用)
+    HAND_UPDATE,
+    KITA, //拔北 (三麻)//同步玩家的手牌 (給手牌 HUD 用)
     TABLE_STATE,//同步牌桌資訊 (給 HUD 用)
     ;
 

@@ -38,6 +38,7 @@ object MahjongKeys {
         actions[ActionGroup.CHII] = key("chii", InputConstants.KEY_J)
         actions[ActionGroup.PON] = key("pon", InputConstants.KEY_B)
         actions[ActionGroup.KAN] = key("kan", InputConstants.KEY_K)
+        actions[ActionGroup.KITA] = key("kita", InputConstants.KEY_X)
         actions[ActionGroup.RIICHI] = key("riichi", InputConstants.KEY_R)
         actions[ActionGroup.WIN] = key("win", InputConstants.KEY_V)
         actions[ActionGroup.DRAW] = key("draw", InputConstants.KEY_N)

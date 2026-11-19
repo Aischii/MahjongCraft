@@ -33,6 +33,19 @@ abstract class MahjongPlayerBase : GamePlayer {
      * */
     val fuuroList: MutableList<Fuuro> = mutableListOf()
 
+    /** North tiles this player set aside (kita / nukidora) in sanma; each one is worth a dora. */
+    val kitaTiles: MutableList<MahjongTileEntity> = mutableListOf()
+
+    /** A North tile in hand that could be set aside right now, if the rules allow kita. */
+    val kitaTile: MahjongTileEntity? get() = hands.find { it.mahjongTile == MahjongTile.NORTH }
+
+    /** Sets [tile] (a North) aside as kita: it leaves the hand and lies face up beside the calls. */
+    fun kita(tile: MahjongTileEntity) {
+        hands -= tile
+        tile.inGameTilePosition = TilePosition.OTHER
+        kitaTiles += tile
+    }
+
     /**
      * 玩家的立直宣告牌,
      * 出現在 [discardedTilesForDisplay] 會橫著擺的那張
@@ -597,7 +610,7 @@ abstract class MahjongPlayerBase : GamePlayer {
     fun isIppatsu(players: List<MahjongPlayerBase>, discards: List<MahjongTileEntity>): Boolean {
         if (riichi) { //有立直
             val riichiSengenIndex = discards.indexOf(riichiSengenTile!!)
-            if (discards.lastIndex - riichiSengenIndex > 4) return false //相差大於 4 次丟牌, 即不可能 1 發, 剛好差 4 次表示一發自摸
+            if (discards.lastIndex - riichiSengenIndex > players.size) return false //相差大於一圈的丟牌數, 即不可能 1 發, 剛好一圈表示一發自摸
             //檢查從立直宣言到最後丟的牌中間有任意一人鳴牌
             val someoneCalls = discards.slice(riichiSengenIndex..discards.lastIndex).any { tile ->
                 players.any {
@@ -701,6 +714,7 @@ abstract class MahjongPlayerBase : GamePlayer {
         var finalHan = 0 //最後計算完的翻數, 役滿不會計算
         var finalFu = 0 //最後計算完的符數, 役滿不會計算
         var finalRedFiveCount = 0 //最後計算完的赤寶牌數量, 役滿不會計算
+        var finalKitaCount = 0 //拔北寶牌數量 (三麻), 役滿不會計算
         var finalNormalYakuList = mutableListOf<NormalYaku>() //最後計算完的役種
         val finalYakumanList = mj4jPlayer.yakumanList.toMutableList()
         val finalDoubleYakumanList = mutableListOf<DoubleYakuman>()
@@ -777,6 +791,9 @@ abstract class MahjongPlayerBase : GamePlayer {
                     finalRedFiveCount = handsRedFiveCount + fuuroListRedFiveCount //取得手上總共有多少紅寶牌
                     finalHan += finalRedFiveCount
                 }
+                //拔北寶牌 (三麻)
+                finalKitaCount = kitaTiles.size
+                finalHan += finalKitaCount
             }
             //計算符數
             finalFu = when {
@@ -823,6 +840,7 @@ abstract class MahjongPlayerBase : GamePlayer {
             yakumanList = finalYakumanList,
             doubleYakumanList = finalDoubleYakumanList,
             redFiveCount = finalRedFiveCount,
+            kitaCount = finalKitaCount,
             winningTile = winningTile,
             fuuroList = fuuroListForSettlement,
             doraIndicators = doraIndicators,
@@ -989,6 +1007,9 @@ abstract class MahjongPlayerBase : GamePlayer {
      * 詢問玩家是否要九種九牌和局
      * */
     open suspend fun askToKyuushuKyuuhai(): Boolean = true
+
+    /** Whether to set the North in hand aside as kita; bots always do. */
+    open suspend fun askToKita(): Boolean = true
 
     /**
      * 拿牌的功能

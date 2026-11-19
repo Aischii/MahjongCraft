@@ -8,7 +8,7 @@ A Fabric mod for Minecraft that lets you play Japanese (Riichi) Mahjong in game,
 >
 > This fork ([Aischii/MahjongCraft](https://github.com/Aischii/MahjongCraft)) ports the mod to **Minecraft 26.3**, fixes a server crash with C2ME and similar mods ([upstream issue #21](https://github.com/doublemoon1119/MahjongCraft/issues/21)), and adds an in-game HUD, key controls, survival crafting, a Mahjong Guide, advancements and stats.
 
-**Contents:** [Install](#installing) · [Getting started](#getting-started) · [Controls](#controls) · [The HUD](#the-hud) · [Crafting](#crafting) · [Mahjong Guide](#mahjong-guide) · [Stats](#stats) · [Advancements](#advancements) · [For server owners](#for-server-owners) · [Building from source](#building-from-source) · [Credits](#credits)
+**Contents:** [Install](#installing) · [Getting started](#getting-started) · [3-player (Sanma)](#3-player-sanma) · [Controls](#controls) · [The HUD](#the-hud) · [Crafting](#crafting) · [Mahjong Guide](#mahjong-guide) · [Stats](#stats) · [Advancements](#advancements) · [For server owners](#for-server-owners) · [Building from source](#building-from-source) · [Credits](#credits)
 
 ## Requirements
 
@@ -50,6 +50,19 @@ A Fabric mod for Minecraft that lets you play Japanese (Riichi) Mahjong in game,
 
 New to Riichi Mahjong? Craft a **Mahjong Guide** (a book and a tile): its Rules tab explains the basics in a few short paragraphs.
 
+## 3-player (Sanma)
+
+Any table can be a 3-player table: the host sets **Players** to **3** in **Edit Rules**. The waiting room then has three seats, and one side of the table stays empty.
+
+![Edit Rules with Players set to 3 (Sanma); the tooltip lists both options](docs/images/rules-sanma.png)
+
+- **108 tiles:** 2m–8m are left out. With a 1m dora indicator, the dora is 9m.
+- **No Chii.** Pon, Kan, Riichi and wins work as usual.
+- **Kita:** when you hold a North on your turn, press **X** to set it aside. It counts as one dora if you win, and you draw a replacement tile.
+- **Tsumo loss:** a Tsumo is paid only by the two other players, as in Mahjong Soul and Tenhou.
+- **Points:** 35,000 to start and 40,000 to win by default (switching Players moves the defaults; you can still edit them).
+- Each wind has three hands (East 1–3), and the no-tenpai penalty is 2,000 points instead of 3,000.
+
 ## Controls
 
 While you are seated, your hand is shown along the bottom of the screen and the actions you can take appear as buttons above it, each labelled with its key. You never need to aim at tiles on the table.
@@ -61,6 +74,7 @@ While you are seated, your hand is shown along the bottom of the screen and the 
 | Chii | J |
 | Pon | B |
 | Kan | K |
+| Kita (3-player: set a North aside) | X |
 | Riichi | R |
 | Win (Tsumo / Ron) | V |
 | Abortive draw (Kyuushu Kyuuhai) | N |

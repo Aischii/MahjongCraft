@@ -94,7 +94,7 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
             MahjongTableBehavior.START -> { //開始遊戲
                 val game = GameManager.getGame<MahjongGame>(world, pos)
                 val table = world.getBlockEntity(pos) as? MahjongTableBlockEntity
-                if (game != null && game.isHost(player) && game.status == GameStatus.WAITING) {
+                if (game != null && game.isHost(player) && game.status == GameStatus.WAITING && game.players.size == game.rule.seats) {
                     if (table != null && !table.canStart(player)) {
                         player.sendOverlayMessage(
                             Component.translatable("$MOD_ID.game.message.tile_set_needed").withStyle(ChatFormatting.YELLOW)

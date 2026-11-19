@@ -41,6 +41,20 @@ class RuleEditorGui(
 
     //編輯中的設定
     private val editingRule: MahjongRule = mahjongTable.rule.copy()
+    private val playersItem = RuleSelectItem(
+        name = Component.translatable("$MOD_ID.game.players"),
+        value = { editingRule.players },
+        label = { it.toText() },
+        tooltip = { players -> getTooltip(players) }
+    ) {
+        val values = MahjongRule.PlayerCount.entries.toTypedArray()
+        val old = editingRule.players
+        val next = values[(old.ordinal + 1) % values.size]
+        editingRule.players = next
+        // Points still at the old player count's defaults follow the new ones (25k/30k ↔ 35k/40k).
+        if (startingPointsItem.value == old.startingPoints) startingPointsItem.value = next.startingPoints
+        if (minPointsToWinItem.value == old.minPointsToWin) minPointsToWinItem.value = next.minPointsToWin
+    }
     private val lengthItem = RuleSelectItem(
         name = Component.translatable("$MOD_ID.game.length"),
         value = { editingRule.length },
@@ -127,6 +141,7 @@ class RuleEditorGui(
         }
 
     private val items = listOf(
+        playersItem,
         lengthItem,
         thinkingTimeItem,
         startingPointsItem,

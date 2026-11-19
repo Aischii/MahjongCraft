@@ -55,6 +55,13 @@ class MahjongBoard(
     var kanCount = 0
         private set
 
+    /** North tiles set aside (kita) this hand; each draws a replacement from the dead wall like a kan. */
+    var kitaCount = 0
+        private set
+
+    /** Replacement tiles drawn from the dead wall (kans and kitas); only 4 exist. */
+    val replacementCount: Int get() = kanCount + kitaCount
+
     /**
      * 丟的牌的列表, 會按照丟的順序排列
      * */
@@ -77,7 +84,7 @@ class MahjongBoard(
      * (丟出的牌小於等於 4 張且沒有人有副露)
      * */
     val isFirstRound: Boolean
-        get() = discardsCount <= 4 && noFuuro
+        get() = discardsCount <= game.seat.size.coerceAtLeast(1) && noFuuro
 
     /**
      * 現在是否是河底
@@ -90,7 +97,7 @@ class MahjongBoard(
      * */
     val isSuufonRenda: Boolean
         get() {
-            if (discards.size < 4) return false
+            if (game.rule.isSanma || discards.size < 4) return false
             val discards = discards.asReversed() //先將丟過的牌的列表倒過來牌, 方便處理
             val fonTile = discards[0]
             if (fonTile.mahjong4jTile.type != TileType.FONPAI) return false
@@ -111,7 +118,7 @@ class MahjongBoard(
      * */
     val doraIndicators: List<MahjongTileEntity>
         get() = List(kanCount + 1) {
-            val doraIndicatorIndex = (4 - it) * 2 + kanCount //加上槓補進王牌區的牌
+            val doraIndicatorIndex = (4 - it) * 2 + replacementCount //加上槓(和拔北)補進王牌區的牌
             deadWall[doraIndicatorIndex]
         }
 
@@ -122,7 +129,7 @@ class MahjongBoard(
      * */
     val uraDoraIndicators: List<MahjongTileEntity>
         get() = List(kanCount + 1) {
-            val uraDoraIndicatorIndex = (4 - it) * 2 + 1 + kanCount //加上槓補進王牌區的牌
+            val uraDoraIndicatorIndex = (4 - it) * 2 + 1 + replacementCount //加上槓(和拔北)補進王牌區的牌
             deadWall[uraDoraIndicatorIndex]
         }
 
@@ -131,14 +138,22 @@ class MahjongBoard(
      * 根據 [doraIndicators] 取得對應的寶牌
      * */
     private val doraList: List<Tile>
-        get() = doraIndicators.map { it.mahjongTile.nextTile.mahjong4jTile }
+        get() = doraIndicators.map { doraFor(it.mahjongTile).mahjong4jTile }
 
     /**
      * 寶牌列表,
      * 根據 [uraDoraIndicators] 取得對應的裏寶牌
      * */
     private val uraDoraList: List<Tile>
-        get() = uraDoraIndicators.map { it.mahjongTile.nextTile.mahjong4jTile }
+        get() = uraDoraIndicators.map { doraFor(it.mahjongTile).mahjong4jTile }
+
+    /** The dora an [indicator] points at; in sanma 1m points at 9m because 2m–8m aren't in play. */
+    fun doraFor(indicator: MahjongTile): MahjongTile =
+        if (game.rule.isSanma && indicator.mahjong4jTile == Tile.M1) MahjongTile.M9 else indicator.nextTile
+
+    /** Stacks along each side of the wall: 17 for 136 tiles, 14 for sanma's 108 (the last side is shorter). */
+    private val stacksPerSide: Int
+        get() = (allTiles.size + 7) / 8
 
     /**
      * 根據 [kanCount] 來翻出寶牌指示牌
@@ -167,6 +182,7 @@ class MahjongBoard(
      * */
     fun clear() {
         kanCount = 0
+        kitaCount = 0
         discards.clear()
         wall.clear()
         deadWall.clear()
@@ -189,7 +205,7 @@ class MahjongBoard(
                 MahjongRule.RedFive.NONE -> MahjongTile.normalWall
                 MahjongRule.RedFive.THREE -> MahjongTile.redFive3Wall
                 MahjongRule.RedFive.FOUR -> MahjongTile.redFive4Wall
-            }.shuffled().forEach {
+            }.let { if (game.rule.isSanma) MahjongTile.sanmaWall(it) else it }.shuffled().forEach {
                 //打亂牌後一個個加入
                 this += MahjongTileEntity(
                     world = world,
@@ -203,6 +219,7 @@ class MahjongBoard(
                 )
             }
         }
+        val stacksPerSide = stacksPerSide
         wall.apply {
             this += allTiles
             //傳送到對應的位置, 並在世界生成實體
@@ -213,10 +230,10 @@ class MahjongBoard(
                 val topOrBottom = (1 - index % 2) //這張牌在上面還是下面, 上面->1 下面->0
                 val yOffset =
                     (topOrBottom * MAHJONG_TILE_DEPTH).toDouble() + (if (topOrBottom == 1) MAHJONG_TILE_SMALL_PADDING else 0.0)
-                val startingPos = (17.0 * MAHJONG_TILE_WIDTH) / 2.0 - MAHJONG_TILE_HEIGHT
-                val stackNum = (index / 2) % 17
+                val startingPos = (stacksPerSide * MAHJONG_TILE_WIDTH) / 2.0 - MAHJONG_TILE_HEIGHT
+                val stackNum = (index / 2) % stacksPerSide
                 val stackWidth = stackNum * (MAHJONG_TILE_WIDTH + MAHJONG_TILE_SMALL_PADDING)
-                when (index / 34) { //這裡面朝的方向就是以遊戲內的東為準，按照麻將桌"順"時針東南西北的方向
+                when (index / (stacksPerSide * 2)) { //這裡面朝的方向就是以遊戲內的東為準，按照麻將桌"順"時針東南西北的方向
                     0 -> { //遊戲中面朝東
                         tableCenterPos.add(directionOffset, yOffset, -startingPos + stackWidth).apply {
                             tile.snapTo(this)
@@ -355,7 +372,7 @@ class MahjongBoard(
         val dealer = game.seat[game.round.round] //莊家
         val newWall = MutableList(wall.size) {
             //按照摸牌的順序, 建立 newWall
-            val tileIndex = (directionIndex * 34 + startingStackIndex + it) % wall.size
+            val tileIndex = (directionIndex * stacksPerSide * 2 + startingStackIndex + it) % wall.size
             wall[tileIndex]
         }
         //分配玩家的手牌
@@ -374,9 +391,9 @@ class MahjongBoard(
         wall.clear()
         wall += newWall
         //從莊家開始顯示牌, 這樣看起來比較牛逼
-        repeat(4) { times ->
+        repeat(game.seat.size) { times ->
             if (game.seat.size == 0) return@repeat //可能是遊戲中途消失了
-            val seatIndex = (game.round.round + times) % 4
+            val seatIndex = (game.round.round + times) % game.seat.size
             game.seat[seatIndex].hands.forEach { it.isInvisible = false }
             game.playSound(soundEvent = SoundEvents.ITEM_PICKUP, volume = 0.3f, pitch = 2.0f)
             delayOnServer(250)
@@ -738,6 +755,22 @@ class MahjongBoard(
                 placeEachTile(fuuro = fuuro)
             }
         }
+
+        // 三麻拔北: 接在副露後面, 面朝上直立擺放, 跟副露之間留一點空隙
+        player.kitaTiles.forEachIndexed { index, tile ->
+            val isLastTileHorizontal = lastTile != null && lastClaimTile != null && lastTile == lastClaimTile
+            nowPos = when {
+                tileCount == 0 -> nowPos.add(halfVerticalTileOffset)
+                index == 0 && isLastTileHorizontal ->
+                    nowPos.add(halfHorizontalTileOffset).add(halfVerticalTileOffset).add(verticalTileOffset.scale(0.25))
+                index == 0 -> nowPos.add(verticalTileOffset.scale(1.25))
+                else -> nowPos.add(verticalTileOffset)
+            }
+            tile.snapTo(nowPos.x, nowPos.y, nowPos.z, tileRot, 0f)
+            tile.facing = TileFacing.UP
+            lastTile = tile
+            tileCount++
+        }
     }
 
     /**
@@ -746,8 +779,8 @@ class MahjongBoard(
      *
      * @return 摸到的嶺上牌
      * */
-    fun drawRinshanTile(player: MahjongPlayerBase): MahjongTileEntity {
-        val tile = if (kanCount % 2 == 0) deadWall[deadWall.size - 2] else deadWall[deadWall.size - 1]
+    fun drawRinshanTile(player: MahjongPlayerBase, isKita: Boolean = false): MahjongTileEntity {
+        val tile = if (replacementCount % 2 == 0) deadWall[deadWall.size - 2] else deadWall[deadWall.size - 1]
         val lastWallTile = wall.removeLast()
         val direction = deadWall.last().direction // 王牌區方向以最後一敦為準
         val baseTile = deadWall[1] //補進來的嶺上牌都固定會在第 2 張牌的旁邊
@@ -763,10 +796,10 @@ class MahjongBoard(
         lastWallTile.yRot = direction.toYRot()
         deadWall.add(0, lastWallTile)
         deadWall -= tile
-        kanCount++
+        if (isKita) kitaCount++ else kanCount++
         flipDoraIndicators()
         player.drawTile(tile)
-        if (kanCount % 2 == 1) {
+        if (replacementCount % 2 == 1) {
             val nowLastWallTile = wall.last() //這張牌要往下降, 不然會浮空
             nowLastWallTile.snapTo(
                 nowLastWallTile.position().add(

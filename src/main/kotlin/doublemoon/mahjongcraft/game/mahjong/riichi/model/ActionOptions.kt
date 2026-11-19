@@ -25,6 +25,7 @@ data class ActionOption(
             MahjongGameBehavior.RIICHI -> ActionGroup.RIICHI
             MahjongGameBehavior.TSUMO, MahjongGameBehavior.RON -> ActionGroup.WIN
             MahjongGameBehavior.KYUUSHU_KYUUHAI -> ActionGroup.DRAW
+            MahjongGameBehavior.KITA -> ActionGroup.KITA
             else -> ActionGroup.SKIP
         }
 
@@ -39,7 +40,7 @@ data class ActionOption(
 }
 
 /** The actions a player chooses between, each with its own key. */
-enum class ActionGroup { CHII, PON, KAN, RIICHI, WIN, DRAW, SKIP }
+enum class ActionGroup { CHII, PON, KAN, KITA, RIICHI, WIN, DRAW, SKIP }
 
 /** What the server sends with a discard request. */
 @Serializable
@@ -148,6 +149,9 @@ object ActionOptions {
             }
             MahjongGameBehavior.KYUUSHU_KYUUHAI -> {
                 this += ActionOption(behavior, target, hands.filter { it.mahjong4jTile.isYaochu })
+            }
+            MahjongGameBehavior.KITA -> {
+                this += ActionOption(behavior, target, listOf(MahjongTile.NORTH))
             }
             MahjongGameBehavior.RON -> {
                 this += ActionOption(behavior, target, listOf(Json.decodeFromString<MahjongTile>(data)))

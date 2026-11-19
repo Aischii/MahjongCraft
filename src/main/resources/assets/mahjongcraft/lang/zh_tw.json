@@ -342,5 +342,15 @@
   "mahjongcraft.stats.place.3": "三位",
   "mahjongcraft.stats.place.4": "四位",
   "mahjongcraft.stats.unknown_player": "這個世界裡沒有 %s 的麻將戰績",
-  "mahjongcraft.gui.tooltip.click_to_cycle": "點擊切換到下一個選項"
+  "mahjongcraft.gui.tooltip.click_to_cycle": "點擊切換到下一個選項",
+  "mahjongcraft.game.players": "人數",
+  "mahjongcraft.game.players.four": "4 人（四麻）",
+  "mahjongcraft.game.players.three": "3 人（三麻）",
+  "mahjongcraft.game.seat_unused": "未使用",
+  "key.mahjongcraft.kita": "拔北",
+  "mahjongcraft.hud.action.kita": "拔北",
+  "mahjongcraft.game.behavior.kita": "拔北",
+  "mahjongcraft.game.yaku.kita": "拔北寶牌",
+  "mahjongcraft.guide.rules.sanma.title": "三人麻將（三麻）",
+  "mahjongcraft.guide.rules.sanma": "在編輯規則中把人數設為 3。不使用二萬至八萬，不能吃，起始點數為 35,000。用拔北鍵把北拔出：每張算一張寶牌，並補摸一張牌。自摸時只有另外兩家付錢（自摸損）。"
 }

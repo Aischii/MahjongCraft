@@ -342,5 +342,15 @@
   "mahjongcraft.stats.place.3": "3位",
   "mahjongcraft.stats.place.4": "4位",
   "mahjongcraft.stats.unknown_player": "このワールドに %s の麻雀成績はありません",
-  "mahjongcraft.gui.tooltip.click_to_cycle": "クリックで次の選択肢へ"
+  "mahjongcraft.gui.tooltip.click_to_cycle": "クリックで次の選択肢へ",
+  "mahjongcraft.game.players": "人数",
+  "mahjongcraft.game.players.four": "4人（四麻）",
+  "mahjongcraft.game.players.three": "3人（三麻）",
+  "mahjongcraft.game.seat_unused": "使用しない",
+  "key.mahjongcraft.kita": "北抜き",
+  "mahjongcraft.hud.action.kita": "北抜き",
+  "mahjongcraft.game.behavior.kita": "北抜き",
+  "mahjongcraft.game.yaku.kita": "抜きドラ",
+  "mahjongcraft.guide.rules.sanma.title": "三人麻雀（三麻）",
+  "mahjongcraft.guide.rules.sanma": "ルール編集で人数を3人にします。2萬〜8萬は使わず、チーはできず、持ち点は35,000点から始まります。北抜きキーで北を抜くとドラ1枚として数え、代わりの牌を引きます。ツモ和了の支払いは他の2人だけです（ツモ損）。"
 }

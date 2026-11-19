@@ -171,7 +171,7 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
                 out += Line(FormattedCharSequence.EMPTY)
                 paragraph(Component.translatable("$MOD_ID.guide.controls.rebind"), GREY)
             }
-            Tab.RULES -> listOf("start", "goal", "turn", "calls", "riichi", "win", "furiten").forEach {
+            Tab.RULES -> listOf("start", "goal", "turn", "calls", "riichi", "win", "furiten", "sanma").forEach {
                 heading("$MOD_ID.guide.rules.$it.title")
                 paragraph(Component.translatable("$MOD_ID.guide.rules.$it"))
             }
