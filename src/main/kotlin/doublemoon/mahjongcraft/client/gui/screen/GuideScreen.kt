@@ -34,7 +34,13 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
     enum class Tab { CRAFTING, CONTROLS, RULES, YAKU, STATS }
 
     /** One line of the page: optional item icon, then text. */
-    private class Line(val text: FormattedCharSequence, val icon: ItemStack? = null, val color: Int = WHITE)
+    private class Line(
+        val text: FormattedCharSequence,
+        val icon: ItemStack? = null,
+        val color: Int = WHITE,
+        /** Extra left offset, so recipe lines line up beside the item icon. */
+        val indent: Int = 0,
+    )
 
     private var lines: List<Line> = emptyList()
     private var scroll = 0
@@ -93,10 +99,10 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
         graphics.enableScissor(panelX + 1, panelTop + 1, panelX + panelW - 1, panelBottom - 1)
         var y = panelTop + PAD - scroll
         lines.forEach { line ->
-            var x = panelX + PAD
+            var x = panelX + PAD + line.indent
             if (line.icon != null) {
-                graphics.item(line.icon, x, y - 4)
-                x += 20
+                graphics.item(line.icon, x, y - 2)
+                x += ICON_W
             }
             graphics.text(font, line.text, x, y, line.color, true)
             y += LINE_H
@@ -123,9 +129,10 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
             font.split(text, wrapW).forEach { out += Line(it, color = color) }
         fun item(item: ItemLike, recipeKey: String) {
             val stack = ItemStack(item)
+            if (out.isNotEmpty() && out.last().text != FormattedCharSequence.EMPTY) out += Line(FormattedCharSequence.EMPTY)
             out += Line(stack.hoverName.visualOrderText, icon = stack, color = AQUA)
-            font.split(Component.translatable(recipeKey), wrapW - 20).forEach {
-                out += Line(FormattedCharSequence.composite(INDENT, it), color = GREY)
+            font.split(Component.translatable(recipeKey), wrapW - ICON_W).forEach {
+                out += Line(it, color = GREY, indent = ICON_W)
             }
         }
         fun key(label: Component, vararg keys: KeyMapping) {
@@ -193,6 +200,6 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
         private const val YELLOW = 0xFFFFFF77.toInt()
         private const val PANEL = 0xB0000000.toInt()
         private const val BORDER = 0xFF555555.toInt()
-        private val INDENT: FormattedCharSequence = Component.literal("  ").visualOrderText
+        private const val ICON_W = 20
     }
 }

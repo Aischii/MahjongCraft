@@ -39,6 +39,13 @@ object HandHud {
     private const val PANEL = 0x90000000.toInt()
     private const val DIMMED = 0xFF606060.toInt()
 
+    /**
+     * Top edge (GUI pixels) of everything the hand HUD drew this frame, hint line included, or null
+     * when it isn't showing. Other HUD parts use it to stay clear of the hand.
+     */
+    var topEdge: Int? = null
+        private set
+
     /** How far each hand slot is raised right now; eases toward the target so selection slides. */
     private val raise = FloatArray(20)
 
@@ -48,7 +55,10 @@ object HandHud {
     fun extract(graphics: GuiGraphicsExtractor, @Suppress("UNUSED_PARAMETER") delta: DeltaTracker) {
         val state = ClientMahjongState
         val client = Minecraft.getInstance()
-        if (!state.active) return
+        if (!state.active) {
+            topEdge = null
+            return
+        }
         val font = client.font
         val hand = state.hand
 
@@ -76,6 +86,7 @@ object HandHud {
         var lineY = panelY - 2
         lineY = drawActions(graphics, font, lineY)
         drawHint(graphics, font, lineY, panelX, panelW)
+        topEdge = lineY - 12
     }
 
     private fun ClientMahjongState.canChooseTile(): Boolean =

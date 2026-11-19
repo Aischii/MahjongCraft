@@ -3,6 +3,7 @@ package doublemoon.mahjongcraft.client.gui.widget
 import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.MahjongCraftClient
 import doublemoon.mahjongcraft.client.ModConfig
+import doublemoon.mahjongcraft.client.gui.hud.HandHud
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
 import doublemoon.mahjongcraft.entity.TileFacing
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
@@ -53,6 +54,9 @@ class WTileHints(
         hitResult =
             target?.takeIf { it.entity is MahjongTileEntity && (it.entity as MahjongTileEntity).mahjongTile != MahjongTile.UNKNOWN }
         updateHints(hitResult)
+        // While seated, keep the card above the hand HUD instead of on top of it.
+        val handTop = HandHud.topEdge
+        val y = if (handTop != null) minOf(y, handTop - height - 4) else y
         //下面是改寫 super.paint() 的部分
         backgroundPainter?.takeIf { backgroundVisible }?.paintBackground(context, x, y, this)
         children.forEach { it.paint(context, x + it.x, y + it.y, mouseX - it.x, mouseY - it.y) }
