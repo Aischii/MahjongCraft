@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer
 import net.minecraft.client.renderer.state.level.CameraRenderState
+import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.Vec3
 
@@ -88,19 +89,20 @@ class MahjongTableBlockEntityRenderer(
      * 印出以莊家為東, 每個玩家的風, 以及分數, 莊家(東)風的顏色不一樣
      * */
     private fun addPlayerLabels(blockEntity: MahjongTableBlockEntity, labels: MutableList<TableLabel>) {
-        if (!blockEntity.playing || blockEntity.seat.size != 4) return //只有遊戲中才能渲染
+        val seats = blockEntity.rule.seats
+        if (!blockEntity.playing || blockEntity.seat.size < seats) return //只有遊戲中才能渲染
         val blockPos = blockEntity.blockPos
         val dealer = blockEntity.dealer
         val seat = blockEntity.seat
         val dealerSeatIndex = seat.indexOf(dealer).also { if (it == -1) return }
-        seat.forEachIndexed { index, stringUUID ->
+        seat.take(seats).forEachIndexed { index, stringUUID ->
             val bPos = when (index) {
                 0 -> blockPos.east().east()
                 1 -> blockPos.north().north()
                 2 -> blockPos.west().west()
                 else -> blockPos.south().south()
             }
-            val windIndex = (dealerSeatIndex - index).let { if (it >= 0) 4 - it else -it } % 4
+            val windIndex = (index - dealerSeatIndex + seats) % seats //莊家是東, 往下家依序是南西(北)
             val lines = listOf(
                 Component.nullToEmpty(blockEntity.points[index].toString()),
                 Wind.entries[windIndex].toText(),
@@ -129,6 +131,12 @@ class MahjongTableBlockEntityRenderer(
             if (!blockEntity.playing) { //沒在遊戲中才會顯示
                 this += Component.empty().append(PLAYER).append(": $playerAmount/4")
                 this += Component.empty().append(READY).append(": $readyAmount/4")
+                if (blockEntity.tileSetRequired) {
+                    this += Component.empty().append(TILE_SET).append(": ").append(
+                        if (blockEntity.tileSetLoaded) Component.literal("✔").withStyle(ChatFormatting.GREEN)
+                        else Component.literal("✘").withStyle(ChatFormatting.RED)
+                    )
+                }
             } else { //在遊戲中才顯示
                 val round = blockEntity.round
                 this += Component.translatable("$MOD_ID.game.round.title", round.wind.toText(), round.round + 1) //ex: 東 4 局
@@ -147,6 +155,7 @@ class MahjongTableBlockEntityRenderer(
         private val READY get() = Component.translatable("$MOD_ID.gui.button.ready")
         private val PLAYER get() = Component.translatable("$MOD_ID.game.player")
         private val STATUS get() = Component.translatable("$MOD_ID.game.status")
+        private val TILE_SET get() = Component.translatable("item.$MOD_ID.mahjong_tile_set")
         private val WAITING get() = GameStatus.WAITING.toText()
         private val PLAYING get() = GameStatus.PLAYING.toText()
     }

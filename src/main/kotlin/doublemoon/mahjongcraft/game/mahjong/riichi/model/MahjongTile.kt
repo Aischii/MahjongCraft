@@ -184,6 +184,10 @@ enum class MahjongTile : TextFormatting {
             }
         }
 
+        /** 3-player (sanma) walls have no 2m–8m: 108 tiles, and only the red 5p/5s survive. */
+        fun sanmaWall(wall: List<MahjongTile>): List<MahjongTile> =
+            wall.filterNot { it.mahjong4jTile.type == TileType.MANZU && it.mahjong4jTile.number in 2..8 }
+
         /**
          * 有 3 張赤寶牌的牌山
          * */

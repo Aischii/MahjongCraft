@@ -42,8 +42,21 @@ data class MahjongRule(
     var spectate: Boolean = true,
     var redFive: RedFive = RedFive.NONE,
     var openTanyao: Boolean = true,
-    var localYaku: Boolean = false
+    var localYaku: Boolean = false,
+    var players: PlayerCount = PlayerCount.FOUR,
 ) {
+    /** How many seats the table plays with: 4, or 3 for sanma. */
+    val seats: Int get() = players.seats
+
+    /** 3-player (sanma): no 2m–8m, no Chii, North is kita (nukidora), Tsumo loss. */
+    val isSanma: Boolean get() = players == PlayerCount.THREE
+
+    /** Hands in this game's length, e.g. a South game is 8 hands with 4 players and 6 with 3. */
+    val totalRounds: Int get() = length.roundsFor(seats)
+
+    /** The last hand that may be played even if nobody reached [minPointsToWin] (e.g. West 4, or West 3 in sanma). */
+    val finalRound: Pair<Wind, Int> get() = length.finalRound.first to (seats - 1)
+
     //將 MahjongRule 編碼成 json 格式的 String
     fun toJsonString(): String = Json.encodeToString(serializer(), this)
 
@@ -73,6 +86,8 @@ data class MahjongRule(
             (Component.translatable("$MOD_ID.game.red_five") + colon).withStyle(color2)
         val openTanyaoText =
             (Component.translatable("$MOD_ID.game.open_tanyao") + colon).withStyle(color2)
+        val playersText =
+            (Component.translatable("$MOD_ID.game.players") + colon).withStyle(color2)
         val enable = Component.translatable("$MOD_ID.game.enabled").withStyle(color3)
         val disable = Component.translatable("$MOD_ID.game.disabled").withStyle(color3)
         val spectateStatus = if (spectate) enable else disable
@@ -80,6 +95,7 @@ data class MahjongRule(
         val second = Component.translatable("$MOD_ID.game.seconds").withStyle(color3)
         return listOf(
             rules,
+            Component.literal("§3 - ") + playersText + (players.toText() as MutableComponent).withStyle(color3),
             Component.literal("§3 - ") + lengthText + (length.toText() as MutableComponent).withStyle(color3),
             Component.literal("§3 - ")
                     + thinkingTimeText
@@ -128,7 +144,18 @@ data class MahjongRule(
          * */
         fun getStartingRound(): MahjongRound = MahjongRound(wind = startingWind)
 
+        /** Hands in this length with [seats] players: one per seat per wind ([rounds] is for 4). */
+        fun roundsFor(seats: Int): Int = if (rounds < 4) rounds else rounds / 4 * seats
+
         override fun toText() = Component.translatable("$MOD_ID.game.length.${name.lowercase()}")
+    }
+
+    /** How many players sit at the table. Sanma (3) uses 108 tiles and its own defaults. */
+    enum class PlayerCount(val seats: Int, val startingPoints: Int, val minPointsToWin: Int) : TextFormatting {
+        FOUR(4, 25000, 30000),
+        THREE(3, 35000, 40000);
+
+        override fun toText(): Component = Component.translatable("$MOD_ID.game.players.${name.lowercase()}")
     }
 
     /**

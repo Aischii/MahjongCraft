@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    "mahjongcraft:mahjong_tile"
+  ],
+  "result": {
+    "id": "mahjongcraft:mahjong_book",
+    "count": 1
+  }
+}

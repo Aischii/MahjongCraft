@@ -66,3 +66,14 @@ then a dev-client playtest of a bot hand covering the phase's features. One comm
 
 - Mahjong Master villager profession with the table as job site.
 - Bot difficulty levels.
+
+## Phase 6: 3-player (sanma)
+
+Decided 2026-11-19:
+- A "Players: 4 / 3" rule in Edit Rules; the same table block. 3-player tables show 3 seats and
+  leave one side of the table empty. Bots fill empty seats as usual.
+- 108 tiles: 2m–8m removed. No Chii. With a 1m indicator the dora is 9m.
+- North is kita / nukidora: set it aside for a bonus dora and draw a replacement (new Kita key
+  and HUD button).
+- Tsumo loss: the two others pay their normal 4-player share; the missing seat's share is lost.
+- Defaults 35,000 starting points and 40,000 to win (still editable).

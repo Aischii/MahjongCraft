@@ -3,6 +3,7 @@ package doublemoon.mahjongcraft.client.gui.widget
 import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.MahjongCraftClient
 import doublemoon.mahjongcraft.client.ModConfig
+import doublemoon.mahjongcraft.client.gui.hud.HandHud
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
 import doublemoon.mahjongcraft.entity.TileFacing
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
@@ -53,6 +54,9 @@ class WTileHints(
         hitResult =
             target?.takeIf { it.entity is MahjongTileEntity && (it.entity as MahjongTileEntity).mahjongTile != MahjongTile.UNKNOWN }
         updateHints(hitResult)
+        // While seated, keep the card above the hand HUD instead of on top of it.
+        val handTop = HandHud.topEdge
+        val y = if (handTop != null) minOf(y, handTop - height - 4) else y
         //下面是改寫 super.paint() 的部分
         backgroundPainter?.takeIf { backgroundVisible }?.paintBackground(context, x, y, this)
         children.forEach { it.paint(context, x + it.x, y + it.y, mouseX - it.x, mouseY - it.y) }
@@ -157,15 +161,12 @@ class WTileHints(
     }
 
     /**
-     * furiten 會顯示在牌的上方, remainingAmount 或者 noYaku 會顯示在牌的下方
+     * One tile card: "Furiten" above the tile when it applies, the tile, its name, then a detail
+     * line (how many are left, or "No Yaku"). The card resizes whenever its text changes, so
+     * nothing spills outside the background.
      *
      * @param scale 渲染的比例, 不適用於文字
-     * @param tile 要渲染的牌
-     * @param furiten 是否是振聽
-     * @param remainingAmount 剩下的張數
-     * @param remainingAmountVisible 是否要顯示剩下的張數
-     * @param noYaku 無役
-     * @param machi 待取
+     * @param machi this tile is one the player is waiting on (detail line is green)
      * */
     class TileHintItem(
         var scale: Double,
@@ -177,70 +178,85 @@ class WTileHints(
         machi: Boolean = false,
     ) : WPlainPanel() {
         private val client = Minecraft.getInstance()
-        private val furitenWidget: WLabel
-        private val tileWidget: WMahjongTile
-        private val remainingAmountWidget: WLabel
         private val furitenText get() = Component.translatable("$MOD_ID.game.furiten")
         private val noYakuText get() = Component.translatable("$MOD_ID.game.no_yaku")
-        /** The tile's name, plus how many are left when [amount] is given, e.g. "5 Pin · 3 left". */
-        private fun nameText(tile: MahjongTile, amount: Int?): Component =
-            if (amount == null) tile.toText()
-            else Component.empty().append(tile.toText()).append(" · ")
-                .append(Component.translatable("$MOD_ID.game.tiles_left", amount))
+
+        private val furitenWidget = WLabel(Component.empty(), Color.PURPLE_DYE.toRgb())
+        private val tileWidget = WMahjongTile(tile)
+        private val nameWidget = WLabel(tile.toText(), Color.WHITE.toRgb())
+        private val detailWidget = WLabel(Component.empty(), DETAIL_COLOR)
+        private var furiten = furiten
+        /** False while constructing, so a new card doesn't ask the HUD to re-layout (which builds cards). */
+        private var built = false
 
         init {
-            val furitenWidth = client.font.width(furitenText)
-            val tileWidth = (HINT_WIDTH * scale).toInt()
-            val remainingAmountWidth = client.font.width(nameText(tile, remainingAmount))
-            val width = maxOf(furitenWidth, tileWidth, remainingAmountWidth) + INSET * 2 //取最大的部件寬度當作寬度
-            val height = (HINT_HEIGHT * scale + MARGIN * 2 + client.font.lineHeight * 2 + INSET * 2).toInt()
-            setSize(width, height)
-            furitenWidget = label(
-                x = 0,
-                y = INSET,
-                width = width,
-                height = client.font.lineHeight,
-                text = if (furiten) furitenText else Component.nullToEmpty(""),
-                horizontalAlignment = HorizontalAlignment.CENTER,
-                verticalAlignment = VerticalAlignment.CENTER,
-                color = Color.PURPLE_DYE.toRgb()
-            )
-            tileWidget = mahjongTile(
-                x = ((width - tileWidth) / 2.0).toInt(),
-                y = furitenWidget.let { it.y + it.height } + MARGIN,
-                width = tileWidth,
-                height = (HINT_HEIGHT * scale).toInt(),
-                mahjongTile = tile,
-            )
-            remainingAmountWidget = label(
-                x = 0,
-                y = tileWidget.let { it.y + it.height } + MARGIN,
-                width = width,
-                height = client.font.lineHeight + INSET,
-                text = when {
-                    noYaku -> noYakuText
-                    remainingAmountVisible -> nameText(tile, remainingAmount)
-                    else -> nameText(tile, null)
-                },
-                horizontalAlignment = HorizontalAlignment.CENTER,
-                verticalAlignment = VerticalAlignment.CENTER,
-                color = if (machi) Color.GREEN.toRgb() else Color.WHITE.toRgb()
-            )
+            listOf(furitenWidget, nameWidget, detailWidget).forEach {
+                it.horizontalAlignment = HorizontalAlignment.CENTER
+                it.verticalAlignment = VerticalAlignment.CENTER
+            }
+            add(furitenWidget, 0, 0)
+            add(tileWidget, 0, 0)
+            add(nameWidget, 0, 0)
+            add(detailWidget, 0, 0)
+            setRemainingTiles(remainingAmount, remainingAmountVisible, noYaku, machi)
+            built = true
         }
 
         var tile: MahjongTile
             get() = tileWidget.mahjongTile
             set(value) {
+                if (tileWidget.mahjongTile == value) return
                 tileWidget.mahjongTile = value
+                nameWidget.text = value.toText()
+                relayout()
             }
 
         fun setRemainingTiles(amount: Int, visible: Boolean, noYaku: Boolean, machi: Boolean) {
-            remainingAmountWidget.text = when {
+            detailWidget.text = when {
                 noYaku -> noYakuText
-                visible -> nameText(tile, amount)
-                else -> nameText(tile, null)
+                visible -> Component.translatable("$MOD_ID.game.tiles_left", amount)
+                else -> Component.empty()
             }
-            remainingAmountWidget.color = if (machi) Color.GREEN.toRgb() else Color.WHITE.toRgb()
+            detailWidget.color = when {
+                noYaku -> NO_YAKU_COLOR
+                machi -> Color.GREEN.toRgb()
+                else -> DETAIL_COLOR
+            }
+            relayout()
+        }
+
+        /** Sizes the card to its widest line and stacks the lines; tells the HUD if the size changed. */
+        private fun relayout() {
+            val font = client.font
+            furitenWidget.text = if (furiten) furitenText else Component.empty()
+            val tileWidth = (HINT_WIDTH * scale).toInt()
+            val tileHeight = (HINT_HEIGHT * scale).toInt()
+            val lines = listOf(furitenWidget, nameWidget, detailWidget)
+            val textWidth = lines.maxOf { font.width(it.text) }
+            val width = maxOf(tileWidth, textWidth) + INSET * 2
+            var y = INSET
+            if (furiten) {
+                furitenWidget.setLocation(0, y); furitenWidget.setSize(width, font.lineHeight)
+                y += font.lineHeight + MARGIN
+            } else {
+                furitenWidget.setSize(width, 0)
+            }
+            tileWidget.setLocation((width - tileWidth) / 2, y); tileWidget.setSize(tileWidth, tileHeight)
+            y += tileHeight + MARGIN
+            nameWidget.setLocation(0, y); nameWidget.setSize(width, font.lineHeight)
+            y += font.lineHeight + 1
+            val hasDetail = detailWidget.text.string.isNotEmpty()
+            if (hasDetail) {
+                detailWidget.setLocation(0, y); detailWidget.setSize(width, font.lineHeight)
+                y += font.lineHeight
+            } else {
+                detailWidget.setSize(width, 0)
+            }
+            val height = y + INSET
+            if (width != this.width || height != this.height) {
+                setSize(width, height)
+                if (built) MahjongCraftClient.hud?.reposition()
+            }
         }
 
         companion object {
@@ -248,6 +264,8 @@ class WTileHints(
             const val HINT_HEIGHT = 32
             const val MARGIN = 3
             const val INSET = 4
+            private val DETAIL_COLOR = 0xFFB0B0B0.toInt()
+            private val NO_YAKU_COLOR = 0xFFFF5555.toInt()
         }
     }
 }

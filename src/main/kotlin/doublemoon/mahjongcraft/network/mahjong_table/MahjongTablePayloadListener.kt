@@ -9,7 +9,11 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.MahjongGame
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongRule
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTableBehavior
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongBot
+import doublemoon.mahjongcraft.MOD_ID
+import doublemoon.mahjongcraft.game.progress.MahjongGameRules
 import doublemoon.mahjongcraft.logger
+import net.minecraft.ChatFormatting
+import net.minecraft.network.chat.Component
 import doublemoon.mahjongcraft.network.ChannelType
 import doublemoon.mahjongcraft.network.CustomPayloadListener
 import doublemoon.mahjongcraft.network.sendPayloadToPlayer
@@ -89,8 +93,15 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
             }
             MahjongTableBehavior.START -> { //開始遊戲
                 val game = GameManager.getGame<MahjongGame>(world, pos)
-                if (game != null && game.isHost(player) && game.status == GameStatus.WAITING) {
-                    game.start()
+                val table = world.getBlockEntity(pos) as? MahjongTableBlockEntity
+                if (game != null && game.isHost(player) && game.status == GameStatus.WAITING && game.players.size == game.rule.seats) {
+                    if (table != null && !table.canStart(player)) {
+                        player.sendOverlayMessage(
+                            Component.translatable("$MOD_ID.game.message.tile_set_needed").withStyle(ChatFormatting.YELLOW)
+                        )
+                    } else {
+                        game.start()
+                    }
                 }
             }
             MahjongTableBehavior.KICK -> syncBlockEntityWithGame(world = world, pos = pos) { //讓主持剔除玩家
@@ -186,6 +197,7 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
                 this.playing = it.status == GameStatus.PLAYING
                 this.round = it.round
                 this.dealer = it.seat.getOrNull(it.round.round)?.uuid ?: ""
+                this.tileSetRequired = MahjongGameRules.tileSetRequired(it.world)
             }
             this.setChanged()
         }

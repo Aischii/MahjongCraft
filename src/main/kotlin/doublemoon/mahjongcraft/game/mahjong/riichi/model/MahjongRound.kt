@@ -21,8 +21,8 @@ data class MahjongRound(
      * 換下個回合會牽扯到 [wind] 場風的問題,
      * 所以 [round] 跟 [wind] 不能直接更改
      * */
-    fun nextRound() {
-        val nextRound = (this.round + 1) % 4
+    fun nextRound(seats: Int = 4) {
+        val nextRound = (this.round + 1) % seats
         honba = 0
         if (nextRound == 0) { //這個風的最後一局, 換風
             val nextWindNum = (this.wind.ordinal + 1) % 4 //在北 4 局的下回合會回到東風, 但是請別這樣搞, 一般是完全不會用到的
@@ -36,5 +36,5 @@ data class MahjongRound(
      * 經過的回合數 ([spentRounds] + 1) >= 規則中的長度 即是 AllLast,
      * 超過 AllLast 的回合一律都當作 AllLast
      * */
-    fun isAllLast(rule: MahjongRule): Boolean = (spentRounds + 1) >= rule.length.rounds
+    fun isAllLast(rule: MahjongRule): Boolean = (spentRounds + 1) >= rule.totalRounds
 }

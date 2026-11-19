@@ -1,0 +1,11 @@
+{
+  "gives": {
+    "id": "mahjongcraft:mahjong_book"
+  },
+  "max_uses": 1,
+  "reputation_discount": 0.05,
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 3
+  }
+}

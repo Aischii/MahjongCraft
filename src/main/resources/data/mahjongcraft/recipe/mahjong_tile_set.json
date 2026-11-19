@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "TTT",
+    "TCT",
+    "TTT"
+  ],
+  "key": {
+    "T": "mahjongcraft:mahjong_tile",
+    "C": "minecraft:chest"
+  },
+  "result": {
+    "id": "mahjongcraft:mahjong_tile_set",
+    "count": 1
+  }
+}

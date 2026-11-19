@@ -59,6 +59,7 @@ class MahjongGameBehaviorGui(
         MahjongGameBehavior.TSUMO,
         MahjongGameBehavior.KYUUSHU_KYUUHAI,
         MahjongGameBehavior.ANKAN_OR_KAKAN,
+        MahjongGameBehavior.KITA,
         -> true
         else -> false
     }
@@ -280,7 +281,7 @@ class MahjongGameBehaviorGui(
                         }
                         MahjongGameBehavior.PON, MahjongGameBehavior.MINKAN,
                         MahjongGameBehavior.TSUMO, MahjongGameBehavior.RON,
-                        MahjongGameBehavior.KYUUSHU_KYUUHAI,
+                        MahjongGameBehavior.KYUUSHU_KYUUHAI, MahjongGameBehavior.KITA,
                         -> {
                             sendPayloadToServer(
                                 payload = MahjongGamePayload(behavior = behavior)

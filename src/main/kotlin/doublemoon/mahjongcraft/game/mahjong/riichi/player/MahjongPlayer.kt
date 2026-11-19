@@ -324,6 +324,14 @@ class MahjongPlayer(
         behavior == MahjongGameBehavior.RON
     }
 
+    override suspend fun askToKita(): Boolean = waitForBehaviorResult(
+        behavior = MahjongGameBehavior.KITA,
+        extraData = "",
+        target = ClaimTarget.SELF
+    ) { behavior, _ ->
+        behavior == MahjongGameBehavior.KITA
+    }
+
     override suspend fun askToKyuushuKyuuhai(): Boolean = waitForBehaviorResult(
         behavior = MahjongGameBehavior.KYUUSHU_KYUUHAI,
         extraData = "",

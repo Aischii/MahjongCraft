@@ -1,0 +1,23 @@
+{
+  "parent": "mahjongcraft:main/play_a_hand",
+  "display": {
+    "icon": {
+      "id": "mahjongcraft:mahjong_tile_set"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.win_a_hand.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.win_a_hand.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

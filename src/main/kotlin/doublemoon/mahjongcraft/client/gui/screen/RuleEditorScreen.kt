@@ -41,6 +41,20 @@ class RuleEditorGui(
 
     //編輯中的設定
     private val editingRule: MahjongRule = mahjongTable.rule.copy()
+    private val playersItem = RuleSelectItem(
+        name = Component.translatable("$MOD_ID.game.players"),
+        value = { editingRule.players },
+        label = { it.toText() },
+        tooltip = { players -> getTooltip(players) }
+    ) {
+        val values = MahjongRule.PlayerCount.entries.toTypedArray()
+        val old = editingRule.players
+        val next = values[(old.ordinal + 1) % values.size]
+        editingRule.players = next
+        // Points still at the old player count's defaults follow the new ones (25k/30k ↔ 35k/40k).
+        if (startingPointsItem.value == old.startingPoints) startingPointsItem.value = next.startingPoints
+        if (minPointsToWinItem.value == old.minPointsToWin) minPointsToWinItem.value = next.minPointsToWin
+    }
     private val lengthItem = RuleSelectItem(
         name = Component.translatable("$MOD_ID.game.length"),
         value = { editingRule.length },
@@ -127,6 +141,7 @@ class RuleEditorGui(
         }
 
     private val items = listOf(
+        playersItem,
         lengthItem,
         thinkingTimeItem,
         startingPointsItem,
@@ -249,19 +264,14 @@ class RuleEditorGui(
         private const val BUTTON_HEIGHT = 20
         private const val BUTTON_PADDING = 5
 
+        /** Every option of a rule, the current one marked ▶ in green, then a hint that clicking cycles. */
         private inline fun <reified T : Enum<T>> getTooltip(nowValue: T): Array<Component> =
-            enumValues<T>().map {
-                if (it is TextFormatting) {
-                    it.toText().also { text ->
-                        if (text is MutableComponent) {
-                            val color = if (it == nowValue) ChatFormatting.GREEN else ChatFormatting.RED
-                            text.withStyle(color)
-                        }
-                    }
-                } else {
-                    Component.nullToEmpty(it.name)
-                }
-            }.toTypedArray()
+            (enumValues<T>().map {
+                val name = if (it is TextFormatting) it.toText() else Component.nullToEmpty(it.name)
+                if (it == nowValue) Component.literal("▶ ").append(name).withStyle(ChatFormatting.GREEN)
+                else Component.literal("   ").append(name).withStyle(ChatFormatting.GRAY)
+            } + Component.translatable("$MOD_ID.gui.tooltip.click_to_cycle").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC))
+                .toTypedArray()
     }
 
 
@@ -314,6 +324,7 @@ class RuleEditorGui(
             width = BUTTON_WIDTH,
             label = nowLabel,
             tooltip = nowTooltip,
+            tooltipTitle = name,
             onClick = {
                 onSelect.invoke(this@RuleSelectItem)
                 refreshButtonLabel()
@@ -381,6 +392,7 @@ class RuleEditorGui(
             width = BUTTON_WIDTH,
             text = "$defaultValue",
             tooltip = description,
+            tooltipTitle = name,
             suggestion = Component.nullToEmpty("$defaultValue"),
         )
 

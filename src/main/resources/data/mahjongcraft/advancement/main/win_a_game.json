@@ -1,0 +1,23 @@
+{
+  "parent": "mahjongcraft:main/win_a_hand",
+  "display": {
+    "icon": {
+      "id": "minecraft:gold_block"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.win_a_game.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.win_a_game.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

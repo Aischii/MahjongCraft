@@ -263,6 +263,7 @@ class YakuSettlementGui(
                                     else yakuHanMap[key] = yaku.han
                                 }
                                 if (redFiveCount > 0) yakuHanMap["red_five"] = redFiveCount //如果有赤寶牌, 手動補上赤寶牌的役
+                                if (it.kitaCount > 0) yakuHanMap["kita"] = it.kitaCount //三麻的拔北寶牌
                             }
                         }
                         val yakuLabels = mutableListOf<WLabel>()

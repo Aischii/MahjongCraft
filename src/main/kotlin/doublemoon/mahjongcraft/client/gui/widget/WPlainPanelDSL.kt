@@ -302,10 +302,11 @@ fun WPlainPanel.tooltipButton(
     label: Component? = null,
     textAlignment: HorizontalAlignment = HorizontalAlignment.CENTER,
     tooltip: Array<Component>,
+    tooltipTitle: Component? = null,
     onClick: WTooltipButton.() -> Unit = {},
     init: WTooltipButton.() -> Unit = {}
 ): WTooltipButton {
-    val button = WTooltipButton(icon, label, tooltip)
+    val button = WTooltipButton(icon, label, tooltip, tooltipTitle)
     button.init()
     button.alignment = textAlignment
     button.setOnClick { onClick.invoke(button) }
@@ -325,9 +326,10 @@ fun WPlainPanel.tooltipTextField(
     text: String? = null,
     suggestion: Component? = null,
     tooltip: Array<Component>,
+    tooltipTitle: Component? = null,
     init: WTooltipTextField.() -> Unit = {}
 ): WTooltipTextField {
-    val textField = WTooltipTextField(suggestion ?: Component.empty(), tooltip)
+    val textField = WTooltipTextField(suggestion ?: Component.empty(), tooltip, tooltipTitle)
     text?.let { textField.text = it }
     textField.init()
     this.add(textField, x, y, width, height)
@@ -348,9 +350,10 @@ fun WPlainPanel.tooltipText(
     horizontalAlignment: HorizontalAlignment = HorizontalAlignment.LEFT,
     verticalAlignment: VerticalAlignment = VerticalAlignment.TOP,
     tooltip: Array<Component>,
+    tooltipTitle: Component? = null,
     init: WTooltipText.() -> Unit = {}
 ): WTooltipText {
-    val wText = WTooltipText(text, tooltip)
+    val wText = WTooltipText(text, tooltip, tooltipTitle)
     wText.init()
     wText.horizontalAlignment = horizontalAlignment
     wText.verticalAlignment = verticalAlignment

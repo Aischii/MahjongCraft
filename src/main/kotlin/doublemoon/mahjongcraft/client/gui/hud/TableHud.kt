@@ -30,6 +30,7 @@ object TableHud {
     private const val PANEL = 0x90000000.toInt()
 
     private val POSITIONS = listOf("you", "right", "across", "left")
+    private val POSITIONS_SANMA = listOf("you", "right", "left")
 
     fun extract(graphics: GuiGraphicsExtractor, @Suppress("UNUSED_PARAMETER") delta: DeltaTracker) {
         if (!ClientMahjongState.active) return
@@ -37,9 +38,10 @@ object TableHud {
         if (table.mySeat < 0) return
         val font = Minecraft.getInstance().font
 
+        val positions = if (table.seatNames.size == 3) POSITIONS_SANMA else POSITIONS
         val seatLines = (0 until table.seatNames.size).map { offset ->
             val seat = (table.mySeat + offset) % table.seatNames.size
-            seat to Component.translatable("$MOD_ID.hud.table.${POSITIONS[offset]}")
+            seat to Component.translatable("$MOD_ID.hud.table.${positions[offset]}")
         }
         val counters = Component.translatable(
             "$MOD_ID.hud.table.counters", table.wallRemaining, table.honba, table.riichiSticks

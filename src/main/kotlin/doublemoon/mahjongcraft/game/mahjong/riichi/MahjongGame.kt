@@ -10,6 +10,7 @@ import doublemoon.mahjongcraft.game.GameStatus
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.*
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongBot
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayer
+import doublemoon.mahjongcraft.game.progress.MahjongProgress
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayerBase
 import net.minecraft.sounds.SoundEvents
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
@@ -95,10 +96,21 @@ class MahjongGame(
      * 從莊家開始按照順序的 [seat], seatOrderFromDealer[0] 就是莊家
      * */
     private val seatOrderFromDealer: List<MahjongPlayerBase>
-        get() = List(4) {
+        get() = List(seat.size) {
             val dealerIndex = round.round
-            seat[(dealerIndex + it) % 4]
+            seat[(dealerIndex + it) % seat.size]
         }
+
+    /** Where [target] sits relative to [from]: one seat on is Right, one seat back is Left (no Across in sanma). */
+    private fun relativeTarget(from: Int, target: Int): ClaimTarget = when ((target - from + seat.size) % seat.size) {
+        0 -> ClaimTarget.SELF
+        1 -> ClaimTarget.RIGHT
+        seat.size - 1 -> ClaimTarget.LEFT
+        else -> ClaimTarget.ACROSS
+    }
+
+    /** Points per honba stick on a win: 300 with four players, 200 in sanma (100 from each payer). */
+    private val honbaPerStick: Int get() = 100 * (seat.size - 1)
 
     /**
      * 目前的回合
@@ -189,6 +201,13 @@ class MahjongGame(
      * 規則發生改變, 在等待中的已準備玩家, 除了 Bot 和 Host->全都取消準備, 並且發送訊息進行提示
      * */
     fun changeRules(rule: MahjongRule) {
+        // Fewer seats than players (switching to 3-player with 4 seated): bots leave first; if
+        // real players still don't fit, keep the old player count.
+        while (players.size > rule.seats) {
+            val bot = players.lastOrNull { it is MahjongBot } ?: break
+            kick(players.indexOf(bot))
+        }
+        if (players.size > rule.seats) rule.players = this.rule.players
         this.rule = rule
         players.forEachIndexed { index, mjPlayer ->
             if (mjPlayer is MahjongPlayer) {
@@ -210,6 +229,7 @@ class MahjongGame(
      * 加入機器人到遊戲
      * */
     fun addBot() {
+        if (players.size >= rule.seats) return
         val bot = MahjongBot(world = world, pos = tableCenterPos, gamePos = pos)
         players += bot
     }
@@ -241,6 +261,7 @@ class MahjongGame(
      * */
     override fun join(player: ServerPlayer) {
         if (GameManager.isInAnyGame(player) || isInGame(player)) return
+        if (players.size >= rule.seats) return
         players += MahjongPlayer(entity = player)
         if (isHost(player)) players[0].ready = true
     }
@@ -288,6 +309,7 @@ class MahjongGame(
             it.doubleRiichi = false
             it.hands.clear()
             it.fuuroList.clear()
+            it.kitaTiles.clear()
             it.discardedTiles.clear()
             it.discardedTilesForDisplay.clear()
             it.riichiSengenTile = null
@@ -336,7 +358,7 @@ class MahjongGame(
             delayOnServer(1000)
 
             val dices = rollDice()
-            val openDoorPlayerSeatIndexFromDealer = ((dicePoints - 1) % 4 + round.round) % 4
+            val openDoorPlayerSeatIndexFromDealer = ((dicePoints - 1) % seat.size + round.round) % seat.size
             val openDoorPlayer = seatOrderFromDealer[openDoorPlayerSeatIndexFromDealer] //開門牌所在位置的玩家
             board.assignWallAndHands(dicePoints = dicePoints)
             board.assignDeadWall()
@@ -391,10 +413,34 @@ class MahjongGame(
                             roundExhaustiveDraw = ExhaustiveDraw.KYUUSHU_KYUUHAI
                             break@roundLoop
                         }
+                        //三麻: 拔北, 把北放到一邊當寶牌, 再從王牌區補一張牌 (跟槓一樣)
+                        var kitaDrawTile: MahjongTileEntity? = null
+                        kitaLoop@ while (rule.isSanma && !board.isHoutei && board.replacementCount < 4) {
+                            val northTile = player.kitaTile ?: break@kitaLoop
+                            if (!player.askToKita()) break@kitaLoop
+                            player.kita(northTile)
+                            player.playSoundAtSeat(soundEvent = SoundRegistry.kan)
+                            board.sortFuuro(player = player)
+                            val replacement = board.drawRinshanTile(player = player, isKita = true)
+                            board.sortHands(player = player, lastTile = replacement)
+                            kitaDrawTile = replacement
+                            val kitaRinshanWin = player.canWin(
+                                winningTile = replacement.mahjongTile,
+                                isWinningTileInHands = true,
+                                rule = rule,
+                                generalSituation = board.generalSituation,
+                                personalSituation = player.getPersonalSituation(isTsumo = true, isRinshanKaihoh = true)
+                            )
+                            if (kitaRinshanWin && player.askToTsumo()) {
+                                player.tsumo(isRinshanKaihoh = true, tile = replacement)
+                                if (isDealer) dealerRemaining = true
+                                break@roundLoop
+                            }
+                        }
                         //加槓跟暗槓應該同時詢問
                         //玩家可以選擇一直暗槓或加槓, 使用 while 判斷
                         var finalRinshanTile: MahjongTileEntity? = null //最後一張摸的嶺上牌, null 表示沒有暗槓或加槓
-                        kanLoop@ while ((player.canKakan || player.canAnkan) && !board.isHoutei && board.kanCount < 4) {
+                        kanLoop@ while ((player.canKakan || player.canAnkan) && !board.isHoutei && board.replacementCount < 4) {
                             val tileToAnkanOrKakan = player.askToAnkanOrKakan(rule)
                             if (tileToAnkanOrKakan != null) { //玩家要暗槓或加槓
                                 val isAnkan = tileToAnkanOrKakan in player.tilesCanAnkan.toList()
@@ -475,7 +521,7 @@ class MahjongGame(
                             }
                         }
                         //不能或結束暗槓或加槓->讓玩家出牌
-                        timeoutTile = finalRinshanTile ?: lastTile
+                        timeoutTile = finalRinshanTile ?: kitaDrawTile ?: lastTile
                     }
                 } else {  // 這次動作不需要拿牌
                     drewTile = false //這次沒有拿牌
@@ -540,11 +586,12 @@ class MahjongGame(
                 if (riichiSengen != null) {
                     // 立直棒的點數會在流局或者有人贏牌的時候結算減去
                     player.riichi(riichiSengenTile = tileDiscarded, isFirstRound = board.isFirstRound)
+                    (player as? MahjongPlayer)?.let(MahjongProgress::onRiichi)
                     board.sortDiscardedTilesForDisplay(player = player, openDoorPlayer = openDoorPlayer)
                     board.putRiichiStick(player = player)
                     player.playSoundAtSeat(SoundRegistry.riichi)
                     //TODO 播放立直動畫 (需要再放?
-                    if (players.count { it.riichi || it.doubleRiichi } == 4) { //四家立直
+                    if (seat.size == 4 && players.count { it.riichi || it.doubleRiichi } == 4) { //四家立直
                         roundExhaustiveDraw = ExhaustiveDraw.SUUCHA_RIICHI
                         break
                     }
@@ -650,8 +697,8 @@ class MahjongGame(
                     var ponOrChiiResult = false
 
                     //從丟牌玩家開始照順序問要不要碰
-                    repeat(4) {
-                        val seatIndexOfPonOrChiiPlayer = (seatIndex + it) % 4
+                    repeat(seat.size) {
+                        val seatIndexOfPonOrChiiPlayer = (seatIndex + it) % seat.size
                         val ponOrChiiPlayer = seat[seatIndexOfPonOrChiiPlayer]
                         if (ponOrChiiPlayer in canPonList) {
                             if (ponOrChiiPlayer in canChiiList) { //如果 nPlayer 同時出現可以吃的情況
@@ -700,12 +747,7 @@ class MahjongGame(
                                     canChiiList -= ponOrChiiPlayer //避免重複詢問吃的動作
                                 }
                             } else { //正常情況
-                                val claimTarget = when (seatIndex) {
-                                    (seatIndexOfPonOrChiiPlayer + 1) % 4 -> ClaimTarget.RIGHT
-                                    (seatIndexOfPonOrChiiPlayer + 2) % 4 -> ClaimTarget.ACROSS
-                                    (seatIndexOfPonOrChiiPlayer + 3) % 4 -> ClaimTarget.LEFT
-                                    else -> ClaimTarget.SELF //不可能出現的情況, 碰自己的牌
-                                }
+                                val claimTarget = relativeTarget(seatIndexOfPonOrChiiPlayer, seatIndex)
                                 if (ponOrChiiPlayer.askToPon(tileDiscarded, claimTarget)) { //如果問到的玩家要碰
                                     ponOrChiiPlayer.pon(tileDiscarded, claimTarget, player) { here ->
                                         here.playSoundAtSeat(soundEvent = SoundRegistry.pon)
@@ -762,7 +804,7 @@ class MahjongGame(
 
                 // 沒有任何人進行 吃 碰 槓
                 if (!someoneKanOrPon && !someonePonOrChii && !someoneChii) {
-                    nextPlayer = seat[(seatIndex + 1) % 4] //輪到下家
+                    nextPlayer = seat[(seatIndex + 1) % seat.size] //輪到下家
                 }
 
                 // 如果牌山沒牌的話會直接結束這 Round
@@ -786,6 +828,8 @@ class MahjongGame(
                 roundDraw(roundExhaustiveDraw)
             }
 
+            MahjongProgress.onHandEnd(realPlayers)
+
             //結束後等待一下
             delayOnServer(3000L)
 
@@ -796,7 +840,7 @@ class MahjongGame(
                     round.honba++
                 } else { //沒連莊就換莊家
                     board.removeHonbaSticks(player = dealer)
-                    round.nextRound()
+                    round.nextRound(seat.size)
                 }
                 startRound(clearRiichiSticks = clearNextRoundRiichiSticks)
             } else {  //是 AllLast
@@ -810,19 +854,21 @@ class MahjongGame(
                     } else { //莊家沒連莊
                         //最多 AllLast 只能持續一個風
                         board.removeHonbaSticks(player = dealer)
-                        val finalRound = rule.length.finalRound
+                        val finalRound = rule.finalRound
                         if (round.wind == finalRound.first && round.round == finalRound.second) {
                             //是最後一局->結束遊戲
+                            onGameFinished()
                             showGameResult()
                             end()
                         } else {
                             //不是最後一局->繼續下一場
-                            round.nextRound()
+                            round.nextRound(seat.size)
                             startRound(clearRiichiSticks = clearNextRoundRiichiSticks)
                         }
                     }
                 } else {
                     //至少一個玩家的點數大於 1 位必要點數->結束遊戲
+                    onGameFinished()
                     showGameResult()
                     end()
                 }
@@ -863,9 +909,10 @@ class MahjongGame(
                         it.closeHands()
                     }
                 } else { //有人聽->計算不聽罰符, 不聽者向聽牌者支付合計 3000 點
-                    val notenCount = 4 - tenpaiCount //計算沒聽的有幾人
-                    val notenBappu = 3000 / notenCount //不聽罰符
-                    val bappuGet = 3000 / tenpaiCount //得到的罰符
+                    val notenCount = seat.size - tenpaiCount //計算沒聽的有幾人
+                    val bappuTotal = (seat.size - 1) * 1000 //不聽罰符總額: 四麻 3000, 三麻 2000
+                    val notenBappu = if (notenCount == 0) 0 else bappuTotal / notenCount //不聽罰符 (全員聽牌時沒人付)
+                    val bappuGet = if (notenCount == 0) 0 else bappuTotal / tenpaiCount //得到的罰符
                     players.forEach {
                         if (it.isTenpai) { //這個玩家有聽牌
                             val riichiStickPoints =
@@ -907,6 +954,11 @@ class MahjongGame(
             )
         }
         delayOnServer(ScoreSettleHandler.defaultTime * 1000L) //基本最少會等待跟結算畫面一樣長的秒數
+    }
+
+    /** The game reached its last hand (not broken off): credit the player who finished first. */
+    private fun onGameFinished() {
+        MahjongProgress.onGameFinished(players.sortedByDescending { it.points })
     }
 
     /**
@@ -1006,13 +1058,7 @@ class MahjongGame(
      * 以 [this] 為基礎, 按 [target] 相對的位置返回 鳴牌的對象
      * */
     private fun MahjongPlayerBase.asClaimTarget(target: MahjongPlayerBase): ClaimTarget {
-        val seatIndex = seat.indexOf(this)
-        return when (target) {
-            seat[(seatIndex + 1) % 4] -> ClaimTarget.RIGHT
-            seat[(seatIndex + 2) % 4] -> ClaimTarget.ACROSS
-            seat[(seatIndex + 3) % 4] -> ClaimTarget.LEFT
-            else -> ClaimTarget.SELF //除非 target 是自己, 否則不可能發生這個條件
-        }
+        return relativeTarget(seat.indexOf(this), seat.indexOf(target))
     }
 
     /**
@@ -1042,8 +1088,8 @@ class MahjongGame(
         discardedPlayer: MahjongPlayerBase,
         seatIndex: Int = seat.indexOf(discardedPlayer),
     ): List<MahjongPlayerBase> =
-        if (board.kanCount < 4 && !board.isHoutei) // 4 槓前或者不是河底都可以明槓
-            players.filter { it != discardedPlayer && it.canMinkan(tile) && it != seat[(seatIndex + 1) % 4] }
+        if (board.replacementCount < 4 && !board.isHoutei) // 4 槓前或者不是河底都可以明槓
+            players.filter { it != discardedPlayer && it.canMinkan(tile) && it != seat[(seatIndex + 1) % seat.size] }
         else emptyList()
 
     /**
@@ -1058,7 +1104,8 @@ class MahjongGame(
         discardedPlayer: MahjongPlayerBase,
         seatIndex: Int = seat.indexOf(discardedPlayer),
     ): List<MahjongPlayerBase> =
-        if (!board.isHoutei) players.filter { it != discardedPlayer && it.canChii(tile) && it == seat[(seatIndex + 1) % 4] }
+        if (!board.isHoutei && !rule.isSanma) // 三麻不能吃
+            players.filter { it != discardedPlayer && it.canChii(tile) && it == seat[(seatIndex + 1) % seat.size] }
         else emptyList()
 
     /**
@@ -1134,14 +1181,14 @@ class MahjongGame(
     ) {
         val yakuSettlementList = mutableListOf<YakuSettlement>()
         val scoreList = mutableListOf<ScoreItem>()
-        val honbaScore = round.honba * 300 //場棒的分數
+        val honbaScore = round.honba * honbaPerStick //場棒的分數
         var totalScore = honbaScore //這個總分是被胡的人將要扣的分數, 先算上場棒的分數
         val allRiichiStickQuantity = players.sumOf { it.riichiStickAmount } //所有立直棒的數量
         //額外分數->計算場上的積棒, 立直棒一根 1000, 本場棒一根 300 (只會給頭跳, 即摸牌順序離被榮和的人最近的那一位)
         val extraScore = allRiichiStickQuantity * ScoringStick.P1000.point + honbaScore
-        val seatOrderFromTarget = List(4) { //從被榮和的玩家開始排序玩家位置
+        val seatOrderFromTarget = List(seat.size) { //從被榮和的玩家開始排序玩家位置
             val targetIndex = seat.indexOf(target)
-            seat[(targetIndex + it) % 4]
+            seat[(targetIndex + it) % seat.size]
         }
         val atamahanePlayer = seatOrderFromTarget.find { it in this } //找到頭跳的玩家
         this.forEach { //榮和的玩家
@@ -1172,6 +1219,7 @@ class MahjongGame(
             it.points += score
             totalScore += basicScore //總分除去已經計算的場棒分數, 只會累計基本分數
         }
+        (target as? MahjongPlayer)?.let(MahjongProgress::onDealIn)
         target.also { //被榮和的玩家
             val riichiStickPoints =
                 if (it.riichi || it.doubleRiichi) ScoringStick.P1000.point else 0 //這個玩家這輪有沒有立直,有->還要減去立直棒的點數
@@ -1209,7 +1257,7 @@ class MahjongGame(
         val scoreList = mutableListOf<ScoreItem>()
         val allRiichiStickQuantity = players.sumOf { it.riichiStickAmount } //所有立直棒的數量
         //額外分數->計算場上的積棒, 立直棒一根 1000, 本場棒一根 300 (自摸全拿)
-        val honbaScore = round.honba * 300 //場棒的分數
+        val honbaScore = round.honba * honbaPerStick //場棒的分數
         val playerRiichiStickPoints =
             if (this.riichi || this.doubleRiichi) ScoringStick.P1000.point else 0 //這個自摸的玩家這輪有沒有立直,有->還要減去立直棒的點數
         //以下對自摸的玩家做計算
@@ -1226,7 +1274,16 @@ class MahjongGame(
         )
         yakuSettlementList += settlement
         val basicScore = settlement.score //settlement 已經計算過莊家的點數, 不用再 * 1.5 了
-        val score = basicScore - playerRiichiStickPoints + extraScore
+        val others = players.filter { it != this }
+        /** What [payer] pays for the hand itself, as in 4-player (dealer win: a third each; else dealer half, others a quarter). */
+        fun shareOf(payer: MahjongPlayerBase): Int = when {
+            tsumoPlayerIsDealer -> basicScore / 3
+            payer == seatOrderFromDealer[0] -> basicScore / 2
+            else -> basicScore / 4
+        }
+        // 三麻自摸損: 只拿實際兩家付的部分, 不在的北家那份沒有人付
+        val handScore = if (rule.isSanma) others.sumOf { shareOf(it) } else basicScore
+        val score = handScore - playerRiichiStickPoints + extraScore
         scoreList += ScoreItem(
             mahjongPlayer = this,
             scoreOrigin = this.points,
@@ -1238,7 +1295,7 @@ class MahjongGame(
             val riichiStickPoints =
                 if (it.riichi || it.doubleRiichi) ScoringStick.P1000.point else 0 //這個玩家這輪有沒有立直,有->還要減去立直棒的點數
             if (tsumoPlayerIsDealer) { //自摸的那個玩家是否是莊家->分數平分
-                val averageScore = (basicScore + honbaScore) / 3 //場棒的分數也要分擔
+                val averageScore = basicScore / 3 + honbaScore / (seat.size - 1) //場棒的分數也要分擔
                 val itsScore = averageScore + riichiStickPoints
                 scoreList += ScoreItem(
                     mahjongPlayer = it,
@@ -1250,7 +1307,7 @@ class MahjongGame(
                 val isDealer = it == seatOrderFromDealer[0]
                 if (isDealer) {
                     val halfScore = basicScore / 2
-                    val itsScore = halfScore + honbaScore / 3 + riichiStickPoints //場棒的分數也要分擔
+                    val itsScore = halfScore + honbaScore / (seat.size - 1) + riichiStickPoints //場棒的分數也要分擔
                     scoreList += ScoreItem(
                         mahjongPlayer = it,
                         scoreOrigin = it.points,
@@ -1259,7 +1316,7 @@ class MahjongGame(
                     it.points -= itsScore
                 } else {
                     val quartScore = basicScore / 4
-                    val itsScore = quartScore + honbaScore / 3 + riichiStickPoints //場棒的分數也要分擔
+                    val itsScore = quartScore + honbaScore / (seat.size - 1) + riichiStickPoints //場棒的分數也要分擔
                     scoreList += ScoreItem(
                         mahjongPlayer = it,
                         scoreOrigin = it.points,
@@ -1290,7 +1347,7 @@ class MahjongGame(
         //多人流局滿貫時積棒算誰的(? 目前應該算最靠近莊家的那個玩家的
         val atamahanePlayer = seatOrderFromDealer.find { it in this } //找到頭跳的玩家 (從莊家開始找)
         val allRiichiStickQuantity = players.sumOf { it.riichiStickAmount } //所有立直棒的數量
-        val honbaScore = round.honba * 300 //場棒的分數
+        val honbaScore = round.honba * honbaPerStick //場棒的分數
         val extraScore = allRiichiStickQuantity * ScoringStick.P1000.point + honbaScore
         val originalScoreList = hashMapOf<String, Int>().apply { //以 <stringUUID, 分數> 儲存原本的分數
             players.forEach { this[it.uuid] = it.points }
@@ -1305,11 +1362,12 @@ class MahjongGame(
             )
             yakuSettlementList += yakuSettlement
             val basicScore = yakuSettlement.score
-            val score = basicScore + if (it == atamahanePlayer) extraScore else 0
+            val share = basicScore / 3 //每家付 1/3 (三麻的北家那份不付, 即自摸損)
+            val score = share * (seat.size - 1) + if (it == atamahanePlayer) extraScore else 0
             it.points += score
             players.filter { player -> player != it }.forEach { player ->
-                player.points -= (basicScore / 3)
-                if (it == atamahanePlayer) player.points -= (honbaScore / 3) //要分擔場棒的分數
+                player.points -= share
+                if (it == atamahanePlayer) player.points -= (honbaScore / (seat.size - 1)) //要分擔場棒的分數
             }
         }
         players.forEach {
@@ -1339,6 +1397,7 @@ class MahjongGame(
         scoreSettlement: ScoreSettlement? = null,
     ) {
         if (yakuSettlementList != null) {
+            MahjongProgress.onWins(this, yakuSettlementList)
             this.forEach { //發送給玩家役結算畫面的數據
                 sendPayloadToPlayer(
                     player = it.entity,
