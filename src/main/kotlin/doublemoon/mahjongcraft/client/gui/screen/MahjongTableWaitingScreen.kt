@@ -152,6 +152,7 @@ class MahjongTableGui(
                             y = y,
                             width = 132,
                             text = text,
+                            tooltipTitle = Component.translatable("$MOD_ID.game.starting_points"),
                             tooltip = arrayOf(
                                 Component.translatable(
                                     "$MOD_ID.game.starting_points.description",
@@ -165,6 +166,7 @@ class MahjongTableGui(
                             y = y,
                             width = 132,
                             text = text,
+                            tooltipTitle = Component.translatable("$MOD_ID.game.min_points_to_win"),
                             tooltip = arrayOf(Component.translatable("$MOD_ID.game.min_points_to_win.description"))
                         )
                         else -> text(x = 0, y = y, width = 132, text = text)

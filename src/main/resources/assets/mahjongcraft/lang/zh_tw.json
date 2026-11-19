@@ -12,8 +12,8 @@
   "config.mahjongcraft.quick_actions.no_chii_pon_kan": "不吃碰槓",
   "config.mahjongcraft.quick_actions.auto_draw_and_discard": "自動摸切",
   "config.mahjongcraft.tooltip.auto_reset": "每回合結束時自動重置",
-  "config.mahjongcraft.tooltip.hud_position_editor": "§e您可以通過§a按鍵綁定 (%s§a) §e開啟 HUD 位置編輯器來編輯 HUD 的位置",
-  "config.mahjongcraft.tooltip.yaku_overview": "§e您可以通過§a按鍵綁定 (%s§a) §e開啟役種畫面",
+  "config.mahjongcraft.tooltip.hud_position_editor": "開啟 HUD 位置編輯器，可以移動 HUD 的位置。目前按鍵：%s",
+  "config.mahjongcraft.tooltip.yaku_overview": "開啟役種畫面。目前按鍵：%s",
   "block.mahjongcraft.mahjong_stool": "麻將凳",
   "block.mahjongcraft.mahjong_table": "麻將桌",
   "entity.mahjongcraft.dice": "骰子",
@@ -56,7 +56,7 @@
   "mahjongcraft.game.length.two_wind": "半莊",
   "mahjongcraft.game.machi": "聽",
   "mahjongcraft.game.min_points_to_win": "1位必要點數",
-  "mahjongcraft.game.min_points_to_win.description": "ALL LAST時1位不足該點數將南入/西入",
+  "mahjongcraft.game.min_points_to_win.description": "最後一局（All Last）結束時，若一位未達到此點數，遊戲將延長進入南場／西場。",
   "mahjongcraft.game.minimum_han": "翻縛",
   "mahjongcraft.game.no_yaku": "無役",
   "mahjongcraft.game.riichi_mahjong": "立直麻將",
@@ -80,7 +80,7 @@
   "mahjongcraft.game.score.yakuman_6x": "六倍役滿",
   "mahjongcraft.game.spectate": "旁觀",
   "mahjongcraft.game.starting_points": "起始點數",
-  "mahjongcraft.game.starting_points.description": "最小值: %d, 最大值: %d",
+  "mahjongcraft.game.starting_points.description": "可設定範圍：%d ~ %d",
   "mahjongcraft.game.thinking_time": "長考時間",
   "mahjongcraft.game.tiles_left": "剩下 %d 張",
   "mahjongcraft.game.tile.east": "東",
@@ -341,5 +341,6 @@
   "mahjongcraft.stats.place.2": "二位",
   "mahjongcraft.stats.place.3": "三位",
   "mahjongcraft.stats.place.4": "四位",
-  "mahjongcraft.stats.unknown_player": "這個世界裡沒有 %s 的麻將戰績"
+  "mahjongcraft.stats.unknown_player": "這個世界裡沒有 %s 的麻將戰績",
+  "mahjongcraft.gui.tooltip.click_to_cycle": "點擊切換到下一個選項"
 }

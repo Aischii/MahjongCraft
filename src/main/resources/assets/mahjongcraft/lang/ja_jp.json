@@ -12,8 +12,8 @@
   "config.mahjongcraft.quick_actions.no_chii_pon_kan": "鳴きなし",
   "config.mahjongcraft.quick_actions.auto_draw_and_discard": "ツモ切り",
   "config.mahjongcraft.tooltip.auto_reset": "各ラウンドの終了時に自動的にリセットされます",
-  "config.mahjongcraft.tooltip.hud_position_editor": "§aキーバインド (%s§a) §eによってHUD位置エディタを開いて、HUDの位置を編集できます。",
-  "config.mahjongcraft.tooltip.yaku_overview": "§eキー設定 (%s§a) §eで役の概要画面を開くことができます",
+  "config.mahjongcraft.tooltip.hud_position_editor": "HUD位置エディタを開き、HUDの位置を変更できます。現在のキー: %s",
+  "config.mahjongcraft.tooltip.yaku_overview": "役の概要画面を開きます。現在のキー: %s",
   "block.mahjongcraft.mahjong_stool": "麻雀スツール",
   "block.mahjongcraft.mahjong_table": "麻雀テーブル",
   "entity.mahjongcraft.dice": "サイコロ",
@@ -56,7 +56,7 @@
   "mahjongcraft.game.length.two_wind": "半莊",
   "mahjongcraft.game.machi": "待ち",
   "mahjongcraft.game.min_points_to_win": "1位必要点数",
-  "mahjongcraft.game.min_points_to_win.description": "オーラス时, 1位がこの点数以下の场合南入/西入",
+  "mahjongcraft.game.min_points_to_win.description": "オーラス終了時に1位がこの点数未満なら、南入／西入して続行します。",
   "mahjongcraft.game.minimum_han": "飜缚り",
   "mahjongcraft.game.no_yaku": "無役",
   "mahjongcraft.game.riichi_mahjong": "立直麻雀",
@@ -80,7 +80,7 @@
   "mahjongcraft.game.score.yakuman_6x": "六倍役满",
   "mahjongcraft.game.spectate": "観客",
   "mahjongcraft.game.starting_points": "配给原点",
-  "mahjongcraft.game.starting_points.description": "最小: %d, 最大: %d",
+  "mahjongcraft.game.starting_points.description": "%d～%d の範囲で設定できます。",
   "mahjongcraft.game.thinking_time": "長考時間",
   "mahjongcraft.game.tiles_left": "残り %d 枚",
   "mahjongcraft.game.tile.east": "东",
@@ -341,5 +341,6 @@
   "mahjongcraft.stats.place.2": "2位",
   "mahjongcraft.stats.place.3": "3位",
   "mahjongcraft.stats.place.4": "4位",
-  "mahjongcraft.stats.unknown_player": "このワールドに %s の麻雀成績はありません"
+  "mahjongcraft.stats.unknown_player": "このワールドに %s の麻雀成績はありません",
+  "mahjongcraft.gui.tooltip.click_to_cycle": "クリックで次の選択肢へ"
 }

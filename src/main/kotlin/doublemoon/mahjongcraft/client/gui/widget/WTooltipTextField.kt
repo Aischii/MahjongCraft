@@ -9,10 +9,12 @@ import net.minecraft.network.chat.Component
 
 class WTooltipTextField(
     suggestion: Component,
-    var tooltip: Array<Component>
+    var tooltip: Array<Component>,
+    /** Shown in gold above the [tooltip] lines, which are wrapped to fit. */
+    var tooltipTitle: Component? = null,
 ) : WTextField(suggestion) {
     @Environment(EnvType.CLIENT)
     override fun addTooltip(tooltip: TooltipBuilder) {
-        tooltip.add(*this.tooltip)
+        TooltipLines.addTo(tooltip, tooltipTitle, this.tooltip)
     }
 }
