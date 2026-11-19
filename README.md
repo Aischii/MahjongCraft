@@ -123,17 +123,51 @@ Every key can be changed under **Options → Controls → Key Binds → MahjongC
 
 ## Crafting
 
-| Item | Recipe | Makes |
-|---|---|---|
-| Mahjong Table | 3 lime or green carpet across the top, a wooden fence in the middle, a wooden slab at the bottom | 1 |
-| Mahjong Tile Set | 8 Mahjong Tiles around a chest | 1 |
-| Mahjong Guide | a book and a Mahjong Tile (shapeless) | 1 |
-| Mahjong Stool | 2 gray carpet on top of 2 sticks | 1 |
-| Mahjong Tile | 6 white concrete beside 3 lime or green concrete (two columns of white, one of green) | 16 |
-| Mahjong Scoring Stick | 1 red or black dye above 3 white concrete | 6 |
-| Dice | white concrete, red dye and black dye (shapeless) | 2 |
+In the grids, `·` is an empty slot. "Lime/Green" means either colour works, and you can mix them.
 
-Recipes appear in your recipe book as soon as you pick up one of their ingredients.
+**Mahjong Table** (makes 1)
+
+```
+[Lime/Green Carpet] [Lime/Green Carpet] [Lime/Green Carpet]
+[        ·        ] [  any Wood Fence ] [        ·        ]
+[        ·        ] [  any Wood Slab  ] [        ·        ]
+```
+
+**Mahjong Tile** (makes 16)
+
+```
+[White Concrete] [White Concrete] [Lime/Green Concrete]
+[White Concrete] [White Concrete] [Lime/Green Concrete]
+[White Concrete] [White Concrete] [Lime/Green Concrete]
+```
+
+**Mahjong Tile Set** (makes 1; a table needs one loaded to start a game)
+
+```
+[Mahjong Tile] [Mahjong Tile] [Mahjong Tile]
+[Mahjong Tile] [   Chest    ] [Mahjong Tile]
+[Mahjong Tile] [Mahjong Tile] [Mahjong Tile]
+```
+
+**Mahjong Stool** (makes 1)
+
+```
+[Gray Carpet] [Gray Carpet]
+[   Stick   ] [   Stick   ]
+```
+
+**Mahjong Scoring Stick** (makes 6)
+
+```
+[Red or Black Dye] [       ·      ] [       ·      ]
+[ White Concrete ] [White Concrete] [White Concrete]
+```
+
+**Mahjong Guide** (makes 1, shapeless): Book + Mahjong Tile
+
+**Dice** (makes 2, shapeless): White Concrete + Red Dye + Black Dye
+
+The Table, Stool and Scoring Stick recipes can sit anywhere in the crafting grid as long as the shape is kept; the Stool also fits the 2×2 inventory grid. Recipes appear in your recipe book as soon as you pick up one of their ingredients, and the Guide's Crafting tab lists them all.
 
 To play you need a table with a Tile Set loaded; the tiles, sticks and dice on the table are spawned for each game. A loaded set stays in the table and drops when the table is broken. Creative-mode players can start without one.
 
