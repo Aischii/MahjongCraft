@@ -32,6 +32,8 @@ object MahjongCraft : ModInitializer {
         BlockRegistry.register()
         BlockEntityTypeRegistry.register()
         SoundRegistry.register()
+        doublemoon.mahjongcraft.game.progress.MahjongGameRules.register()
+        doublemoon.mahjongcraft.game.progress.MahjongLoot.register()
 
         // Event
         ServerTickEvents.END_SERVER_TICK.register(ServerScheduler::tick)

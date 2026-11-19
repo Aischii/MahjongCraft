@@ -43,6 +43,10 @@ object ItemRegistry {
     val mahjongScoringStick: MahjongScoringStick = MahjongScoringStick(
         itemProperties("mahjong_scoring_stick").component(DataComponents.CUSTOM_DATA, codeData(0))
     )
+    /** A full set of 136 tiles; a table needs one loaded before a game can start (see [MahjongGameRules]). */
+    val mahjongTileSet: Item = Item(itemProperties("mahjong_tile_set").stacksTo(1))
+    /** Opens the Mahjong Guide screen (crafting, controls, rules, yaku) on the client. */
+    val mahjongGuide: Item = Item(itemProperties("mahjong_book").stacksTo(1))
     //考慮加入牌尺
 
     private val itemGroup = ResourceKey.create(Registries.CREATIVE_MODE_TAB, id("group"))
@@ -52,6 +56,8 @@ object ItemRegistry {
         Registry.register(BuiltInRegistries.ITEM, id("dice"), dice)
         Registry.register(BuiltInRegistries.ITEM, id("mahjong_tile"), mahjongTile)
         Registry.register(BuiltInRegistries.ITEM, id("mahjong_scoring_stick"), mahjongScoringStick)
+        Registry.register(BuiltInRegistries.ITEM, id("mahjong_tile_set"), mahjongTileSet)
+        Registry.register(BuiltInRegistries.ITEM, id("mahjong_book"), mahjongGuide)
 
         // BlockItems
         val mahjongStoolBlockItem =
@@ -71,6 +77,8 @@ object ItemRegistry {
                 entries.accept(mahjongScoringStick)
                 entries.accept(mahjongStoolBlockItem)
                 entries.accept(mahjongTableBlockItem)
+                entries.accept(mahjongTileSet)
+                entries.accept(mahjongGuide)
             }.build()
         )
     }

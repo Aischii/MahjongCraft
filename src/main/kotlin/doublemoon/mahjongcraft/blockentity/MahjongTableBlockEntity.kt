@@ -13,6 +13,9 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongRound
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongRule
 import doublemoon.mahjongcraft.network.mahjong_table.MahjongTablePayloadListener
 import doublemoon.mahjongcraft.registry.BlockEntityTypeRegistry
+import doublemoon.mahjongcraft.registry.ItemRegistry
+import net.minecraft.world.Containers
+import net.minecraft.world.entity.player.Player
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.fabricmc.api.EnvType
@@ -48,6 +51,23 @@ class MahjongTableBlockEntity(
     var seat = arrayListOf("", "", "", "") //座位上的玩家的 stringUUID, 按照遊戲開始的座位順序編排
     var dealer = "" //莊家的 stringUUID
     var points = arrayListOf(0, 0, 0, 0) //玩家的點數, 排列順序比照 seat
+
+    /** A Mahjong Tile Set has been loaded into this table; it drops when the table is broken. */
+    var tileSetLoaded = false
+    /** Mirrors the `mahjongcraft:require_tile_set` game rule so clients can show it; set by the server. */
+    var tileSetRequired = true
+
+    /** Whether [player] may start a game here: a set is loaded, it isn't required, or they are in creative. */
+    fun canStart(player: Player): Boolean = tileSetLoaded || !tileSetRequired || player.hasInfiniteMaterials()
+
+    override fun preRemoveSideEffects(pos: BlockPos, state: BlockState) {
+        super.preRemoveSideEffects(pos, state)
+        val level = level ?: return
+        if (tileSetLoaded && !level.isClientSide) {
+            tileSetLoaded = false
+            Containers.dropItemStack(level, pos.x + 0.5, pos.y + 1.0, pos.z + 0.5, ItemRegistry.mahjongTileSet.defaultInstance)
+        }
+    }
 
     /**
      * 剩餘的牌, index 為 [Tile.code], value 為剩下的張數,
@@ -92,6 +112,8 @@ class MahjongTableBlockEntity(
             dealer = getStringOr("Dealer", "")
             rule = MahjongRule.fromJsonString(getStringOr("Rule", ""))
             playing = getBooleanOr("Playing", false)
+            tileSetLoaded = getBooleanOr("TileSetLoaded", false)
+            tileSetRequired = getBooleanOr("TileSetRequired", true)
             round = Json.decodeFromString(getStringOr("Round", ""))
         }
         level?.isClientSide?.let { isClient ->
@@ -122,6 +144,8 @@ class MahjongTableBlockEntity(
                 putString("Dealer", dealer)
                 putString("Rule", rule.toJsonString())
                 putBoolean("Playing", playing)
+                putBoolean("TileSetLoaded", tileSetLoaded)
+                putBoolean("TileSetRequired", tileSetRequired)
                 putString("Round", Json.encodeToString(round))
             }
         }

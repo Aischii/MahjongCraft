@@ -34,22 +34,45 @@ A Fabric mod for Minecraft that lets you play Japanese (Riichi) Mahjong in game,
 ## Getting started
 
 1. **Craft a Mahjong Table and place it.** It takes up a 3×3 area, so leave room around it.
-2. **Right-click the table.** The waiting room opens, and the first player becomes the host.
-3. **Fill the seats.** Friends right-click the same table to join, or the host clicks **Add Bot** for each empty seat.
-4. **Set the rules (optional).** The host clicks **Edit Rules** to change the game length, thinking time, starting points and more.
-5. **Ready up and start.** Everyone clicks **Ready**, then the host clicks **Start**. Seats and hands are set up automatically.
+2. **Load a Mahjong Tile Set.** Right-click the table while holding a Tile Set. The label above the table shows ✔ once it is loaded. To take the set back out, sneak and right-click the table with an empty hand.
+3. **Right-click the table.** The waiting room opens, and the first player becomes the host.
+4. **Fill the seats.** Friends right-click the same table to join, or the host clicks **Add Bot** for each empty seat.
+5. **Set the rules (optional).** The host clicks **Edit Rules** to change the game length, thinking time, starting points and more.
+6. **Ready up and start.** Everyone clicks **Ready**, then the host clicks **Start**. Seats and hands are set up automatically.
 
 ## Crafting
 
 | Item | Recipe | Makes |
 |---|---|---|
 | Mahjong Table | 3 lime or green carpet across the top, a wooden fence in the middle, a wooden slab at the bottom | 1 |
+| Mahjong Tile Set | 8 Mahjong Tiles around a chest | 1 |
+| Mahjong Guide | a book and a Mahjong Tile (shapeless) | 1 |
 | Mahjong Stool | 2 gray carpet on top of 2 sticks | 1 |
 | Mahjong Tile | 6 white concrete beside 3 lime or green concrete (two columns of white, one of green) | 16 |
 | Mahjong Scoring Stick | 1 red or black dye above 3 white concrete | 6 |
 | Dice | white concrete, red dye and black dye (shapeless) | 2 |
 
-The table is all you need to play: tiles, sticks and dice are spawned on it for each game. The loose items are for decoration. Right-click a tile or stick to change which one it is, and sneak + right-click a block to place it.
+Recipes appear in your recipe book as soon as you pick up one of their ingredients.
+
+To play you need a table with a Tile Set loaded; the tiles, sticks and dice on the table are spawned for each game. A loaded set stays in the table and drops when the table is broken. The loose tiles, sticks and dice are for decoration. Right-click a tile or stick to change which one it is, and sneak + right-click a block to place it.
+
+- **Creative mode** players can start a game without a Tile Set.
+- **Server owners** can drop the requirement for everyone with `/gamerule mahjongcraft:require_tile_set false`.
+
+**Finding items without crafting:** wandering traders sometimes sell a Tile Set, dice or a Mahjong Guide for emeralds, and village house chests sometimes hold dice, scoring sticks or a Guide.
+
+## Mahjong Guide
+
+Right-click with the Mahjong Guide to open it. It has four tabs:
+
+- **Crafting:** every recipe in the mod.
+- **Controls:** your current key bindings, so it stays right if you change them.
+- **Rules:** a short how-to-play: starting a game, the goal, turns, calls, riichi, winning and furiten.
+- **Yaku:** what yaku are, with a button to the full Yaku Overview.
+
+## Advancements
+
+The **MahjongCraft** advancement tab has six goals: craft a table, play your first hand, declare riichi, win a hand, win with a yakuman (hidden until you get it) and finish first in a full game.
 
 ## Controls
 

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipes": "mahjongcraft:mahjong_stool"
+      }
+    },
+    "has_item_0": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:gray_carpet"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_item_0"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mahjongcraft:mahjong_stool"
+    ]
+  }
+}

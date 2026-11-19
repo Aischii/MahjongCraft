@@ -1,0 +1,23 @@
+{
+  "parent": "mahjongcraft:main/win_a_hand",
+  "display": {
+    "icon": {
+      "id": "minecraft:nether_star"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.win_a_yakuman.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.win_a_yakuman.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

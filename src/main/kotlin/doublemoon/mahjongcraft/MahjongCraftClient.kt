@@ -2,6 +2,9 @@ package doublemoon.mahjongcraft
 
 import doublemoon.mahjongcraft.client.game.ClientMahjongState
 import doublemoon.mahjongcraft.client.game.MahjongKeys
+import doublemoon.mahjongcraft.client.gui.screen.GuideScreen
+import net.fabricmc.fabric.api.event.player.UseItemCallback
+import net.minecraft.world.InteractionResult
 import doublemoon.mahjongcraft.scheduler.client.OptionalBehaviorHandler
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import doublemoon.mahjongcraft.client.gui.hud.HandHud
@@ -56,7 +59,7 @@ object MahjongCraftClient : ClientModInitializer {
     private val keyCategory: KeyMapping.Category = KeyMapping.Category.register(id("main"))
 
     //KeyBinding
-    private val configKey: KeyMapping = registerKeyBinding(
+    val configKey: KeyMapping = registerKeyBinding(
         translationKey = "key.$MOD_ID.open_config_gui",
         code = InputConstants.KEY_SEMICOLON,
     )
@@ -73,6 +76,13 @@ object MahjongCraftClient : ClientModInitializer {
         // Gameplay keys run before vanilla reads input, so a discard click isn't also an item use.
         MahjongKeys.register(keyCategory)
         ClientTickEvents.START_CLIENT_TICK.register(MahjongKeys::handleInput)
+        // The Mahjong Guide opens its screen on the client; the server just lets the use pass.
+        UseItemCallback.EVENT.register { player, level, hand ->
+            if (level.isClientSide && player.getItemInHand(hand).`is`(ItemRegistry.mahjongGuide)) {
+                Minecraft.getInstance().gui.setScreen(GuideScreen())
+                InteractionResult.SUCCESS
+            } else InteractionResult.PASS
+        }
         HudElementRegistry.addLast(id("hand")) { graphics, delta -> HandHud.extract(graphics, delta) }
         HudElementRegistry.addLast(id("table")) { graphics, delta -> TableHud.extract(graphics, delta) }
         ClientLifecycleEvents.CLIENT_STOPPING.register { ClientScheduler.onStopping() }

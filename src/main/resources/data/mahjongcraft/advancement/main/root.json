@@ -1,0 +1,30 @@
+{
+  "display": {
+    "icon": {
+      "id": "mahjongcraft:mahjong_table"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.root.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.root.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false,
+    "background": "minecraft:block/green_wool"
+  },
+  "criteria": {
+    "has_table": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "mahjongcraft:mahjong_table"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -10,6 +10,10 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongTableBehavior
 import doublemoon.mahjongcraft.network.mahjong_table.MahjongTablePayload
 import doublemoon.mahjongcraft.network.sendPayloadToPlayer
 import doublemoon.mahjongcraft.registry.BlockEntityTypeRegistry
+import doublemoon.mahjongcraft.registry.ItemRegistry
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.sounds.SoundSource
+import net.minecraft.world.InteractionHand
 import doublemoon.mahjongcraft.util.boxBySize
 import doublemoon.mahjongcraft.util.plus
 import net.minecraft.world.level.block.BaseEntityBlock
@@ -101,6 +105,42 @@ class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
         builder.add(PART)
     }
 
+    /** Right-click with a Mahjong Tile Set loads it into the table (one per table). */
+    override fun useItemOn(
+        stack: ItemStack,
+        state: BlockState,
+        world: Level,
+        pos: BlockPos,
+        player: Player,
+        hand: InteractionHand,
+        hit: BlockHitResult,
+    ): InteractionResult {
+        if (!stack.`is`(ItemRegistry.mahjongTileSet)) return InteractionResult.TRY_WITH_EMPTY_HAND
+        val centerPos = getCenterPosByPart(pos = pos, part = state.getValue(PART))
+        val table = world.getBlockEntity(centerPos) as? MahjongTableBlockEntity ?: return InteractionResult.PASS
+        if (table.tileSetLoaded) return InteractionResult.TRY_WITH_EMPTY_HAND
+        if (!world.isClientSide) {
+            table.tileSetLoaded = true
+            table.setChanged()
+            stack.consume(1, player)
+            world.playSound(null, centerPos, SoundEvents.BAMBOO_WOOD_PLACE, SoundSource.BLOCKS, 1f, 1.2f)
+            player.sendOverlayMessage(Component.translatable("$MOD_ID.game.message.tile_set_loaded").withStyle(ChatFormatting.GREEN))
+        }
+        return InteractionResult.SUCCESS
+    }
+
+    /** Sneak + right-click with an empty hand takes the loaded Tile Set back out, while no game is running. */
+    private fun takeTileSet(world: ServerLevel, centerPos: BlockPos, player: ServerPlayer): Boolean {
+        val table = world.getBlockEntity(centerPos) as? MahjongTableBlockEntity ?: return false
+        if (!table.tileSetLoaded || table.playing) return false
+        table.tileSetLoaded = false
+        table.setChanged()
+        val set = ItemRegistry.mahjongTileSet.defaultInstance
+        if (!player.inventory.add(set)) net.minecraft.world.Containers.dropItemStack(world, player.x, player.y, player.z, set)
+        world.playSound(null, centerPos, SoundEvents.BAMBOO_WOOD_BREAK, SoundSource.BLOCKS, 1f, 1.2f)
+        return true
+    }
+
     override fun useWithoutItem(
         state: BlockState,
         world: Level,
@@ -112,6 +152,9 @@ class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
             val centerPos = getCenterPosByPart(pos = pos, part = state.getValue(PART))
             player as ServerPlayer
             world as ServerLevel
+            if (player.isShiftKeyDown && player.mainHandItem.isEmpty && takeTileSet(world, centerPos, player)) {
+                return InteractionResult.SUCCESS
+            }
             val game = GameManager.getGame<MahjongGame>(world = world, pos = centerPos) ?: return InteractionResult.CONSUME
             if (!GameManager.isInAnyGame(player) || game.isInGame(player)) {
                 //如果玩家沒有在任何遊戲中, 或者玩家在"這個"遊戲中

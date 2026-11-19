@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "mahjongcraft:wandering_trader/emerald_mahjong_tile_set",
+    "mahjongcraft:wandering_trader/emerald_dice",
+    "mahjongcraft:wandering_trader/emerald_mahjong_book"
+  ]
+}

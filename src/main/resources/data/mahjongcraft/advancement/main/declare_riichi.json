@@ -1,0 +1,23 @@
+{
+  "parent": "mahjongcraft:main/play_a_hand",
+  "display": {
+    "icon": {
+      "id": "mahjongcraft:mahjong_scoring_stick"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.declare_riichi.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.declare_riichi.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

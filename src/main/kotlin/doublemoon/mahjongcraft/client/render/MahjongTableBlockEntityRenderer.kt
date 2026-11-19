@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer
 import net.minecraft.client.renderer.state.level.CameraRenderState
+import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.Vec3
 
@@ -129,6 +130,12 @@ class MahjongTableBlockEntityRenderer(
             if (!blockEntity.playing) { //沒在遊戲中才會顯示
                 this += Component.empty().append(PLAYER).append(": $playerAmount/4")
                 this += Component.empty().append(READY).append(": $readyAmount/4")
+                if (blockEntity.tileSetRequired) {
+                    this += Component.empty().append(TILE_SET).append(": ").append(
+                        if (blockEntity.tileSetLoaded) Component.literal("✔").withStyle(ChatFormatting.GREEN)
+                        else Component.literal("✘").withStyle(ChatFormatting.RED)
+                    )
+                }
             } else { //在遊戲中才顯示
                 val round = blockEntity.round
                 this += Component.translatable("$MOD_ID.game.round.title", round.wind.toText(), round.round + 1) //ex: 東 4 局
@@ -147,6 +154,7 @@ class MahjongTableBlockEntityRenderer(
         private val READY get() = Component.translatable("$MOD_ID.gui.button.ready")
         private val PLAYER get() = Component.translatable("$MOD_ID.game.player")
         private val STATUS get() = Component.translatable("$MOD_ID.game.status")
+        private val TILE_SET get() = Component.translatable("item.$MOD_ID.mahjong_tile_set")
         private val WAITING get() = GameStatus.WAITING.toText()
         private val PLAYING get() = GameStatus.PLAYING.toText()
     }

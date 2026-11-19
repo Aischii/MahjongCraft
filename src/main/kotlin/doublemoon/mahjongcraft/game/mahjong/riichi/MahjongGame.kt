@@ -10,6 +10,7 @@ import doublemoon.mahjongcraft.game.GameStatus
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.*
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongBot
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayer
+import doublemoon.mahjongcraft.game.progress.MahjongAdvancements
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayerBase
 import net.minecraft.sounds.SoundEvents
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
@@ -540,6 +541,7 @@ class MahjongGame(
                 if (riichiSengen != null) {
                     // 立直棒的點數會在流局或者有人贏牌的時候結算減去
                     player.riichi(riichiSengenTile = tileDiscarded, isFirstRound = board.isFirstRound)
+                    (player as? MahjongPlayer)?.let(MahjongAdvancements::onRiichi)
                     board.sortDiscardedTilesForDisplay(player = player, openDoorPlayer = openDoorPlayer)
                     board.putRiichiStick(player = player)
                     player.playSoundAtSeat(SoundRegistry.riichi)
@@ -786,6 +788,8 @@ class MahjongGame(
                 roundDraw(roundExhaustiveDraw)
             }
 
+            MahjongAdvancements.onHandEnd(realPlayers)
+
             //結束後等待一下
             delayOnServer(3000L)
 
@@ -813,6 +817,7 @@ class MahjongGame(
                         val finalRound = rule.length.finalRound
                         if (round.wind == finalRound.first && round.round == finalRound.second) {
                             //是最後一局->結束遊戲
+                            onGameFinished()
                             showGameResult()
                             end()
                         } else {
@@ -823,6 +828,7 @@ class MahjongGame(
                     }
                 } else {
                     //至少一個玩家的點數大於 1 位必要點數->結束遊戲
+                    onGameFinished()
                     showGameResult()
                     end()
                 }
@@ -907,6 +913,12 @@ class MahjongGame(
             )
         }
         delayOnServer(ScoreSettleHandler.defaultTime * 1000L) //基本最少會等待跟結算畫面一樣長的秒數
+    }
+
+    /** The game reached its last hand (not broken off): credit the player who finished first. */
+    private fun onGameFinished() {
+        val first = players.maxByOrNull { it.points }
+        MahjongAdvancements.onGameWon(first as? MahjongPlayer)
     }
 
     /**
@@ -1339,6 +1351,7 @@ class MahjongGame(
         scoreSettlement: ScoreSettlement? = null,
     ) {
         if (yakuSettlementList != null) {
+            MahjongAdvancements.onWins(this, yakuSettlementList)
             this.forEach { //發送給玩家役結算畫面的數據
                 sendPayloadToPlayer(
                     player = it.entity,

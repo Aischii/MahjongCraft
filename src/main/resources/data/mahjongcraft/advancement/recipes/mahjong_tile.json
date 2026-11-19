@@ -1,0 +1,54 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipes": "mahjongcraft:mahjong_tile"
+      }
+    },
+    "has_item_0": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:white_concrete"
+          }
+        ]
+      }
+    },
+    "has_item_1": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:lime_concrete"
+          }
+        ]
+      }
+    },
+    "has_item_2": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:green_concrete"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_item_0",
+      "has_item_1",
+      "has_item_2"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "mahjongcraft:mahjong_tile"
+    ]
+  }
+}

@@ -222,9 +222,16 @@ class MahjongTableGui(
                     )
                 }
                 start!!.apply {
-                    isEnabled = isAllReady
+                    val player = Minecraft.getInstance().player
+                    val hasTileSet = player != null && mahjongTable.canStart(player)
+                    isEnabled = isAllReady && hasTileSet
+                    tooltip = if (hasTileSet) {
+                        arrayOf(Component.translatable("$MOD_ID.gui.tooltip.clickable.when_all_ready"))
+                    } else {
+                        arrayOf(Component.translatable("$MOD_ID.game.message.tile_set_needed"))
+                    }
                     onClick = Runnable {
-                        if (isAllReady && isHost) {
+                        if (isAllReady && isHost && hasTileSet) {
                             sendPayloadToServer(
                                 payload = MahjongTablePayload(
                                     behavior = MahjongTableBehavior.START,
