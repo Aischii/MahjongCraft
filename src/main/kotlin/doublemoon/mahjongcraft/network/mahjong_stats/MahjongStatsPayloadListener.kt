@@ -6,7 +6,7 @@ import doublemoon.mahjongcraft.game.progress.PlayerStats
 import doublemoon.mahjongcraft.network.ChannelType
 import doublemoon.mahjongcraft.network.CustomPayloadListener
 import doublemoon.mahjongcraft.network.sendPayloadToPlayer
-import kotlinx.serialization.json.Json
+import doublemoon.mahjongcraft.network.PayloadJson
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
@@ -16,8 +16,6 @@ import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
 object MahjongStatsPayloadListener : CustomPayloadListener<MahjongStatsPayload> {
-    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
-
     override val id: CustomPacketPayload.Type<MahjongStatsPayload> = MahjongStatsPayload.ID
     override val codec: StreamCodec<RegistryFriendlyByteBuf, MahjongStatsPayload> = MahjongStatsPayload.CODEC
     override val channelType: ChannelType = ChannelType.Both
@@ -28,7 +26,7 @@ object MahjongStatsPayloadListener : CustomPayloadListener<MahjongStatsPayload> 
 
     @Environment(EnvType.CLIENT)
     override fun onClientReceive(payload: MahjongStatsPayload, context: ClientPlayNetworking.Context) {
-        val stats = runCatching { json.decodeFromString<PlayerStats>(payload.json) }.getOrNull() ?: return
+        val stats = PayloadJson.decodeFromString<PlayerStats>(payload.json)
         context.client().execute {
             (context.client().gui.screen() as? GuideScreen)?.showStats(stats)
         }
@@ -38,6 +36,6 @@ object MahjongStatsPayloadListener : CustomPayloadListener<MahjongStatsPayload> 
         val player = context.player()
         val book = MahjongStatsData.of(player.level().server).book
         val stats = book.players[player.stringUUID] ?: PlayerStats(name = player.name.string)
-        sendPayloadToPlayer(player, MahjongStatsPayload(json.encodeToString(PlayerStats.serializer(), stats)))
+        sendPayloadToPlayer(player, MahjongStatsPayload(PayloadJson.encodeToString(PlayerStats.serializer(), stats)))
     }
 }

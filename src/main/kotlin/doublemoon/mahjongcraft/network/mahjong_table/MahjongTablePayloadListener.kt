@@ -14,6 +14,7 @@ import doublemoon.mahjongcraft.game.progress.MahjongGameRules
 import doublemoon.mahjongcraft.logger
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
+import doublemoon.mahjongcraft.network.PayloadJson
 import doublemoon.mahjongcraft.network.ChannelType
 import doublemoon.mahjongcraft.network.CustomPayloadListener
 import doublemoon.mahjongcraft.network.sendPayloadToPlayer
@@ -79,8 +80,20 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
         val world = player.level() as ServerLevel? ?: return
 
         when (behavior) {
-            MahjongTableBehavior.JOIN -> syncBlockEntityWithGame(world = world, pos = pos) {  //讓玩家加入遊戲
-                if (status == GameStatus.WAITING) join(player)
+            MahjongTableBehavior.JOIN -> {
+                val clientVersion = if (extraData.isBlank()) null else PayloadJson.decodeFromString<TableJoinData>(extraData).version
+                syncBlockEntityWithGame(world = world, pos = pos) {
+                    if (status == GameStatus.WAITING) {
+                        if (clientVersion != null && clientVersion != mahjongCraftVersion) {
+                            player.sendSystemMessage(Component.translatableWithFallback(
+                                "$MOD_ID.message.version_mismatch",
+                                "This server has MahjongCraft %s, you have %s. Please update.",
+                                mahjongCraftVersion, clientVersion,
+                            ))
+                        }
+                        join(player)
+                    }
+                }
             }
             MahjongTableBehavior.LEAVE -> syncBlockEntityWithGame(world = world, pos = pos) { //讓玩家離開遊戲
                 if (status == GameStatus.WAITING) leave(player)
@@ -104,8 +117,11 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
                     }
                 }
             }
-            MahjongTableBehavior.KICK -> syncBlockEntityWithGame(world = world, pos = pos) { //讓主持剔除玩家
-                if (isHost(player) && status == GameStatus.WAITING) kick(index = extraData.toInt())
+            MahjongTableBehavior.KICK -> {
+                val index = extraData.toInt()
+                syncBlockEntityWithGame(world = world, pos = pos) {
+                    if (isHost(player) && status == GameStatus.WAITING) kick(index = index)
+                }
             }
             MahjongTableBehavior.ADD_BOT -> syncBlockEntityWithGame(world = world, pos = pos) { //新增機器人到遊戲
                 if (isHost(player) && status == GameStatus.WAITING) addBot()
@@ -123,8 +139,11 @@ object MahjongTablePayloadListener : CustomPayloadListener<MahjongTablePayload> 
                     )
                 }
             }
-            MahjongTableBehavior.CHANGE_RULE -> syncBlockEntityWithGame(world = world, pos = pos) { //改變規則
-                if (isHost(player) && status == GameStatus.WAITING) changeRules(MahjongRule.fromJsonString(extraData))
+            MahjongTableBehavior.CHANGE_RULE -> {
+                val rule = MahjongRule.fromJsonString(extraData)
+                syncBlockEntityWithGame(world = world, pos = pos) {
+                    if (isHost(player) && status == GameStatus.WAITING) changeRules(rule)
+                }
             }
             else -> {
             }

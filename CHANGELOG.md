@@ -2,6 +2,17 @@
 
 All notable changes to this fork of MahjongCraft. Each release's notes on GitHub are taken from its section here.
 
+## 0.6.0
+
+### Playing
+- **Version warning:** joining a table warns you when your MahjongCraft version differs from the server.
+
+### Decoration
+- **Decorative tile blocks:** place up to four tiles together, stand them upright or lay them flat, and take them back one at a time.
+
+### Fixes
+- Unrecognized packet fields and malformed mahjong payload data no longer disconnect players.
+
 ## 0.5.1
 
 ### Playing

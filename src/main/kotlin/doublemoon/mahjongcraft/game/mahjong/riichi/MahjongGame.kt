@@ -29,7 +29,7 @@ import doublemoon.mahjongcraft.util.plus
 import doublemoon.mahjongcraft.util.sendTitles
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import doublemoon.mahjongcraft.network.PayloadJson
 import net.minecraft.world.entity.Entity
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
@@ -946,7 +946,7 @@ class MahjongGame(
                 player = it.entity,
                 payload = MahjongGamePayload(
                     behavior = MahjongGameBehavior.SCORE_SETTLEMENT,
-                    extraData = Json.encodeToString(
+                    extraData = PayloadJson.encodeToString(
                         ScoreSettlement(
                             titleTranslateKey = draw.translateKey,
                             scoreList = scoreList
@@ -981,7 +981,7 @@ class MahjongGame(
                 player = it.entity,
                 payload = MahjongGamePayload(
                     behavior = MahjongGameBehavior.SCORE_SETTLEMENT,
-                    extraData = Json.encodeToString(
+                    extraData = PayloadJson.encodeToString(
                         ScoreSettlement(
                             titleTranslateKey = "$MOD_ID.game.game_over",
                             scoreList = scoreList
@@ -1405,7 +1405,7 @@ class MahjongGame(
                     player = it.entity,
                     payload = MahjongGamePayload(
                         behavior = MahjongGameBehavior.YAKU_SETTLEMENT,
-                        extraData = Json.encodeToString(yakuSettlementList)
+                        extraData = PayloadJson.encodeToString(yakuSettlementList)
                     )
                 )
             }
@@ -1418,7 +1418,7 @@ class MahjongGame(
                     player = it.entity,
                     payload = MahjongGamePayload(
                         behavior = MahjongGameBehavior.SCORE_SETTLEMENT,
-                        extraData = Json.encodeToString(scoreSettlement)
+                        extraData = PayloadJson.encodeToString(scoreSettlement)
                     )
                 )
             }

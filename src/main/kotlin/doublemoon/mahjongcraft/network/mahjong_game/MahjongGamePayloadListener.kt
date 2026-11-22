@@ -21,7 +21,7 @@ import doublemoon.mahjongcraft.scheduler.client.OptionalBehaviorHandler
 import doublemoon.mahjongcraft.scheduler.client.ScoreSettleHandler
 import doublemoon.mahjongcraft.scheduler.client.YakuSettleHandler
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import doublemoon.mahjongcraft.network.PayloadJson
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
@@ -46,15 +46,16 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
         payload: MahjongGamePayload,
         context: ClientPlayNetworking.Context,
     ) {
-        val (behavior, hands, target, extraData) = payload
+        val (behavior, _, target, extraData) = payload
+        val hands = payload.decodeHands()
 
         when (behavior) {
             MahjongGameBehavior.MACHI -> {
-                WTileHints.machiOfTarget = Json.decodeFromString(extraData)
+                WTileHints.machiOfTarget = PayloadJson.decodeFromString(extraData)
             }
 
             MahjongGameBehavior.COUNTDOWN_TIME -> {
-                val times = Json.decodeFromString<Pair<Int?, Int?>>(extraData)
+                val times = PayloadJson.decodeFromString<Pair<Int?, Int?>>(extraData)
                 ClientCountdownTimeHandler.basicAndExtraTime = times
                 ClientMahjongState.onTime(times)
             }
@@ -64,11 +65,11 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
             }
 
             MahjongGameBehavior.TABLE_STATE -> {
-                ClientMahjongState.onTable(Json.decodeFromString<TableState>(extraData))
+                ClientMahjongState.onTable(PayloadJson.decodeFromString<TableState>(extraData))
             }
 
             MahjongGameBehavior.DISCARD -> {
-                val request = Json.decodeFromString<DiscardRequest>(extraData)
+                val request = PayloadJson.decodeFromString<DiscardRequest>(extraData)
                 ClientMahjongState.onDiscardRequest(hands, request)
                 if (request.skippable && MahjongCraftClient.config.quickActions.autoDrawAndDiscard) { // 自動摸切
                     sendPayloadToServer(
@@ -94,12 +95,12 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
                     autoDrawAndDiscard = false
                     MahjongCraftClient.saveConfig()
                 }
-                val settlement = Json.decodeFromString<ScoreSettlement>(extraData)
+                val settlement = PayloadJson.decodeFromString<ScoreSettlement>(extraData)
                 ScoreSettleHandler.start(settlement = settlement)
             }
 
             MahjongGameBehavior.YAKU_SETTLEMENT -> {
-                val settlements = Json.decodeFromString<List<YakuSettlement>>(extraData)
+                val settlements = PayloadJson.decodeFromString<List<YakuSettlement>>(extraData)
                 YakuSettleHandler.start(settlementList = settlements)
             }
 
@@ -147,6 +148,7 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
         context: ServerPlayNetworking.Context,
     ) {
         val (behavior, _, _, extraData) = payload
+        payload.decodeHands()
         val player = context.player()
 
         val game = GameManager.getGame<MahjongGame>(player) ?: return
@@ -154,7 +156,7 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
 
         when (behavior) {
             MahjongGameBehavior.MACHI -> {
-                val tile = Json.decodeFromString<MahjongTile>(extraData)
+                val tile = PayloadJson.decodeFromString<MahjongTile>(extraData)
                 val machiAndHanOrigin = with(game) { mjPlayer.getMachiAndHan(tile) }
                 val machiAndHan = machiAndHanOrigin.keys
                     .map { MahjongTile.entries[it.mahjong4jTile.code] } //過濾赤寶牌的情況
@@ -171,7 +173,7 @@ object MahjongGamePayloadListener : CustomPayloadListener<MahjongGamePayload> {
                     player = player,
                     payload = MahjongGamePayload(
                         behavior = MahjongGameBehavior.MACHI,
-                        extraData = Json.encodeToString(machiAndHan)
+                        extraData = PayloadJson.encodeToString(machiAndHan)
                     )
                 )
             }

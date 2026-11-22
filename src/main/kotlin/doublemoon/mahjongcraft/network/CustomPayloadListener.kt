@@ -1,5 +1,6 @@
 package doublemoon.mahjongcraft.network
 
+import doublemoon.mahjongcraft.logger
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
@@ -38,11 +39,23 @@ interface CustomPayloadListener<T : CustomPacketPayload> {
     @Environment(EnvType.CLIENT)
     fun registerClient() {
         if (!channelType.s2c) return
-        ClientPlayNetworking.registerGlobalReceiver(id, ::onClientReceive)
+        ClientPlayNetworking.registerGlobalReceiver(id) { payload, context ->
+            try {
+                onClientReceive(payload, context)
+            } catch (e: Exception) {
+                logger.warn("Ignored a bad ${id.id()} packet", e)
+            }
+        }
     }
 
     fun registerServer() {
         if (!channelType.c2s) return
-        ServerPlayNetworking.registerGlobalReceiver(id, ::onServerReceive)
+        ServerPlayNetworking.registerGlobalReceiver(id) { payload, context ->
+            try {
+                onServerReceive(payload, context)
+            } catch (e: Exception) {
+                logger.warn("Ignored a bad ${id.id()} packet", e)
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ import doublemoon.mahjongcraft.scheduler.client.OptionalBehaviorHandler
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import doublemoon.mahjongcraft.client.gui.hud.HandHud
 import doublemoon.mahjongcraft.client.gui.hud.TableHud
+import doublemoon.mahjongcraft.client.render.MahjongTileBlockEntityRenderer
 import doublemoon.mahjongcraft.client.render.CodeItemModelProperty
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import doublemoon.mahjongcraft.client.ModConfig
@@ -102,6 +103,7 @@ object MahjongCraftClient : ClientModInitializer {
 
         // BlockEntity Renderer
         BlockEntityRenderers.register(BlockEntityTypeRegistry.mahjongTable, ::MahjongTableBlockEntityRenderer)
+        BlockEntityRenderers.register(BlockEntityTypeRegistry.mahjongTileBlock, ::MahjongTileBlockEntityRenderer)
 
         // Item models pick the tile / scoring stick by its code (see assets/mahjongcraft/items/)
         CodeItemModelProperty.register()

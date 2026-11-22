@@ -77,3 +77,39 @@ Decided 2026-11-19:
   and HUD button).
 - Tsumo loss: the two others pay their normal 4-player share; the missing seat's share is lost.
 - Defaults 35,000 starting points and 40,000 to win (still editable).
+
+## Phase 7: 0.6.0 (disconnect hardening + tile block)
+
+Full handoff brief: `PLAN-0.6.0.md`.
+
+### Riichi disconnect (found 2026-11-23)
+A 0.5.0 client on the 0.5.1 VPS server was kicked with "Network protocol error" in riichi: the
+server's `DiscardRequest` carries the new `auto` field, and the old client's strict
+`Json.decodeFromString` threw `Encountered an unknown key 'auto'` inside the payload handler.
+Immediate fix: put the 0.5.1 jar in the client. In 0.6.0:
+- One shared lenient `Json { ignoreUnknownKeys = true; encodeDefaults = true }` for every
+  mahjong payload (`MahjongGamePayloadListener`, `MahjongTablePayloadListener`, the payload
+  classes), so new fields never break older clients.
+- Catch exceptions in the client and server payload handlers: log the packet and error, never
+  let one bad mahjong packet disconnect the player.
+- Version check: the client sends its mod version when it joins a table; if it differs from the
+  server's, both sides get a message like "Server has MahjongCraft 0.6.0, you have 0.5.1"
+  (joining is still allowed).
+
+### Tile block (tiles as accessories, like candles)
+- New `mahjong_tile_block` with a block entity holding up to 4 tiles, each keeping its face.
+- Sneak + right-click with a tile places it (new block, or adds to an existing one up to 4).
+  This replaces the old loose `MahjongTileEntity` placement; entities already in worlds stay.
+  Plain right-click with a tile still cycles its face.
+- Pose per block: standing (a row facing whoever placed the first tile, like a hand) or flat
+  (2×2, face up). Empty-hand right-click flips the whole block.
+- Sneak + empty-hand right-click takes back the last tile placed; breaking drops every tile with
+  its face.
+- Waterloggable, no light, small outline hitbox, no collision.
+- Block entity renderer draws the tiles with the existing tile models; lang keys in 4 languages;
+  README "Crafting" decoration paragraph and CHANGELOG `## 0.6.0` updated.
+
+### Release
+Both ship together as 0.6.0, released like 0.5.1 (merge to main, build locally, tag, `gh
+release create` as Latest). Tests: unit tests for the lenient decode of a payload with an
+unknown field; in-game check of placing, flipping, taking back and breaking tile blocks.

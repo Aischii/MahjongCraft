@@ -1,6 +1,7 @@
 package doublemoon.mahjongcraft.registry
 
 import doublemoon.mahjongcraft.block.MahjongStool
+import doublemoon.mahjongcraft.block.MahjongTileBlock
 import doublemoon.mahjongcraft.block.MahjongTable
 import doublemoon.mahjongcraft.id
 import net.minecraft.core.Registry
@@ -34,7 +35,18 @@ object BlockRegistry {
             .sound(SoundType.WOOL)
     )
 
+    val mahjongTileBlock = MahjongTileBlock(
+        blockProperties("mahjong_tile_block")
+            .pushReaction(PushReaction.POPPED)
+            .noCollision()
+            .noOcclusion()
+            .instabreak()
+            .noLootTable()
+            .sound(SoundType.BAMBOO)
+    )
+
     fun register() {
+        Registry.register(BuiltInRegistries.BLOCK, id("mahjong_tile_block"), mahjongTileBlock)
         Registry.register(BuiltInRegistries.BLOCK, id("mahjong_stool"), mahjongStool)
         Registry.register(BuiltInRegistries.BLOCK, id("mahjong_table"), mahjongTable)
     }

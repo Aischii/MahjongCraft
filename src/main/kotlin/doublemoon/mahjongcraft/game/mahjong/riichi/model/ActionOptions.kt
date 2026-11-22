@@ -2,7 +2,7 @@ package doublemoon.mahjongcraft.game.mahjong.riichi.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import doublemoon.mahjongcraft.network.PayloadJson
 
 /**
  * One thing a player can answer to a request from the game, such as one specific chii pair,
@@ -31,10 +31,10 @@ data class ActionOption(
 
     /** The behavior and extra data to send to the server when this option is chosen. */
     fun response(): Pair<MahjongGameBehavior, String> = when (behavior) {
-        MahjongGameBehavior.CHII -> behavior to Json.encodeToString(tiles[0] to tiles[1])
+        MahjongGameBehavior.CHII -> behavior to PayloadJson.encodeToString(tiles[0] to tiles[1])
         MahjongGameBehavior.KAKAN, MahjongGameBehavior.ANKAN ->
-            MahjongGameBehavior.ANKAN_OR_KAKAN to Json.encodeToString(tiles.last())
-        MahjongGameBehavior.RIICHI -> behavior to Json.encodeToString(tiles.first())
+            MahjongGameBehavior.ANKAN_OR_KAKAN to PayloadJson.encodeToString(tiles.last())
+        MahjongGameBehavior.RIICHI -> behavior to PayloadJson.encodeToString(tiles.first())
         else -> behavior to ""
     }
 }
@@ -65,17 +65,17 @@ object ActionOptions {
     ): List<ActionOption> = buildList {
         when (behavior) {
             MahjongGameBehavior.CHII -> {
-                val dataList = Json.decodeFromString<List<String>>(data)
-                val claimingTile = Json.decodeFromString<MahjongTile>(dataList[0])
-                Json.decodeFromString<List<Pair<MahjongTile, MahjongTile>>>(dataList[1]).forEach {
+                val dataList = PayloadJson.decodeFromString<List<String>>(data)
+                val claimingTile = PayloadJson.decodeFromString<MahjongTile>(dataList[0])
+                PayloadJson.decodeFromString<List<Pair<MahjongTile, MahjongTile>>>(dataList[1]).forEach {
                     this += ActionOption(behavior, target, listOf(it.first, it.second, claimingTile))
                 }
             }
             MahjongGameBehavior.PON_OR_CHII -> {
-                val dataList = Json.decodeFromString<List<String>>(data)
-                val claimingTile = Json.decodeFromString<MahjongTile>(dataList[0])
-                val tilePairsForChii = Json.decodeFromString<List<Pair<MahjongTile, MahjongTile>>>(dataList[1])
-                val tilePairForPon = Json.decodeFromString<Pair<MahjongTile, MahjongTile>>(dataList[2])
+                val dataList = PayloadJson.decodeFromString<List<String>>(data)
+                val claimingTile = PayloadJson.decodeFromString<MahjongTile>(dataList[0])
+                val tilePairsForChii = PayloadJson.decodeFromString<List<Pair<MahjongTile, MahjongTile>>>(dataList[1])
+                val tilePairForPon = PayloadJson.decodeFromString<Pair<MahjongTile, MahjongTile>>(dataList[2])
                 this += ActionOption(
                     MahjongGameBehavior.PON, target,
                     listOf(tilePairForPon.first, tilePairForPon.second, claimingTile),
@@ -85,15 +85,15 @@ object ActionOptions {
                 }
             }
             MahjongGameBehavior.PON -> {
-                val dataList = Json.decodeFromString<List<String>>(data)
-                val claimingTile = Json.decodeFromString<MahjongTile>(dataList[0])
-                val pair = Json.decodeFromString<Pair<MahjongTile, MahjongTile>>(dataList[1])
+                val dataList = PayloadJson.decodeFromString<List<String>>(data)
+                val claimingTile = PayloadJson.decodeFromString<MahjongTile>(dataList[0])
+                val pair = PayloadJson.decodeFromString<Pair<MahjongTile, MahjongTile>>(dataList[1])
                 this += ActionOption(MahjongGameBehavior.PON, target, listOf(pair.first, pair.second, claimingTile))
             }
             MahjongGameBehavior.ANKAN_OR_KAKAN -> {
-                val dataList = Json.decodeFromString<List<String>>(data)
-                val canAnkanTiles = Json.decodeFromString<Set<MahjongTile>>(dataList[0])
-                val canKakanTiles = Json.decodeFromString<Set<Pair<MahjongTile, ClaimTarget>>>(dataList[1])
+                val dataList = PayloadJson.decodeFromString<List<String>>(data)
+                val canAnkanTiles = PayloadJson.decodeFromString<Set<MahjongTile>>(dataList[0])
+                val canKakanTiles = PayloadJson.decodeFromString<Set<Pair<MahjongTile, ClaimTarget>>>(dataList[1])
                 val redFiveQuantity = MahjongRule.fromJsonString(dataList[2]).redFive.quantity
                 canAnkanTiles.distinctBy { it.mahjong4jTile.code }  // 避免赤牌重複出現槓的選項
                     .forEach { tile ->
@@ -125,8 +125,8 @@ object ActionOptions {
                 }
             }
             MahjongGameBehavior.MINKAN -> { //能出現明槓一定是同時能槓跟碰
-                val dataList = Json.decodeFromString<List<String>>(data)
-                val claimingTile = Json.decodeFromString<MahjongTile>(dataList[0])
+                val dataList = PayloadJson.decodeFromString<List<String>>(data)
+                val claimingTile = PayloadJson.decodeFromString<MahjongTile>(dataList[0])
                 val redFiveQuantity = MahjongRule.fromJsonString(dataList[1]).redFive.quantity
                 val redFiveTile = redFiveOf(claimingTile)
                 if (redFiveQuantity == 0 || redFiveTile == null) {
@@ -145,7 +145,7 @@ object ActionOptions {
                 }
             }
             MahjongGameBehavior.RIICHI -> {
-                Json.decodeFromString<List<Pair<MahjongTile, List<MahjongTile>>>>(data).forEach { (tile, _) ->
+                PayloadJson.decodeFromString<List<Pair<MahjongTile, List<MahjongTile>>>>(data).forEach { (tile, _) ->
                     this += ActionOption(MahjongGameBehavior.RIICHI, target, listOf(tile))
                 }
             }
@@ -156,7 +156,7 @@ object ActionOptions {
                 this += ActionOption(behavior, target, listOf(MahjongTile.NORTH))
             }
             MahjongGameBehavior.RON -> {
-                this += ActionOption(behavior, target, listOf(Json.decodeFromString<MahjongTile>(data)))
+                this += ActionOption(behavior, target, listOf(PayloadJson.decodeFromString<MahjongTile>(data)))
             }
             MahjongGameBehavior.TSUMO -> {
                 this += ActionOption(behavior, target, listOfNotNull(hands.lastOrNull()))
