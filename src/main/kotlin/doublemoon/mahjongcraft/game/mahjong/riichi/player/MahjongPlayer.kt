@@ -12,7 +12,7 @@ import doublemoon.mahjongcraft.network.sendPayloadToPlayer
 import doublemoon.mahjongcraft.scheduler.server.ServerScheduler
 import doublemoon.mahjongcraft.util.delayOnServer
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import doublemoon.mahjongcraft.network.PayloadJson
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.network.chat.Component
@@ -97,7 +97,7 @@ class MahjongPlayer(
         lastSyncedTable = state
         sendPayloadToPlayer(
             player = entity,
-            payload = MahjongGamePayload(behavior = MahjongGameBehavior.TABLE_STATE, extraData = Json.encodeToString(state))
+            payload = MahjongGamePayload(behavior = MahjongGameBehavior.TABLE_STATE, extraData = PayloadJson.encodeToString(state))
         )
     }
 
@@ -129,7 +129,7 @@ class MahjongPlayer(
         this.cannotDiscardTiles = cannotDiscardTiles
         return waitForBehaviorResult(
             behavior = MahjongGameBehavior.DISCARD,
-            extraData = Json.encodeToString(DiscardRequest(skippable, cannotDiscardTiles)),
+            extraData = PayloadJson.encodeToString(DiscardRequest(skippable, cannotDiscardTiles)),
             target = ClaimTarget.SELF,
             skippable = skippable
         ) { behavior, data ->
@@ -152,7 +152,7 @@ class MahjongPlayer(
                 behavior = MahjongGameBehavior.DISCARD,
                 hands = hands.toMahjongTileList(),
                 target = ClaimTarget.SELF,
-                extraData = Json.encodeToString(DiscardRequest(false, cannotDiscardTiles, auto = true))
+                extraData = PayloadJson.encodeToString(DiscardRequest(false, cannotDiscardTiles, auto = true))
             )
         )
         delayOnServer(AUTO_DISCARD_MS)
@@ -161,7 +161,7 @@ class MahjongPlayer(
             player = entity,
             payload = MahjongGamePayload(
                 behavior = MahjongGameBehavior.COUNTDOWN_TIME,
-                extraData = Json.encodeToString<Pair<Int?, Int?>>(null to null)
+                extraData = PayloadJson.encodeToString<Pair<Int?, Int?>>(null to null)
             )
         )
         return tile
@@ -178,16 +178,16 @@ class MahjongPlayer(
         target: ClaimTarget,
     ): Pair<MahjongTile, MahjongTile>? = waitForBehaviorResult(
         behavior = MahjongGameBehavior.CHII,
-        extraData = Json.encodeToString( //轉成 Json 字串傳過去
+        extraData = PayloadJson.encodeToString( //轉成 Json 字串傳過去
             listOf(
-                Json.encodeToString(tile),
-                Json.encodeToString(tilePairs)
+                PayloadJson.encodeToString(tile),
+                PayloadJson.encodeToString(tilePairs)
             )
         ),
         target = target
     ) { behavior, data ->
         val result = runCatching {
-            Json.decodeFromString<Pair<MahjongTile, MahjongTile>>(data)
+            PayloadJson.decodeFromString<Pair<MahjongTile, MahjongTile>>(data)
         }.getOrNull() ?: return@waitForBehaviorResult null
         if (behavior == MahjongGameBehavior.CHII && result in tilePairs) result
         else null
@@ -210,11 +210,11 @@ class MahjongPlayer(
             MahjongGameBehavior.PON,
             MahjongGameBehavior.SKIP
         ),
-        extraData = Json.encodeToString( //轉成 Json 字串傳過去
+        extraData = PayloadJson.encodeToString( //轉成 Json 字串傳過去
             listOf(
-                Json.encodeToString(tile),
-                Json.encodeToString(tilePairsForChii),
-                Json.encodeToString(tilePairForPon)
+                PayloadJson.encodeToString(tile),
+                PayloadJson.encodeToString(tilePairsForChii),
+                PayloadJson.encodeToString(tilePairForPon)
             )
         ),
         target = target
@@ -222,7 +222,7 @@ class MahjongPlayer(
         when (behavior) {
             MahjongGameBehavior.CHII -> {
                 val result = runCatching {
-                    Json.decodeFromString<Pair<MahjongTile, MahjongTile>>(data)
+                    PayloadJson.decodeFromString<Pair<MahjongTile, MahjongTile>>(data)
                 }.getOrNull() ?: return@waitForBehaviorResult null
                 if (result in tilePairsForChii) result else null
             }
@@ -243,10 +243,10 @@ class MahjongPlayer(
         target: ClaimTarget,
     ): Boolean = waitForBehaviorResult(
         behavior = MahjongGameBehavior.PON,
-        extraData = Json.encodeToString( //轉成 Json 字串傳過去
+        extraData = PayloadJson.encodeToString( //轉成 Json 字串傳過去
             listOf(
-                Json.encodeToString(tile),
-                Json.encodeToString(tilePairForPon)
+                PayloadJson.encodeToString(tile),
+                PayloadJson.encodeToString(tilePairForPon)
             )
         ),
         target = target
@@ -265,17 +265,17 @@ class MahjongPlayer(
         rule: MahjongRule,
     ): MahjongTile? = waitForBehaviorResult(
         behavior = MahjongGameBehavior.ANKAN_OR_KAKAN,
-        extraData = Json.encodeToString(
+        extraData = PayloadJson.encodeToString(
             listOf(
-                Json.encodeToString(canAnkanTiles),
-                Json.encodeToString(canKakanTiles),
+                PayloadJson.encodeToString(canAnkanTiles),
+                PayloadJson.encodeToString(canKakanTiles),
                 rule.toJsonString()
             )
         ),
         target = ClaimTarget.SELF
     ) { behavior, data ->
         val result = runCatching {
-            Json.decodeFromString<MahjongTile>(data)
+            PayloadJson.decodeFromString<MahjongTile>(data)
         }.getOrNull() ?: return@waitForBehaviorResult null
         if (behavior == MahjongGameBehavior.ANKAN_OR_KAKAN) {
             if (result in canAnkanTiles || result in canKakanTiles.unzip().first) result else null
@@ -296,9 +296,9 @@ class MahjongPlayer(
     ): MahjongGameBehavior = waitForBehaviorResult(
         behavior = MahjongGameBehavior.MINKAN,
         waitingBehavior = listOf(MahjongGameBehavior.PON, MahjongGameBehavior.MINKAN),
-        extraData = Json.encodeToString(
+        extraData = PayloadJson.encodeToString(
             listOf(
-                Json.encodeToString(tile),
+                PayloadJson.encodeToString(tile),
                 rule.toJsonString()
             )
         ),
@@ -319,11 +319,11 @@ class MahjongPlayer(
     override suspend fun askToRiichi(tilePairsForRiichi: List<Pair<MahjongTile, List<MahjongTile>>>): MahjongTile? =
         waitForBehaviorResult(
             behavior = MahjongGameBehavior.RIICHI,
-            extraData = Json.encodeToString(tilePairsForRiichi),
+            extraData = PayloadJson.encodeToString(tilePairsForRiichi),
             target = ClaimTarget.SELF
         ) { behavior, data ->
             val result = runCatching {
-                Json.decodeFromString<MahjongTile>(data)
+                PayloadJson.decodeFromString<MahjongTile>(data)
             }.getOrNull() ?: return@waitForBehaviorResult null
             if (behavior == MahjongGameBehavior.RIICHI && result in tilePairsForRiichi.unzip().first) result
             else null
@@ -349,7 +349,7 @@ class MahjongPlayer(
      * */
     override suspend fun askToRon(tile: MahjongTile, target: ClaimTarget): Boolean = waitForBehaviorResult(
         behavior = MahjongGameBehavior.RON,
-        extraData = Json.encodeToString(tile),
+        extraData = PayloadJson.encodeToString(tile),
         target = target
     ) { behavior, _ ->
         behavior == MahjongGameBehavior.RON
@@ -375,7 +375,7 @@ class MahjongPlayer(
      * 發送給玩家行為 [behavior],
      * 傳過去的資料分別是 :
      * 1.手牌 [hands]
-     * 2.額外資料 [extraData] (轉成 [Json] 字串列表後傳給玩家)
+     * 2.額外資料 [extraData] (轉成 [PayloadJson] 字串列表後傳給玩家)
      * 3.鳴牌對象
      *
      * 最後收到的結果的時候會執行 [onResult], 會傳回對應的 [MahjongGameBehavior] 以及字串形式的資料 [String],
@@ -421,7 +421,7 @@ class MahjongPlayer(
                     player = entity,
                     payload = MahjongGamePayload(
                         behavior = MahjongGameBehavior.COUNTDOWN_TIME,
-                        extraData = Json.encodeToString<Pair<Int?, Int?>>(tBase to tExtra)
+                        extraData = PayloadJson.encodeToString<Pair<Int?, Int?>>(tBase to tExtra)
                     )
                 )
 
@@ -440,7 +440,7 @@ class MahjongPlayer(
             player = entity,
             payload = MahjongGamePayload(
                 behavior = MahjongGameBehavior.COUNTDOWN_TIME,
-                extraData = Json.encodeToString<Pair<Int?, Int?>>(null to null)
+                extraData = PayloadJson.encodeToString<Pair<Int?, Int?>>(null to null)
             )
         )
 

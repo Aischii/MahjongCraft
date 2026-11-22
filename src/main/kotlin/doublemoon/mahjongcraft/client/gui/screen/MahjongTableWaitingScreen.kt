@@ -1,5 +1,8 @@
 package doublemoon.mahjongcraft.client.gui.screen
 
+import doublemoon.mahjongcraft.network.PayloadJson
+import doublemoon.mahjongcraft.network.mahjong_table.TableJoinData
+import doublemoon.mahjongcraft.network.mahjong_table.mahjongCraftVersion
 import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.blockentity.MahjongTableBlockEntity
 import doublemoon.mahjongcraft.client.gui.widget.*
@@ -114,6 +117,7 @@ class MahjongTableGui(
                         sendPayloadToServer(
                             payload = MahjongTablePayload(
                                 behavior = MahjongTableBehavior.JOIN,
+                                extraData = PayloadJson.encodeToString(TableJoinData(mahjongCraftVersion)),
                                 pos = mahjongTable.blockPos
                             )
                         )

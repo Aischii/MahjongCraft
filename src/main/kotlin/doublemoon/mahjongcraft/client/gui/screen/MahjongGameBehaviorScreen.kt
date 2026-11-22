@@ -15,7 +15,7 @@ import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription
 import io.github.cottonmc.cotton.gui.widget.WPlainPanel
 import io.github.cottonmc.cotton.gui.widget.data.Color
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import doublemoon.mahjongcraft.network.PayloadJson
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.network.chat.Component
@@ -236,7 +236,7 @@ class MahjongGameBehaviorGui(
                         this += Component.translatable("$MOD_ID.game.machi").withStyle(ChatFormatting.RED)
                             .withStyle(ChatFormatting.BOLD)
                         val tilePairsForRiichi =
-                            Json.decodeFromString<MutableList<Pair<MahjongTile, MutableList<MahjongTile>>>>(data)
+                            PayloadJson.decodeFromString<MutableList<Pair<MahjongTile, MutableList<MahjongTile>>>>(data)
                         val pair = tilePairsForRiichi.find { it.first == tiles[0] }
                         val machi = pair!!.second
                             .distinctBy { tile -> tile.toText().string } //去掉重複的選項
@@ -267,7 +267,7 @@ class MahjongGameBehaviorGui(
                             sendPayloadToServer(
                                 payload = MahjongGamePayload(
                                     behavior = behavior,
-                                    extraData = Json.encodeToString(pair)
+                                    extraData = PayloadJson.encodeToString(pair)
                                 )
                             )
                         }
@@ -275,7 +275,7 @@ class MahjongGameBehaviorGui(
                             sendPayloadToServer(
                                 payload = MahjongGamePayload(
                                     behavior = MahjongGameBehavior.ANKAN_OR_KAKAN,
-                                    extraData = Json.encodeToString(tiles.last())
+                                    extraData = PayloadJson.encodeToString(tiles.last())
                                 )
                             )
                         }
@@ -291,7 +291,7 @@ class MahjongGameBehaviorGui(
                             sendPayloadToServer(
                                 payload = MahjongGamePayload(
                                     behavior = MahjongGameBehavior.RIICHI,
-                                    extraData = Json.encodeToString(tiles.first())
+                                    extraData = PayloadJson.encodeToString(tiles.first())
                                 )
                             )
                         }

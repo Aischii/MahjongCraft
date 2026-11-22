@@ -1,4 +1,6 @@
 {
+  "block.mahjongcraft.mahjong_tile_block": "Mahjong Tiles",
+  "mahjongcraft.message.version_mismatch": "This server has MahjongCraft %s, you have %s. Please update.",
   "config.mahjongcraft.title": "MahjongCraft Options",
   "config.mahjongcraft.display_table_labels": "Display Mahjong Table Labels",
   "config.mahjongcraft.hud.background_color": "HUD Background Color",
@@ -296,7 +298,7 @@
   "mahjongcraft.guide.tab.controls": "Controls",
   "mahjongcraft.guide.tab.rules": "Rules",
   "mahjongcraft.guide.tab.yaku": "Yaku",
-  "mahjongcraft.guide.crafting.intro": "To play, place a Mahjong Table, load a Tile Set into it, and right-click the table. Stools are for sitting around it; loose tiles, sticks and dice are for decoration.",
+  "mahjongcraft.guide.crafting.intro": "To play, place a Mahjong Table, load a Tile Set into it, and right-click the table. Stools are for sitting around it; loose tiles, sticks and dice are for decoration. Sneak + right-click to place up to four tiles in one block. Right-click the placed tiles with an empty hand to flip them between standing and flat. Sneak + right-click with an empty hand to take the last tile back.",
   "mahjongcraft.guide.recipe.mahjong_table": "3 lime or green carpet across the top, a wooden fence in the middle, a wooden slab at the bottom.",
   "mahjongcraft.guide.recipe.mahjong_tile_set": "8 Mahjong Tiles around a chest. Right-click a table with it to load it.",
   "mahjongcraft.guide.recipe.mahjong_stool": "2 gray carpet on top of 2 sticks.",

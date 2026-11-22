@@ -1,4 +1,6 @@
 {
+  "block.mahjongcraft.mahjong_tile_block": "麻将牌",
+  "mahjongcraft.message.version_mismatch": "服务器的 MahjongCraft 版本为 %s，你的版本为 %s。请更新。",
   "config.mahjongcraft.title": "MahjongCraft 选项",
   "config.mahjongcraft.display_table_labels": "显示麻将桌的标签",
   "config.mahjongcraft.hud.background_color": "HUD 背景颜色",
@@ -296,7 +298,7 @@
   "mahjongcraft.guide.tab.controls": "操作",
   "mahjongcraft.guide.tab.rules": "规则",
   "mahjongcraft.guide.tab.yaku": "役种",
-  "mahjongcraft.guide.crafting.intro": "放置麻将桌，放入牌组后右键点击麻将桌即可游玩。椅子用来坐在桌边；单独的牌、点棒和骰子是装饰用的。",
+  "mahjongcraft.guide.crafting.intro": "放置麻将桌，放入牌组后右键点击麻将桌即可游玩。椅子用来坐在桌边；单独的牌、点棒和骰子是装饰用的。 潜行并右键可在一格内放置最多四张牌。空手右键可在立牌和平放之间切换。空手潜行并右键可取回最后放置的一张牌。",
   "mahjongcraft.guide.recipe.mahjong_table": "上排 3 个黄绿色或绿色地毯，中间一个木栅栏，下方一个木台阶。",
   "mahjongcraft.guide.recipe.mahjong_tile_set": "箱子周围放 8 张麻将牌。手持它右键点击麻将桌即可放入。",
   "mahjongcraft.guide.recipe.mahjong_stool": "2 根木棍上方放 2 个灰色地毯。",

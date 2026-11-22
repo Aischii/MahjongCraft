@@ -1,4 +1,6 @@
 {
+  "block.mahjongcraft.mahjong_tile_block": "麻雀牌",
+  "mahjongcraft.message.version_mismatch": "サーバーの MahjongCraft は %s、あなたのバージョンは %s です。アップデートしてください。",
   "config.mahjongcraft.title": "MahjongCraft オプション",
   "config.mahjongcraft.display_table_labels": "麻雀テーブルのタブをディスプレイしました",
   "config.mahjongcraft.hud.background_color": "HUDの背景色",
@@ -296,7 +298,7 @@
   "mahjongcraft.guide.tab.controls": "操作",
   "mahjongcraft.guide.tab.rules": "ルール",
   "mahjongcraft.guide.tab.yaku": "役",
-  "mahjongcraft.guide.crafting.intro": "遊ぶには麻雀卓を置き、牌セットを入れてから卓を右クリックします。椅子は卓の周りに座るため、単体の牌・点棒・サイコロは飾り用です。",
+  "mahjongcraft.guide.crafting.intro": "遊ぶには麻雀卓を置き、牌セットを入れてから卓を右クリックします。椅子は卓の周りに座るため、単体の牌・点棒・サイコロは飾り用です。 スニークしながら右クリックすると、1ブロックに最大4枚の牌を置けます。素手で右クリックすると牌が立った状態と寝かせた状態を切り替えられます。素手でスニークしながら右クリックすると、最後に置いた牌を回収できます。",
   "mahjongcraft.guide.recipe.mahjong_table": "上段に黄緑色か緑色のカーペット3枚、中段に木のフェンス、下段に木のハーフブロック。",
   "mahjongcraft.guide.recipe.mahjong_tile_set": "チェストの周りに麻雀牌8個。持って卓を右クリックすると入れられます。",
   "mahjongcraft.guide.recipe.mahjong_stool": "棒2本の上に灰色のカーペット2枚。",

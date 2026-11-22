@@ -4,7 +4,7 @@ import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.util.TextFormatting
 import doublemoon.mahjongcraft.util.plus
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import doublemoon.mahjongcraft.network.PayloadJson
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.Component
 import net.minecraft.ChatFormatting
@@ -58,7 +58,7 @@ data class MahjongRule(
     val finalRound: Pair<Wind, Int> get() = length.finalRound.first to (seats - 1)
 
     //將 MahjongRule 編碼成 json 格式的 String
-    fun toJsonString(): String = Json.encodeToString(serializer(), this)
+    fun toJsonString(): String = PayloadJson.encodeToString(serializer(), this)
 
     fun toTexts(
         color1: ChatFormatting = ChatFormatting.RED,
@@ -114,7 +114,7 @@ data class MahjongRule(
 
     companion object {
         //從 json 格式的 String 解碼回 MahjongRule
-        fun fromJsonString(jsonString: String): MahjongRule = Json.decodeFromString(serializer(), jsonString)
+        fun fromJsonString(jsonString: String): MahjongRule = PayloadJson.decodeFromString(serializer(), jsonString)
 
         const val MAX_POINTS = 200000
         const val MIN_POINTS = 100

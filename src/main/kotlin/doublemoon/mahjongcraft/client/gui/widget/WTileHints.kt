@@ -16,7 +16,7 @@ import io.github.cottonmc.cotton.gui.widget.data.Color
 import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import io.github.cottonmc.cotton.gui.widget.data.VerticalAlignment
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import doublemoon.mahjongcraft.network.PayloadJson
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
@@ -101,7 +101,7 @@ class WTileHints(
                 sendPayloadToServer(
                     payload = MahjongGamePayload(
                         behavior = MahjongGameBehavior.MACHI,
-                        extraData = Json.encodeToString(mahjongTile)
+                        extraData = PayloadJson.encodeToString(mahjongTile)
                     )
                 )
             }

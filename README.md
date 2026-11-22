@@ -171,7 +171,7 @@ The Table, Stool and Scoring Stick recipes can sit anywhere in the crafting grid
 
 To play you need a table with a Tile Set loaded; the tiles, sticks and dice on the table are spawned for each game. A loaded set stays in the table and drops when the table is broken. Creative-mode players can start without one.
 
-The loose tiles, sticks and dice are for decoration. Right-click a tile or stick to change which one it is, and sneak + right-click a block to place it.
+Tiles, sticks and dice are for decoration. Right-click a tile or stick to change its face, then sneak + right-click a block to place it. Place up to four tiles in one block. Right-click the placed tiles with an empty hand to flip them between standing and flat. Sneak + right-click with an empty hand to take back the last tile you placed.
 
 **Finding items without crafting:** wandering traders sometimes sell a Tile Set, dice or a Mahjong Guide for emeralds, and village house chests sometimes hold dice, scoring sticks or a Guide.
 
