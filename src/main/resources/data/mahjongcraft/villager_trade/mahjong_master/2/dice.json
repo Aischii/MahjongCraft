@@ -1,0 +1,13 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 1
+  },
+  "gives": {
+    "id": "mahjongcraft:dice",
+    "count": 2
+  },
+  "xp": 5,
+  "max_uses": 12,
+  "reputation_discount": 0.05
+}

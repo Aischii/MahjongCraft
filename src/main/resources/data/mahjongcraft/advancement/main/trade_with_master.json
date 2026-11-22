@@ -1,0 +1,37 @@
+{
+  "parent": "mahjongcraft:main/root",
+  "display": {
+    "icon": {
+      "id": "minecraft:emerald"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.trade_with_master.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.trade_with_master.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:villager_trade",
+      "conditions": {
+        "villager": {
+          "entity": "this",
+          "predicate": {
+            "minecraft:entity_type": "minecraft:villager",
+            "minecraft:nbt": {
+              "VillagerData": {
+                "profession": "mahjongcraft:mahjong_master"
+              }
+            }
+          },
+          "type": "minecraft:entity_properties"
+        }
+      }
+    }
+  }
+}

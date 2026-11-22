@@ -1,5 +1,6 @@
 package doublemoon.mahjongcraft.game.progress
 
+import doublemoon.mahjongcraft.game.mahjong.riichi.model.MahjongGameBehavior
 import doublemoon.mahjongcraft.game.mahjong.riichi.model.YakuSettlement
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayer
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayerBase
@@ -25,8 +26,8 @@ object MahjongProgress {
         players.forEach { stats(it) { recordHand() } }
     }
 
-    fun onWins(players: List<MahjongPlayer>, settlements: List<YakuSettlement>) {
-        MahjongAdvancements.onWins(players, settlements)
+    fun onWins(players: List<MahjongPlayer>, settlements: List<YakuSettlement>, winMethod: MahjongGameBehavior?) {
+        MahjongAdvancements.onWins(players, settlements, winMethod)
         settlements.forEach { settlement ->
             val winner = players.find { it.uuid == settlement.uuid } ?: return@forEach
             stats(winner) { recordWin(yakuKeys(settlement)) }
@@ -37,11 +38,12 @@ object MahjongProgress {
     fun onDealIn(player: MahjongPlayer) = stats(player) { recordDealIn() }
 
     /** The game reached its end; [ranking] is every seat, first place first. */
-    fun onGameFinished(ranking: List<MahjongPlayerBase>) {
+    fun onGameFinished(ranking: List<MahjongPlayerBase>, sanma: Boolean) {
         MahjongAdvancements.onGameWon(ranking.firstOrNull() as? MahjongPlayer)
         val now = System.currentTimeMillis()
         ranking.forEachIndexed { index, player ->
             if (player is MahjongPlayer) {
+                MahjongAdvancements.matchAwards(sanma, index).forEach { MahjongAdvancements.award(player.entity, it) }
                 stats(player) { recordGame(GameRecord(endedAt = now, placement = index + 1, points = player.points)) }
             }
         }

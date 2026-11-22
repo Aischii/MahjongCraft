@@ -155,6 +155,9 @@ class GuideScreen(private var tab: Tab = Tab.CRAFTING) :
                 item(ItemRegistry.mahjongTile, "$MOD_ID.guide.recipe.mahjong_tile")
                 item(ItemRegistry.mahjongScoringStick, "$MOD_ID.guide.recipe.mahjong_scoring_stick")
                 item(ItemRegistry.dice, "$MOD_ID.guide.recipe.dice")
+                heading("$MOD_ID.guide.progression")
+                paragraph(Component.translatable("$MOD_ID.guide.progression.trades"), GREY)
+                paragraph(Component.translatable("$MOD_ID.guide.progression.milestones"), GREY)
             }
             Tab.CONTROLS -> {
                 paragraph(Component.translatable("$MOD_ID.guide.controls.intro"), GREY)

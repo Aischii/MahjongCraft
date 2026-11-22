@@ -1,0 +1,23 @@
+{
+  "parent": "mahjongcraft:main/play_a_hand",
+  "display": {
+    "icon": {
+      "id": "mahjongcraft:mahjong_table"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.finish_sanma.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.finish_sanma.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

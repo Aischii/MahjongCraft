@@ -11,6 +11,7 @@ import doublemoon.mahjongcraft.game.mahjong.riichi.model.*
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongBot
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayer
 import doublemoon.mahjongcraft.game.progress.MahjongProgress
+import doublemoon.mahjongcraft.game.progress.MahjongAdvancements
 import doublemoon.mahjongcraft.game.mahjong.riichi.player.MahjongPlayerBase
 import net.minecraft.sounds.SoundEvents
 import doublemoon.mahjongcraft.entity.MahjongTileEntity
@@ -419,6 +420,7 @@ class MahjongGame(
                             val northTile = player.kitaTile ?: break@kitaLoop
                             if (!player.askToKita()) break@kitaLoop
                             player.kita(northTile)
+                            if (player is MahjongPlayer) MahjongAdvancements.award(player.entity, "first_kita")
                             player.playSoundAtSeat(soundEvent = SoundRegistry.kan)
                             board.sortFuuro(player = player)
                             val replacement = board.drawRinshanTile(player = player, isKita = true)
@@ -960,7 +962,7 @@ class MahjongGame(
 
     /** The game reached its last hand (not broken off): credit the player who finished first. */
     private fun onGameFinished() {
-        MahjongProgress.onGameFinished(players.sortedByDescending { it.points })
+        MahjongProgress.onGameFinished(players.sortedByDescending { it.points }, rule.isSanma)
     }
 
     /**
@@ -1243,7 +1245,7 @@ class MahjongGame(
             titleTranslateKey = MahjongGameBehavior.RON.translateKey,
             scoreList = scoreList
         )
-        realPlayers.sendSettlePacketAndDelay(yakuSettlementList, scoreSettlement)
+        realPlayers.sendSettlePacketAndDelay(yakuSettlementList, scoreSettlement, winMethod = MahjongGameBehavior.RON)
     }
 
     /**
@@ -1333,6 +1335,7 @@ class MahjongGame(
             scoreList = scoreList
         )
         realPlayers.sendSettlePacketAndDelay(
+            winMethod = MahjongGameBehavior.TSUMO,
             yakuSettlementList = yakuSettlementList,
             scoreSettlement = scoreSettlement
         )
@@ -1397,9 +1400,10 @@ class MahjongGame(
     private suspend fun List<MahjongPlayer>.sendSettlePacketAndDelay(
         yakuSettlementList: List<YakuSettlement>? = null,
         scoreSettlement: ScoreSettlement? = null,
+        winMethod: MahjongGameBehavior? = null,
     ) {
         if (yakuSettlementList != null) {
-            MahjongProgress.onWins(this, yakuSettlementList)
+            MahjongProgress.onWins(this, yakuSettlementList, winMethod)
             this.forEach { //發送給玩家役結算畫面的數據
                 sendPayloadToPlayer(
                     player = it.entity,

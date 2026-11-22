@@ -1,0 +1,23 @@
+{
+  "parent": "mahjongcraft:main/finish_sanma",
+  "display": {
+    "icon": {
+      "id": "mahjongcraft:mahjong_scoring_stick"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.win_sanma.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.win_sanma.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

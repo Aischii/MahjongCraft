@@ -1,0 +1,23 @@
+{
+  "parent": "mahjongcraft:main/root",
+  "display": {
+    "icon": {
+      "id": "mahjongcraft:mahjong_tile_set"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.load_tile_set.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.load_tile_set.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

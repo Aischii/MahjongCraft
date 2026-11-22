@@ -1,0 +1,13 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 1
+  },
+  "gives": {
+    "id": "mahjongcraft:mahjong_scoring_stick",
+    "count": 6
+  },
+  "xp": 10,
+  "max_uses": 12,
+  "reputation_discount": 0.05
+}
