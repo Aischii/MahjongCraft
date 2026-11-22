@@ -1,5 +1,6 @@
 package doublemoon.mahjongcraft.block
 
+import doublemoon.mahjongcraft.game.progress.MahjongAdvancements
 import doublemoon.mahjongcraft.MOD_ID
 import doublemoon.mahjongcraft.block.enums.MahjongTablePart
 import doublemoon.mahjongcraft.blockentity.MahjongTableBlockEntity
@@ -121,6 +122,7 @@ class MahjongTable(settings: Properties) : BaseEntityBlock(settings) {
         if (table.tileSetLoaded) return InteractionResult.TRY_WITH_EMPTY_HAND
         if (!world.isClientSide) {
             table.tileSetLoaded = true
+            if (player is ServerPlayer) MahjongAdvancements.award(player, "load_tile_set")
             table.setChanged()
             stack.consume(1, player)
             world.playSound(null, centerPos, SoundEvents.BAMBOO_WOOD_PLACE, SoundSource.BLOCKS, 1f, 1.2f)

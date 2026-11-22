@@ -1,5 +1,7 @@
 package doublemoon.mahjongcraft.item
 
+import net.minecraft.server.level.ServerPlayer
+import doublemoon.mahjongcraft.game.progress.MahjongAdvancements
 import doublemoon.mahjongcraft.block.MahjongTileBlock
 import doublemoon.mahjongcraft.blockentity.MahjongTileBlockEntity
 import doublemoon.mahjongcraft.registry.BlockRegistry
@@ -71,6 +73,7 @@ class MahjongTile(settings: Properties) : Item(settings) {
         }
         val tiles = level.getBlockEntity(pos) as? MahjongTileBlockEntity ?: return InteractionResult.FAIL
         if (!tiles.addTile(code, player.direction.opposite)) return InteractionResult.FAIL
+        if (tiles.isFull && player is ServerPlayer) MahjongAdvancements.award(player, "place_four_tiles")
         if (!player.abilities.instabuild) context.itemInHand.shrink(1)
         val sound = tiles.blockState.soundType
         level.playSound(null, pos, sound.placeSound, SoundSource.BLOCKS, (sound.volume + 1f) / 2f, sound.pitch * 0.8f)

@@ -1,0 +1,8 @@
+{
+  "amount": 2,
+  "trades": [
+    "mahjongcraft:mahjong_master/1/mahjong_book",
+    "mahjongcraft:mahjong_master/1/mahjong_tile_set"
+  ],
+  "random_sequence": "mahjongcraft:trade_set/mahjong_master/level_1"
+}

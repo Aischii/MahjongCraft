@@ -1,0 +1,23 @@
+{
+  "parent": "mahjongcraft:main/win_a_yakuman",
+  "display": {
+    "icon": {
+      "id": "mahjongcraft:mahjong_tile"
+    },
+    "title": {
+      "translate": "advancements.mahjongcraft.four_concealed_triplets.title"
+    },
+    "description": {
+      "translate": "advancements.mahjongcraft.four_concealed_triplets.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

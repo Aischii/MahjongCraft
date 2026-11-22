@@ -2,6 +2,14 @@
 
 All notable changes to this fork of MahjongCraft. Each release's notes on GitHub are taken from its section here.
 
+## 0.7.0
+
+### Survival
+- Recruit a Mahjong Master at a Mahjong Table and trade emeralds for a Guide, Tile Set, and decorations.
+
+### Playing
+- Earn eleven advancements for table setup, trading, decoration, sanma, winning plays, and named yakuman. The Guide’s Crafting tab explains progression.
+
 ## 0.6.0
 
 ### Playing

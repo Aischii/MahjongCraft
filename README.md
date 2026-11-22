@@ -201,7 +201,14 @@ Each world (or server) keeps a mahjong record for every player. Bots are not rec
 
 See your own record in the Guide's Stats tab or with `/mahjong stats`, and anyone else's with `/mahjong stats <player>`.
 
+## Mahjong Master
+
+Place a Mahjong Table near an unemployed villager. One villager can work at the center of the table, even before you load a Tile Set. The Novice sells a Guide for 3 emeralds and a Tile Set for 8. Apprentice offers loose tiles and dice, Journeyman offers scoring sticks, Expert offers stools, and Master sells a larger tile bundle.
+
 ## Advancements
+
+The survival branch rewards loading a set, buying from a Mahjong Master, and placing four tiles together. At the table, earn milestones for Kita, Ron, Tsumo, and finishing or winning a sanma match. The yakuman challenges recognize Thirteen Orphans, Four Concealed Triplets, and Big Three Dragons. Bot matches count for seated human players.
+
 
 The **MahjongCraft** advancement tab has six goals: craft a table, play your first hand, declare riichi, win a hand, win with a yakuman (hidden until you get it) and finish first in a full game.
 

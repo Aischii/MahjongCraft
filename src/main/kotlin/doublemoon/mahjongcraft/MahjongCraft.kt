@@ -32,6 +32,7 @@ object MahjongCraft : ModInitializer {
         BlockRegistry.register()
         BlockEntityTypeRegistry.register()
         SoundRegistry.register()
+        MahjongMaster.register()
         doublemoon.mahjongcraft.game.progress.MahjongGameRules.register()
         doublemoon.mahjongcraft.game.progress.MahjongLoot.register()
         doublemoon.mahjongcraft.game.progress.MahjongCommands.register()
